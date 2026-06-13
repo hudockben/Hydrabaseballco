@@ -35,6 +35,40 @@ python3 -m http.server 8000
 # then visit http://localhost:8000
 ```
 
+## Deploy on Vercel (auto-deploy)
+
+This repo is Vercel-ready (`vercel.json`, static — no build step). Connect it
+once and every push deploys automatically.
+
+1. Go to [vercel.com](https://vercel.com) and sign in **with GitHub**.
+2. Click **Add New… → Project**.
+3. **Import** the `hudockben/hydrabaseballco` repository.
+   (If you don't see it, click *Adjust GitHub App Permissions* and grant access.)
+4. Leave the defaults — **Framework Preset: Other**, no build command,
+   root directory `./` — and click **Deploy**.
+
+After that, Vercel deploys on every push:
+
+- **Production** ← your **Production Branch** (default `main`).
+- **Preview URL** ← every other branch and pull request.
+
+> **Heads-up:** this landing page currently lives on the
+> `claude/clever-keller-ddez9k` branch, so it will get a **preview** URL, not a
+> production one. To make it your live production site, either merge it into
+> `main`, or in **Vercel → Project Settings → Git → Production Branch** point
+> production at this branch.
+
+### Or deploy from the CLI
+
+```bash
+npm i -g vercel
+vercel          # first run links/creates the project
+vercel --prod   # promote to production
+```
+
+The CLI is great for one-off deploys, but the **GitHub import above is what
+enables automatic deploys on push**.
+
 ## Deploy with GitHub Pages
 
 1. Push to GitHub (this repo: `hudockben/hydrabaseballco`).
