@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydra Baseball Co. — Built for Competition</title>
+  <meta name="description" content="Hydra Baseball Co. crafts competition-grade baseballs — full grain leather, cork and rubber cores, built for every pitch, every inning, every game." />
+  <meta name="theme-color" content="#15151a" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Hydra Baseball Co. — Built for Competition" />
+  <meta property="og:description" content="Competition-grade baseballs. Full grain leather. Built for the game." />
+  <meta property="og:type" content="website" />
+
+  <!-- Favicon (inline SVG) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2315151a'/><text x='50' y='74' font-family='Arial' font-size='72' font-weight='800' font-style='italic' fill='white' text-anchor='middle'>H</text></svg>" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Saira+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700;1,800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== Navigation ===== -->
+  <header class="nav" id="nav">
+    <div class="container nav__inner">
+      <a href="#top" class="brand" aria-label="Hydra Baseball Co. home">
+        <span class="brand__mark" aria-hidden="true">H<sup>™</sup></span>
+        <span class="brand__name">Hydra<span class="brand__sub">Baseball Co.</span></span>
+      </a>
+
+      <nav class="nav__links" id="navLinks" aria-label="Primary">
+        <a href="#products">Products</a>
+        <a href="#prime">Hydra Prime</a>
+        <a href="#heritage">Heritage</a>
+        <a href="#contact">Contact</a>
+        <a href="#products" class="btn btn--small btn--solid">Shop Baseballs</a>
+      </nav>
+
+      <button class="nav__toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="top">
+    <div class="hero__glow" aria-hidden="true"></div>
+    <span class="hero__watermark" aria-hidden="true">H</span>
+
+    <div class="container hero__inner reveal">
+      <span class="hero__emblem" aria-hidden="true">H<sup>™</sup></span>
+      <h1 class="hero__title">HYDRA<span>BASEBALL CO.</span></h1>
+      <p class="hero__tagline">Built for Competition.</p>
+      <p class="hero__lead">
+        Competition-grade baseballs engineered with full grain leather and
+        precision cores — for every pitch, every inning, every game.
+      </p>
+      <div class="hero__cta">
+        <a href="#products" class="btn btn--solid">Shop Baseballs</a>
+        <a href="#heritage" class="btn btn--ghost">Our Heritage</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Brand color stripe ===== -->
+  <section class="stripe" aria-hidden="true">
+    <div class="stripe__panel stripe__panel--cream"><span>H</span></div>
+    <div class="stripe__panel stripe__panel--bronze"><span>H</span></div>
+    <div class="stripe__panel stripe__panel--ink"><span>H</span></div>
+  </section>
+
+  <!-- ===== Featured product: Hydra Prime ===== -->
+  <section class="prime" id="prime">
+    <div class="container prime__inner">
+      <div class="prime__media reveal">
+        <!-- CSS/SVG baseball -->
+        <div class="ball ball--lg">
+          <svg viewBox="0 0 200 200" role="img" aria-label="Hydra Prime baseball">
+            <defs>
+              <radialGradient id="ballShade" cx="38%" cy="32%" r="75%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="70%" stop-color="#f4f0e7" />
+                <stop offset="100%" stop-color="#ddd5c4" />
+              </radialGradient>
+            </defs>
+            <circle cx="100" cy="100" r="94" fill="url(#ballShade)" stroke="#e6dfcf" stroke-width="2" />
+            <path class="seam" d="M44 22 C 78 70, 78 130, 44 178" />
+            <path class="seam" d="M156 22 C 122 70, 122 130, 156 178" />
+            <path class="stitch" d="M44 22 C 78 70, 78 130, 44 178" />
+            <path class="stitch" d="M156 22 C 122 70, 122 130, 156 178" />
+          </svg>
+          <span class="ball__brand">H</span>
+        </div>
+      </div>
+
+      <div class="prime__copy reveal">
+        <span class="eyebrow">Flagship Game Ball</span>
+        <h2 class="prime__title">Hydra <em>Prime</em></h2>
+        <p class="prime__desc">
+          Our collegiate-grade flagship. A cushioned cork &amp; rubber core
+          wrapped in genuine full grain leather and raised seams — tuned for
+          true flight, sharp break, and a consistent feel from the first pitch
+          to the last out.
+        </p>
+        <ul class="specs">
+          <li><span class="specs__k">Grade</span><span class="specs__v">Collegiate</span></li>
+          <li><span class="specs__k">Core</span><span class="specs__v">Cork + Rubber</span></li>
+          <li><span class="specs__k">Cover</span><span class="specs__v">Full Grain Leather</span></li>
+          <li><span class="specs__k">Seams</span><span class="specs__v">Raised, Hand-Stitched</span></li>
+        </ul>
+        <div class="prime__cta">
+          <a href="#contact" class="btn btn--solid">Request a Quote</a>
+          <a href="#products" class="btn btn--ghost">See Full Lineup</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Product lineup ===== -->
+  <section class="products" id="products">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">The Lineup</span>
+        <h2 class="section-title">Balls Built for Every Level</h2>
+        <p class="section-sub">From the youth diamond to the collegiate stage — one standard of quality.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card reveal">
+          <div class="card__ball"><span class="mini-ball"></span></div>
+          <h3 class="card__title">Hydra Prime</h3>
+          <p class="card__tag">Collegiate Game Ball</p>
+          <p class="card__desc">Full grain leather, cork + rubber core, raised seams. Our flagship.</p>
+          <span class="card__badge">Best Seller</span>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__ball"><span class="mini-ball"></span></div>
+          <h3 class="card__title">Hydra Pro</h3>
+          <p class="card__tag">Pro-Grade Leather</p>
+          <p class="card__desc">Premium top-grain cover and tightly wound core for elite-level play.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__ball"><span class="mini-ball"></span></div>
+          <h3 class="card__title">Hydra Youth</h3>
+          <p class="card__tag">League Approved</p>
+          <p class="card__desc">Reduced-impact construction sized and weighted for youth leagues.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__ball"><span class="mini-ball"></span></div>
+          <h3 class="card__title">Hydra Practice</h3>
+          <p class="card__tag">Training Dozen</p>
+          <p class="card__desc">Durable synthetic-blend cover built to grind through bucket work.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Why Hydra / features ===== -->
+  <section class="features">
+    <div class="container">
+      <div class="features__grid">
+        <div class="feature reveal">
+          <span class="feature__icon">◆</span>
+          <h3>Full Grain Leather</h3>
+          <p>Genuine leather covers selected for grip, durability, and a broken-in feel out of the box.</p>
+        </div>
+        <div class="feature reveal">
+          <span class="feature__icon">◎</span>
+          <h3>Precision Cores</h3>
+          <p>Cork and rubber cores wound to spec for true flight and consistent rebound.</p>
+        </div>
+        <div class="feature reveal">
+          <span class="feature__icon">▲</span>
+          <h3>Raised Seams</h3>
+          <p>Hand-stitched, raised seams give pitchers the bite they need to compete.</p>
+        </div>
+        <div class="feature reveal">
+          <span class="feature__icon">✦</span>
+          <h3>Built to Compete</h3>
+          <p>Every ball is held to one standard — game-ready, inning after inning.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Heritage / Inspired by the best ===== -->
+  <section class="heritage" id="heritage">
+    <div class="container heritage__inner">
+      <div class="heritage__copy reveal">
+        <span class="eyebrow">Inspired by the Best</span>
+        <h2 class="section-title">A Legacy, Reimagined</h2>
+        <p>
+          Hydra draws influence from the legacy of
+          <strong>Rawlings</strong>, <strong>Wilson</strong>, and
+          <strong>Baden</strong> — brands that set the standard. We combine that
+          heritage with modern innovation to elevate every pitch, every inning,
+          every game.
+        </p>
+        <div class="heritage__brands">
+          <span>Rawlings</span>
+          <span>Wilson</span>
+          <span>Baden</span>
+        </div>
+      </div>
+      <div class="heritage__panel reveal" aria-hidden="true">
+        <span class="heritage__big">H</span>
+        <p class="heritage__slogan">Built for Competition.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Contact / CTA ===== -->
+  <section class="contact" id="contact">
+    <div class="container contact__inner reveal">
+      <h2 class="section-title">Get Hydra on Your Field</h2>
+      <p class="section-sub">Teams, leagues, and retailers — reach out for pricing, bulk orders, and samples.</p>
+      <form class="contact__form" onsubmit="return false;">
+        <input type="text" placeholder="Name" aria-label="Name" required />
+        <input type="email" placeholder="Email" aria-label="Email" required />
+        <input type="text" placeholder="Team or organization" aria-label="Team or organization" />
+        <button type="submit" class="btn btn--solid">Request Info</button>
+      </form>
+      <p class="contact__note">
+        Or email us at <a href="mailto:sales@hydrabaseball.co">sales@hydrabaseball.co</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <span class="brand__mark" aria-hidden="true">H<sup>™</sup></span>
+        <div>
+          <strong>Hydra Baseball Co.</strong>
+          <span>Built for Competition.</span>
+        </div>
+      </div>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="#products">Products</a>
+        <a href="#prime">Hydra Prime</a>
+        <a href="#heritage">Heritage</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <p class="footer__copy">&copy; <span id="year">2026</span> Hydra Baseball Co.™ All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

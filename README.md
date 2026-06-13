@@ -1,37 +1,54 @@
-# Hydra Baseball Co.
+# Hydra Baseball Co. — Built for Competition
 
-Welcome to the Hydra Baseball Co. repository.
+Landing page for **Hydra Baseball Co.**, a baseball company that sells
+competition-grade ball products — full grain leather covers, cork &amp; rubber
+cores, built for every pitch, every inning, every game.
 
-## About
+## Brand
 
-This is the home for Hydra Baseball Co. — add a short description of the
-project, team, or product here.
+- **Tagline:** Built for Competition.
+- **Flagship product:** Hydra Prime — Collegiate · Cork + Rubber Core · Full Grain Leather
+- **Heritage:** Inspired by the legacy of Rawlings, Wilson, and Baden.
+- **Color scheme:**
+  - Ink / near-black `#15151a`
+  - Bronze / tan accent `#c8966a`
+  - Cream / off-white `#f3efe7`
 
-## Getting Started
-
-Clone the repository:
-
-```bash
-git clone https://github.com/hudockben/hydrabaseballco.git
-cd hydrabaseballco
-```
-
-## Project Structure
+## Files
 
 ```
 .
-└── README.md   # You are here
+├── index.html   # The landing page
+├── styles.css   # Brand styling (colors, layout, responsive)
+└── script.js    # Nav, mobile menu, scroll reveal
 ```
 
-Add source files, documentation, and assets as the project grows.
+It's a static site — no build step or dependencies.
 
-## Contributing
+## View it locally
 
-1. Create a branch for your changes.
-2. Commit with clear, descriptive messages.
-3. Open a pull request for review.
+Just open `index.html` in a browser, or serve the folder:
 
-## License
+```bash
+# Python
+python3 -m http.server 8000
+# then visit http://localhost:8000
+```
 
-No license has been specified yet. Add one (for example, MIT) when you're
-ready to define how others may use this project.
+## Deploy with GitHub Pages
+
+1. Push to GitHub (this repo: `hudockben/hydrabaseballco`).
+2. Go to **Settings → Pages**.
+3. Under **Build and deployment**, set **Source** to *Deploy from a branch*.
+4. Choose the branch and the `/ (root)` folder, then **Save**.
+5. Your site goes live at `https://hudockben.github.io/hydrabaseballco/`.
+
+## Customizing
+
+- Product names, specs, and copy live in `index.html`.
+- Colors and spacing are CSS variables at the top of `styles.css` (`:root`).
+- Swap the CSS/SVG baseball illustrations for real product photos when ready.
+
+---
+
+&copy; Hydra Baseball Co.™ — All rights reserved.
