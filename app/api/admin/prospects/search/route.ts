@@ -7,6 +7,7 @@ import {
   searchFacilities,
   searchHighSchools,
   searchLeagues,
+  searchOsmAll,
   type ProspectInput,
 } from '@/lib/connectors';
 import { getSql } from '@/lib/db';
@@ -49,10 +50,11 @@ export async function POST(req: NextRequest) {
     let results: ProspectInput[] = [];
     if (type === 'all') {
       const c = center!;
+      // Facilities + high schools + leagues come from ONE combined Overpass
+      // query (the public server throttles concurrent calls), running alongside
+      // the colleges lookup — two requests instead of four.
       const settled = await Promise.allSettled([
-        searchFacilities({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
-        searchHighSchools({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
-        searchLeagues({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
+        searchOsmAll({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
         searchColleges({ location, state: stateAbbr, lat: c.lat, lon: c.lon, radiusKm, keyword }),
       ]);
       for (const s of settled) if (s.status === 'fulfilled') results.push(...s.value);

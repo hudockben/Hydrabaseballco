@@ -95,6 +95,46 @@ interface OverpassEl {
   tags?: Record<string, string>;
 }
 
+// Org-like words that mark a baseball/softball record as a league/club rather
+// than a plain field — used both in the leagues query and to split the combined
+// "all" result set below.
+const LEAGUE_NAME_PATTERN = 'league|association|youth|little|travel|club|select|academy';
+const LEAGUE_NAME_RE = new RegExp(LEAGUE_NAME_PATTERN, 'i');
+
+/** Does this OSM school element look like a (senior) high school? */
+function isHighSchoolEl(el: OverpassEl): boolean {
+  const n = (el.tags?.name ?? '').toLowerCase();
+  const isced = el.tags?.['isced:level'] ?? '';
+  return /high school|senior high|sr\.? high/.test(n) || isced.split(';').includes('3');
+}
+
+/** Map a baseball/softball OSM element to a facility prospect (name optional). */
+function mapFacility(el: OverpassEl): ProspectInput {
+  const tags = el.tags ?? {};
+  const named = Boolean(tags.name);
+  const sportLabel = (tags.sport ?? '').includes('softball') ? 'Softball' : 'Baseball';
+  const name = tags.name ?? `${sportLabel} field${tags['addr:city'] ? ' — ' + tags['addr:city'] : ''}`;
+  const address = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ') || null;
+  return {
+    name,
+    type: 'facility',
+    phone: tags.phone ?? tags['contact:phone'] ?? null,
+    email: tags.email ?? tags['contact:email'] ?? null,
+    website: tags.website ?? tags['contact:website'] ?? null,
+    address,
+    city: tags['addr:city'] ?? null,
+    state: tags['addr:state'] ?? null,
+    postalCode: tags['addr:postcode'] ?? null,
+    country: tags['addr:country'] ?? 'US',
+    latitude: el.lat ?? el.center?.lat ?? null,
+    longitude: el.lon ?? el.center?.lon ?? null,
+    source: 'osm',
+    sourceId: `${el.type}/${el.id}`,
+    level: named ? (tags.leisure ?? tags.sport ?? null) : 'unnamed field',
+    raw: el,
+  };
+}
+
 export async function searchFacilities(opts: {
   lat: number;
   lon: number;
@@ -108,51 +148,15 @@ export async function searchFacilities(opts: {
   const query = `[out:json][timeout:25];
 nwr["sport"~"baseball|softball"](around:${meters},${opts.lat},${opts.lon});
 out center tags 120;`;
-  let data: { elements?: OverpassEl[] };
-  try {
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
-      body: 'data=' + encodeURIComponent(query),
-      signal: AbortSignal.timeout(28000),
-    });
-    if (!res.ok) return [];
-    data = (await res.json()) as { elements?: OverpassEl[] };
-  } catch {
-    return []; // Overpass timeout/unavailable — the caller shows a friendly message.
-  }
   const kw = opts.keyword?.toLowerCase().trim();
   const seen = new Set<string>();
   const out: ProspectInput[] = [];
-  for (const el of data.elements ?? []) {
-    const tags = el.tags ?? {};
-    const named = Boolean(tags.name);
-    const sportLabel = (tags.sport ?? '').includes('softball') ? 'Softball' : 'Baseball';
-    const name =
-      tags.name ?? `${sportLabel} field${tags['addr:city'] ? ' — ' + tags['addr:city'] : ''}`;
-    if (kw && !name.toLowerCase().includes(kw)) continue;
-    const id = `${el.type}/${el.id}`;
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const address = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ') || null;
-    out.push({
-      name,
-      type: 'facility',
-      phone: tags.phone ?? tags['contact:phone'] ?? null,
-      email: tags.email ?? tags['contact:email'] ?? null,
-      website: tags.website ?? tags['contact:website'] ?? null,
-      address,
-      city: tags['addr:city'] ?? null,
-      state: tags['addr:state'] ?? null,
-      postalCode: tags['addr:postcode'] ?? null,
-      country: tags['addr:country'] ?? 'US',
-      latitude: el.lat ?? el.center?.lat ?? null,
-      longitude: el.lon ?? el.center?.lon ?? null,
-      source: 'osm',
-      sourceId: id,
-      level: named ? (tags.leisure ?? tags.sport ?? null) : 'unnamed field',
-      raw: el,
-    });
+  for (const el of await runOverpass(query)) {
+    const m = mapFacility(el);
+    if (kw && !m.name.toLowerCase().includes(kw)) continue;
+    if (seen.has(m.sourceId)) continue;
+    seen.add(m.sourceId);
+    out.push(m);
   }
   return out;
 }
@@ -226,11 +230,7 @@ export async function searchHighSchools(opts: {
   const query = `[out:json][timeout:25];
 nwr["amenity"="school"](around:${meters},${opts.lat},${opts.lon});
 out center tags 250;`;
-  const els = (await runOverpass(query)).filter((el) => {
-    const n = (el.tags?.name ?? '').toLowerCase();
-    const isced = el.tags?.['isced:level'] ?? '';
-    return /high school|senior high|sr\.? high/.test(n) || isced.split(';').includes('3');
-  });
+  const els = (await runOverpass(query)).filter(isHighSchoolEl);
   return dedupeMap(els, 'highschool', 'High school', opts.keyword);
 }
 
@@ -243,9 +243,54 @@ export async function searchLeagues(opts: {
   const meters = Math.round(Math.max(1, Math.min(opts.radiusKm, 320)) * 1000);
   // Named baseball/softball orgs: leagues, associations, youth & travel clubs.
   const query = `[out:json][timeout:25];
-nwr["sport"~"baseball|softball"]["name"~"league|association|youth|little|travel|club|select|academy",i](around:${meters},${opts.lat},${opts.lon});
+nwr["sport"~"baseball|softball"]["name"~"${LEAGUE_NAME_PATTERN}",i](around:${meters},${opts.lat},${opts.lon});
 out center tags 100;`;
   return dedupeMap(await runOverpass(query), 'league', 'League / club', opts.keyword);
+}
+
+/**
+ * One Overpass round-trip for an "all" search. The public Overpass server
+ * throttles concurrent requests, so fetching the sport (baseball/softball) and
+ * school datasets in a single query — then splitting them into facilities,
+ * leagues, and high schools here — is far faster and more reliable than three
+ * separate calls. Named sets give each dataset its own result cap.
+ */
+export async function searchOsmAll(opts: {
+  lat: number;
+  lon: number;
+  radiusKm: number;
+  keyword?: string;
+}): Promise<ProspectInput[]> {
+  const meters = Math.round(Math.max(1, Math.min(opts.radiusKm, 320)) * 1000);
+  const query = `[out:json][timeout:25];
+nwr["sport"~"baseball|softball"](around:${meters},${opts.lat},${opts.lon})->.sport;
+nwr["amenity"="school"](around:${meters},${opts.lat},${opts.lon})->.schools;
+.sport out center tags 220;
+.schools out center tags 300;`;
+  const kw = opts.keyword?.toLowerCase().trim();
+  const seen = new Set<string>();
+  const out: ProspectInput[] = [];
+  for (const el of await runOverpass(query)) {
+    const tags = el.tags ?? {};
+    const id = `${el.type}/${el.id}`;
+    if (seen.has(id)) continue;
+    // Classify each record once: school -> high school, named sports org ->
+    // league/club, any other baseball/softball site -> facility.
+    let m: ProspectInput | null = null;
+    if (tags.amenity === 'school') {
+      if (isHighSchoolEl(el)) m = mapOsmElement(el, 'highschool', 'High school');
+    } else if (/baseball|softball/.test(tags.sport ?? '')) {
+      m =
+        tags.name && LEAGUE_NAME_RE.test(tags.name)
+          ? mapOsmElement(el, 'league', 'League / club')
+          : mapFacility(el);
+    }
+    if (!m) continue;
+    if (kw && !m.name.toLowerCase().includes(kw)) continue;
+    seen.add(id);
+    out.push(m);
+  }
+  return out;
 }
 
 interface ScorecardRow {
