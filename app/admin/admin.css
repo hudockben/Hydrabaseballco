@@ -297,6 +297,58 @@
   cursor: default;
 }
 
+.results-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 22px 0 10px;
+  padding: 12px 16px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.results-counts {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-right: auto;
+}
+.results-counts strong {
+  color: var(--bronze-2);
+}
+.results-counts .dot {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.chk input {
+  accent-color: var(--bronze);
+}
+.muted {
+  color: var(--muted);
+}
+.saved-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(76, 175, 125, 0.18);
+  color: var(--green);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.row-saved {
+  opacity: 0.6;
+}
+
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--line);

@@ -25,6 +25,9 @@ export interface ProspectInput {
   sourceId: string;
   level?: string | null;
   raw?: unknown;
+  // Response-only (computed in the search API; not stored in the DB):
+  distanceMi?: number | null;
+  saved?: boolean;
 }
 
 const UA = 'HydraProspector/1.0 (+https://hydrabaseballcompany.vercel.app)';
@@ -36,8 +39,10 @@ interface GeocodeResult {
 }
 
 export async function geocode(location: string): Promise<GeocodeResult | null> {
+  // Bias to the US — a bare ZIP like "43004" otherwise matches places abroad
+  // (e.g. Tarragona, Spain shares that postcode).
   const url =
-    'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' +
+    'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q=' +
     encodeURIComponent(location);
   const res = await fetch(url, {
     headers: { 'User-Agent': UA, 'Accept-Language': 'en' },
@@ -47,6 +52,17 @@ export async function geocode(location: string): Promise<GeocodeResult | null> {
   const data = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>;
   if (!data.length) return null;
   return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), displayName: data[0].display_name };
+}
+
+/** Great-circle distance in miles between two lat/lon points. */
+export function haversineMiles(aLat: number, aLon: number, bLat: number, bLon: number): number {
+  const R = 3958.8;
+  const dLat = ((bLat - aLat) * Math.PI) / 180;
+  const dLon = ((bLon - aLon) * Math.PI) / 180;
+  const lat1 = (aLat * Math.PI) / 180;
+  const lat2 = (bLat * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 }
 
 interface OverpassEl {
@@ -59,18 +75,17 @@ interface OverpassEl {
 }
 
 export async function searchFacilities(opts: {
-  location: string;
+  lat: number;
+  lon: number;
   radiusKm: number;
   keyword?: string;
 }): Promise<ProspectInput[]> {
-  const geo = await geocode(opts.location);
-  if (!geo) return [];
-  const meters = Math.round(Math.max(1, Math.min(opts.radiusKm, 200)) * 1000);
+  const meters = Math.round(Math.max(1, Math.min(opts.radiusKm, 320)) * 1000);
   // A selective `sport` filter is fast and reliable on the public Overpass
   // server (broad tag scans time out). Captures baseball/softball pitches,
   // complexes, and clubs near the location.
   const query = `[out:json][timeout:25];
-nwr["sport"~"baseball|softball"](around:${meters},${geo.lat},${geo.lon});
+nwr["sport"~"baseball|softball"](around:${meters},${opts.lat},${opts.lon});
 out center tags 120;`;
   let data: { elements?: OverpassEl[] };
   try {
@@ -118,9 +133,6 @@ out center tags 120;`;
       raw: el,
     });
   }
-  // Named, contactable facilities first; unnamed public fields after.
-  const isUnnamed = (p: ProspectInput) => p.level === 'unnamed field';
-  out.sort((a, b) => Number(isUnnamed(a)) - Number(isUnnamed(b)));
   return out;
 }
 
@@ -132,6 +144,8 @@ interface ScorecardRow {
   'school.school_url'?: string;
   'location.lat'?: number;
   'location.lon'?: number;
+  'school.degrees_awarded.predominant'?: number;
+  'school.ownership'?: number;
 }
 
 function normalizeUrl(u: string): string {
@@ -146,12 +160,17 @@ export async function searchColleges(opts: {
   const key = process.env.SCORECARD_API_KEY || 'DEMO_KEY';
   const params = new URLSearchParams();
   params.set('api_key', key);
-  params.set('per_page', '80');
+  params.set('per_page', '100');
   params.set(
     'fields',
-    'id,school.name,school.city,school.state,school.school_url,location.lat,location.lon',
+    'id,school.name,school.city,school.state,school.school_url,location.lat,location.lon,school.degrees_awarded.predominant,school.ownership',
   );
   params.set('school.operating', '1');
+  // Tailor to real athletic-program schools: associate / bachelor / graduate
+  // degree-granting, public or private-nonprofit. This drops for-profit trade
+  // schools (barber, cosmetology, IT) that never field baseball/softball teams.
+  params.set('school.degrees_awarded.predominant', '2,3,4');
+  params.set('school.ownership', '1,2');
   if (opts.keyword) params.set('school.name', opts.keyword);
 
   const loc = (opts.location || '').trim();
@@ -171,6 +190,11 @@ export async function searchColleges(opts: {
   for (const row of data.results ?? []) {
     const name = row['school.name'];
     if (!name) continue;
+    const predominant = row['school.degrees_awarded.predominant'];
+    const level =
+      predominant === 4 ? 'Graduate' :
+      predominant === 3 ? '4-year college' :
+      predominant === 2 ? '2-year college' : 'College';
     out.push({
       name,
       type: 'college',
@@ -182,6 +206,7 @@ export async function searchColleges(opts: {
       country: 'US',
       source: 'scorecard',
       sourceId: String(row.id),
+      level,
       raw: row,
     });
   }

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 
 interface Prospect {
   name: string;
   type: string;
+  level?: string | null;
   website?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -13,18 +14,28 @@ interface Prospect {
   address?: string | null;
   source: string;
   sourceId: string;
-  level?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceMi?: number | null;
+  saved?: boolean;
 }
+
+const hasContact = (r: Prospect) => Boolean(r.phone || r.email || r.website);
+const isUnnamed = (r: Prospect) => r.level === 'unnamed field';
 
 export default function ProspectsPage() {
   const [type, setType] = useState('facility');
   const [location, setLocation] = useState('');
-  const [radiusKm, setRadiusKm] = useState(80);
+  const [radiusMiles, setRadiusMiles] = useState(25);
   const [keyword, setKeyword] = useState('');
   const [results, setResults] = useState<Prospect[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+
+  // Filters
+  const [onlyContact, setOnlyContact] = useState(false);
+  const [hideUnnamed, setHideUnnamed] = useState(true);
 
   async function search(e: FormEvent) {
     e.preventDefault();
@@ -36,7 +47,7 @@ export default function ProspectsPage() {
       const res = await fetch('/api/admin/prospects/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, location, radiusKm, keyword }),
+        body: JSON.stringify({ type, location, radiusMiles, keyword }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -50,23 +61,33 @@ export default function ProspectsPage() {
     }
   }
 
-  const selectedCount = Object.values(selected).filter(Boolean).length;
+  const displayed = useMemo(
+    () =>
+      results.filter(
+        (r) => (!onlyContact || hasContact(r)) && (!hideUnnamed || !isUnnamed(r)),
+      ),
+    [results, onlyContact, hideUnnamed],
+  );
+
+  const selectable = displayed.filter((r) => !r.saved);
+  const selectedCount = selectable.filter((r) => selected[r.sourceId]).length;
+  const withContact = results.filter(hasContact).length;
 
   function toggle(id: string) {
     setSelected((s) => ({ ...s, [id]: !s[id] }));
   }
   function toggleAll() {
-    if (selectedCount === results.length) {
+    if (selectedCount === selectable.length) {
       setSelected({});
     } else {
       const all: Record<string, boolean> = {};
-      results.forEach((r) => (all[r.sourceId] = true));
+      selectable.forEach((r) => (all[r.sourceId] = true));
       setSelected(all);
     }
   }
 
   async function save() {
-    const chosen = results.filter((r) => selected[r.sourceId]);
+    const chosen = selectable.filter((r) => selected[r.sourceId]);
     if (!chosen.length) {
       setMsg('Select at least one prospect to save.');
       return;
@@ -79,7 +100,14 @@ export default function ProspectsPage() {
         body: JSON.stringify({ prospects: chosen }),
       });
       const data = await res.json();
-      setMsg(res.ok ? `Saved ${data.saved} prospect(s) to the CRM.` : data.error || 'Save failed.');
+      if (res.ok) {
+        const ids = new Set(chosen.map((c) => c.sourceId));
+        setResults((rs) => rs.map((r) => (ids.has(r.sourceId) ? { ...r, saved: true } : r)));
+        setSelected({});
+        setMsg(`Saved ${data.saved} prospect(s) to the CRM.`);
+      } else {
+        setMsg(data.error || 'Save failed.');
+      }
     } finally {
       setLoading(false);
     }
@@ -106,13 +134,13 @@ export default function ProspectsPage() {
           />
         </label>
         <label>
-          Radius (km)
+          Radius (miles)
           <input
             type="number"
-            value={radiusKm}
+            value={radiusMiles}
             min={1}
             max={200}
-            onChange={(e) => setRadiusKm(Number(e.target.value))}
+            onChange={(e) => setRadiusMiles(Number(e.target.value))}
           />
         </label>
         <label>
@@ -132,39 +160,65 @@ export default function ProspectsPage() {
 
       {results.length > 0 && (
         <>
+          <div className="results-bar">
+            <div className="results-counts">
+              <strong>{displayed.length}</strong> shown
+              <span className="dot">·</span>
+              {withContact} with contact
+              <span className="dot">·</span>
+              {results.length} total
+            </div>
+            <label className="chk">
+              <input type="checkbox" checked={onlyContact} onChange={(e) => setOnlyContact(e.target.checked)} />
+              Only with contact info
+            </label>
+            <label className="chk">
+              <input type="checkbox" checked={hideUnnamed} onChange={(e) => setHideUnnamed(e.target.checked)} />
+              Hide unnamed fields
+            </label>
+          </div>
+
           <div className="results-actions">
-            <span>{results.length} found</span>
-            <button type="button" onClick={toggleAll}>
-              {selectedCount === results.length ? 'Clear' : 'Select all'}
+            <button type="button" onClick={toggleAll} disabled={!selectable.length}>
+              {selectedCount === selectable.length && selectable.length > 0 ? 'Clear' : 'Select all'}
             </button>
             <button type="button" className="primary" onClick={save} disabled={loading || !selectedCount}>
               Save {selectedCount || ''} to CRM
             </button>
           </div>
+
           <div className="table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
                   <th></th>
                   <th>Name</th>
+                  <th>Type</th>
+                  <th>Dist.</th>
                   <th>Location</th>
-                  <th>Phone</th>
+                  <th>Contact</th>
                   <th>Website</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((r) => (
-                  <tr key={r.sourceId}>
+                {displayed.map((r) => (
+                  <tr key={r.sourceId} className={r.saved ? 'row-saved' : undefined}>
                     <td>
-                      <input
-                        type="checkbox"
-                        checked={!!selected[r.sourceId]}
-                        onChange={() => toggle(r.sourceId)}
-                      />
+                      {r.saved ? (
+                        <span className="saved-badge" title="Already in CRM">✓</span>
+                      ) : (
+                        <input
+                          type="checkbox"
+                          checked={!!selected[r.sourceId]}
+                          onChange={() => toggle(r.sourceId)}
+                        />
+                      )}
                     </td>
                     <td>{r.name}</td>
+                    <td className="muted">{r.level || r.type}</td>
+                    <td className="muted">{r.distanceMi != null ? `${r.distanceMi} mi` : '—'}</td>
                     <td>{[r.city, r.state].filter(Boolean).join(', ') || '—'}</td>
-                    <td>{r.phone || '—'}</td>
+                    <td>{r.phone || r.email || '—'}</td>
                     <td>
                       {r.website ? (
                         <a href={r.website} target="_blank" rel="noreferrer">
