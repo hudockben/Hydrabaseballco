@@ -19,6 +19,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/prospects">Find Prospects</Link>
           <Link href="/admin/crm">CRM</Link>
+          <Link href="/admin/pricing">Pricing</Link>
+          <Link href="/admin/revenue">Revenue</Link>
         </nav>
         <form action="/api/admin/logout" method="post" className="admin-logout">
           <button type="submit">Sign out</button>
