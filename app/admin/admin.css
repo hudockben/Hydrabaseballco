@@ -334,6 +334,20 @@
 .muted {
   color: var(--muted);
 }
+.mini-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--bronze-2);
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mini-btn:hover {
+  border-color: var(--bronze);
+  color: var(--bronze);
+}
 .saved-badge {
   display: inline-grid;
   place-items: center;

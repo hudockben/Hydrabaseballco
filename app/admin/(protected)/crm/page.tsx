@@ -16,6 +16,7 @@ interface Row {
   source: string;
   notes?: string | null;
   created_at: string;
+  enrichedNone?: boolean;
 }
 
 const STATUSES = ['new', 'contacted', 'qualified', 'won', 'lost'];
@@ -25,6 +26,7 @@ export default function CrmPage() {
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
+  const [enriching, setEnriching] = useState<Record<number, boolean>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +61,33 @@ export default function CrmPage() {
     if (!confirm('Remove this prospect?')) return;
     setRows((rs) => rs.filter((r) => r.id !== id));
     await fetch(`/api/admin/crm?id=${id}`, { method: 'DELETE' });
+  }
+
+  async function enrich(r: Row) {
+    if (!r.website) return;
+    setEnriching((s) => ({ ...s, [r.id]: true }));
+    try {
+      const res = await fetch('/api/admin/prospects/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: r.website }),
+      });
+      const data = await res.json();
+      if (data.email || data.phone) {
+        await fetch('/api/admin/crm', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: r.id, email: data.email ?? undefined, phone: data.phone ?? undefined }),
+        });
+        setRows((rs) =>
+          rs.map((x) => (x.id === r.id ? { ...x, email: data.email ?? x.email, phone: data.phone ?? x.phone } : x)),
+        );
+      } else {
+        setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, enrichedNone: true } : x)));
+      }
+    } finally {
+      setEnriching((s) => ({ ...s, [r.id]: false }));
+    }
   }
 
   return (
@@ -115,7 +144,21 @@ export default function CrmPage() {
                   </td>
                   <td>{r.type}</td>
                   <td>{[r.city, r.state].filter(Boolean).join(', ') || '—'}</td>
-                  <td>{r.phone || r.email || '—'}</td>
+                  <td>
+                    {r.phone || r.email ? (
+                      <span>{r.phone || r.email}</span>
+                    ) : enriching[r.id] ? (
+                      <span className="muted">looking…</span>
+                    ) : r.enrichedNone ? (
+                      <span className="muted">none found</span>
+                    ) : r.website ? (
+                      <button type="button" className="mini-btn" onClick={() => enrich(r)}>
+                        Find contact
+                      </button>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td>
                     <select
                       value={r.status}

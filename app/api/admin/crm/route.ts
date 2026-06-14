@@ -86,10 +86,14 @@ export async function PATCH(req: NextRequest) {
     const sql = getSql();
     const status = (body.status as string | undefined) ?? null;
     const notes = (body.notes as string | undefined) ?? null;
+    const email = (body.email as string | undefined) ?? null;
+    const phone = (body.phone as string | undefined) ?? null;
     await sql`
       update prospects
       set status = coalesce(${status}, status),
           notes = coalesce(${notes}, notes),
+          email = coalesce(${email}, email),
+          phone = coalesce(${phone}, phone),
           updated_at = now()
       where id = ${id}`;
     return NextResponse.json({ ok: true });

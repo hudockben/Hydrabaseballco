@@ -18,6 +18,7 @@ interface Prospect {
   longitude?: number | null;
   distanceMi?: number | null;
   saved?: boolean;
+  enrichedNone?: boolean;
 }
 
 const hasContact = (r: Prospect) => Boolean(r.phone || r.email || r.website);
@@ -32,10 +33,34 @@ export default function ProspectsPage() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [enriching, setEnriching] = useState<Record<string, boolean>>({});
 
   // Filters
   const [onlyContact, setOnlyContact] = useState(false);
   const [hideUnnamed, setHideUnnamed] = useState(true);
+
+  async function enrichRow(r: Prospect) {
+    if (!r.website) return;
+    setEnriching((s) => ({ ...s, [r.sourceId]: true }));
+    try {
+      const res = await fetch('/api/admin/prospects/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: r.website }),
+      });
+      const data = await res.json();
+      const found = Boolean(data.email || data.phone);
+      setResults((rs) =>
+        rs.map((x) =>
+          x.sourceId === r.sourceId
+            ? { ...x, email: data.email ?? x.email, phone: data.phone ?? x.phone, enrichedNone: !found }
+            : x,
+        ),
+      );
+    } finally {
+      setEnriching((s) => ({ ...s, [r.sourceId]: false }));
+    }
+  }
 
   async function search(e: FormEvent) {
     e.preventDefault();
@@ -218,7 +243,21 @@ export default function ProspectsPage() {
                     <td className="muted">{r.level || r.type}</td>
                     <td className="muted">{r.distanceMi != null ? `${r.distanceMi} mi` : '—'}</td>
                     <td>{[r.city, r.state].filter(Boolean).join(', ') || '—'}</td>
-                    <td>{r.phone || r.email || '—'}</td>
+                    <td>
+                      {r.phone || r.email ? (
+                        <span>{r.phone || r.email}</span>
+                      ) : enriching[r.sourceId] ? (
+                        <span className="muted">looking…</span>
+                      ) : r.enrichedNone ? (
+                        <span className="muted">none found</span>
+                      ) : r.website ? (
+                        <button type="button" className="mini-btn" onClick={() => enrichRow(r)}>
+                          Find contact
+                        </button>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td>
                       {r.website ? (
                         <a href={r.website} target="_blank" rel="noreferrer">
