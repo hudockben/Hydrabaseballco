@@ -246,6 +246,7 @@ function normalizeUrl(u: string): string {
 
 export async function searchColleges(opts: {
   location?: string;
+  state?: string;
   radiusKm?: number;
   keyword?: string;
 }): Promise<ProspectInput[]> {
@@ -267,9 +268,12 @@ export async function searchColleges(opts: {
 
   const loc = (opts.location || '').trim();
   if (/^\d{5}$/.test(loc)) {
+    // ZIP -> precise radius filter.
     const miles = Math.round((opts.radiusKm ?? 80) * 0.621371);
     params.set('zip', loc);
     params.set('distance', `${miles}mi`);
+  } else if (opts.state && /^[A-Za-z]{2}$/.test(opts.state)) {
+    params.set('school.state', opts.state.toUpperCase());
   } else if (/^[A-Za-z]{2}$/.test(loc)) {
     params.set('school.state', loc.toUpperCase());
   }

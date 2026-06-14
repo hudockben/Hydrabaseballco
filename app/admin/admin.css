@@ -320,6 +320,9 @@
   margin: 0 8px;
   opacity: 0.5;
 }
+.auto-fill {
+  color: var(--bronze);
+}
 .chk {
   display: inline-flex;
   align-items: center;

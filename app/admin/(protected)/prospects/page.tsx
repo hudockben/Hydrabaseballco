@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 
 interface Prospect {
   name: string;
@@ -22,11 +22,17 @@ interface Prospect {
   enrichedNone?: boolean;
 }
 
-const hasContact = (r: Prospect) => Boolean(r.phone || r.email || r.website);
+const hasContact = (r: Prospect) => Boolean(r.phone || r.email || r.contactName);
 const isUnnamed = (r: Prospect) => r.level === 'unnamed field';
+const TYPE_LABELS: Record<string, string> = {
+  facility: 'Facility',
+  highschool: 'High school',
+  college: 'College',
+  league: 'League',
+};
 
 export default function ProspectsPage() {
-  const [type, setType] = useState('facility');
+  const [type, setType] = useState('all');
   const [location, setLocation] = useState('');
   const [radiusMiles, setRadiusMiles] = useState(25);
   const [keyword, setKeyword] = useState('');
@@ -35,46 +41,68 @@ export default function ProspectsPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [enriching, setEnriching] = useState<Record<string, boolean>>({});
+  const [autoFilling, setAutoFilling] = useState(false);
 
   // Filters
   const [onlyContact, setOnlyContact] = useState(false);
   const [hideUnnamed, setHideUnnamed] = useState(true);
 
-  async function enrichRow(r: Prospect) {
-    if (!r.website) return;
-    setEnriching((s) => ({ ...s, [r.sourceId]: true }));
-    try {
-      const res = await fetch('/api/admin/prospects/enrich', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ website: r.website }),
-      });
-      const data = await res.json();
-      const found = Boolean(data.email || data.phone || data.contactName);
-      setResults((rs) =>
-        rs.map((x) =>
-          x.sourceId === r.sourceId
-            ? {
-                ...x,
-                email: data.email ?? x.email,
-                phone: data.phone ?? x.phone,
-                contactName: data.contactName ?? x.contactName,
-                enrichedNone: !found,
-              }
-            : x,
-        ),
-      );
-    } finally {
-      setEnriching((s) => ({ ...s, [r.sourceId]: false }));
-    }
+  // Tracks the active search so stale auto-enrichment cancels itself.
+  const runRef = useRef(0);
+
+  // Automatically fill contact info across results (quick mode, throttled).
+  async function autoEnrich(list: Prospect[], run: number) {
+    const targets = list
+      .filter((r) => r.website && !hasContact(r) && !r.saved)
+      .slice(0, 40);
+    if (!targets.length) return;
+    setAutoFilling(true);
+    let idx = 0;
+    const worker = async () => {
+      while (idx < targets.length && runRef.current === run) {
+        const r = targets[idx++];
+        setEnriching((s) => ({ ...s, [r.sourceId]: true }));
+        try {
+          const res = await fetch('/api/admin/prospects/enrich', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ website: r.website, deep: false }),
+          });
+          const data = await res.json();
+          if (runRef.current !== run) return;
+          const found = Boolean(data.email || data.phone || data.contactName);
+          setResults((rs) =>
+            rs.map((x) =>
+              x.sourceId === r.sourceId
+                ? {
+                    ...x,
+                    email: data.email ?? x.email,
+                    phone: data.phone ?? x.phone,
+                    contactName: data.contactName ?? x.contactName,
+                    enrichedNone: !found,
+                  }
+                : x,
+            ),
+          );
+        } catch {
+          /* ignore one failed lookup */
+        } finally {
+          setEnriching((s) => ({ ...s, [r.sourceId]: false }));
+        }
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]); // 3 concurrent
+    if (runRef.current === run) setAutoFilling(false);
   }
 
   async function search(e: FormEvent) {
     e.preventDefault();
+    const run = ++runRef.current; // cancel any in-flight auto-enrichment
     setLoading(true);
     setMsg('');
     setResults([]);
     setSelected({});
+    setAutoFilling(false);
     try {
       const res = await fetch('/api/admin/prospects/search', {
         method: 'POST',
@@ -88,16 +116,14 @@ export default function ProspectsPage() {
       }
       setResults(data.results);
       if (!data.results.length) setMsg('No results — try a wider radius or a different location.');
+      else autoEnrich(data.results, run);
     } finally {
       setLoading(false);
     }
   }
 
   const displayed = useMemo(
-    () =>
-      results.filter(
-        (r) => (!onlyContact || hasContact(r)) && (!hideUnnamed || !isUnnamed(r)),
-      ),
+    () => results.filter((r) => (!onlyContact || hasContact(r)) && (!hideUnnamed || !isUnnamed(r))),
     [results, onlyContact, hideUnnamed],
   );
 
@@ -153,6 +179,7 @@ export default function ProspectsPage() {
         <label>
           Type
           <select value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="all">All types (everything in radius)</option>
             <option value="facility">Facilities (cages, fields, complexes)</option>
             <option value="highschool">High schools</option>
             <option value="college">Colleges</option>
@@ -201,6 +228,7 @@ export default function ProspectsPage() {
               {withContact} with contact
               <span className="dot">·</span>
               {results.length} total
+              {autoFilling && <span className="auto-fill"> · auto-filling contacts…</span>}
             </div>
             <label className="chk">
               <input type="checkbox" checked={onlyContact} onChange={(e) => setOnlyContact(e.target.checked)} />
@@ -250,7 +278,7 @@ export default function ProspectsPage() {
                       )}
                     </td>
                     <td>{r.name}</td>
-                    <td className="muted">{r.level || r.type}</td>
+                    <td className="muted">{r.level || TYPE_LABELS[r.type] || r.type}</td>
                     <td className="muted">{r.distanceMi != null ? `${r.distanceMi} mi` : '—'}</td>
                     <td>{[r.city, r.state].filter(Boolean).join(', ') || '—'}</td>
                     <td>
@@ -260,15 +288,13 @@ export default function ProspectsPage() {
                         <span className="muted">looking…</span>
                       ) : r.enrichedNone ? (
                         <span className="muted">none found</span>
-                      ) : r.website ? (
-                        <button type="button" className="mini-btn" onClick={() => enrichRow(r)}>
-                          Find contact
-                        </button>
                       ) : (
                         '—'
                       )}
                     </td>
-                    <td className="muted">{r.contactName || '—'}</td>
+                    <td className="muted">
+                      {r.contactName ? r.contactName : enriching[r.sourceId] ? '…' : '—'}
+                    </td>
                     <td>
                       {r.website ? (
                         <a href={r.website} target="_blank" rel="noreferrer">

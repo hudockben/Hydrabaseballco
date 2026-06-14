@@ -11,9 +11,10 @@ export async function POST(req: NextRequest) {
   }
   const body = await req.json().catch(() => ({}));
   const website = String(body.website ?? '').trim();
+  const deep = body.deep !== false; // quick mode when deep:false
   if (!website) return NextResponse.json({ error: 'No website to look up.' }, { status: 400 });
   try {
-    const contact = await findContact(website);
+    const contact = await findContact(website, deep);
     return NextResponse.json(contact);
   } catch (err) {
     console.error('enrich error', err);

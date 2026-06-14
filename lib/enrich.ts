@@ -147,7 +147,7 @@ export interface Contact {
   contactName: string | null;
 }
 
-export async function findContact(website: string): Promise<Contact> {
+export async function findContact(website: string, deep = true): Promise<Contact> {
   const base = /^https?:\/\//i.test(website) ? website : `https://${website}`;
   const home = await fetchText(base);
   let email = home ? pickEmail(home) : null;
@@ -155,10 +155,12 @@ export async function findContact(website: string): Promise<Contact> {
   let contactName = home ? pickName(home) : null;
   if (!home) return { email, phone, contactName };
 
-  // Crawl toward a coach: homepage -> athletics -> baseball/softball -> coaches.
+  // deep: crawl homepage -> athletics -> baseball/softball -> coaches.
+  // quick (deep=false): homepage + the single best contact page only — fast
+  // enough to auto-run across many search results.
   const visited = new Set<string>([base]);
   let queue = candidateLinks(home, base).filter((u) => !visited.has(u));
-  let budget = 3;
+  let budget = deep ? 3 : 1;
 
   while (queue.length && budget > 0 && !(contactName && email)) {
     const url = queue.shift()!;
@@ -170,8 +172,7 @@ export async function findContact(website: string): Promise<Contact> {
     email = email ?? pickEmail(page);
     phone = phone ?? pickPhone(page);
     contactName = contactName ?? pickName(page);
-    if (!contactName) {
-      // Drill deeper toward baseball/coach pages found on this page.
+    if (deep && !contactName) {
       const deeper = candidateLinks(page, url).filter((u) => !visited.has(u));
       queue = [...deeper, ...queue];
     }
