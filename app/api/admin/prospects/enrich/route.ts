@@ -3,7 +3,7 @@ import { isAuthenticated } from '@/lib/auth';
 import { findContact } from '@/lib/enrich';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30;
+export const maxDuration = 45;
 
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) {
