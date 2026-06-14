@@ -348,6 +348,23 @@
   border-color: var(--bronze);
   color: var(--bronze);
 }
+.cell-input {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 6px 9px;
+  color: var(--text);
+  font-size: 0.86rem;
+  width: 150px;
+}
+.cell-input:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+.cell-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
 .saved-badge {
   display: inline-grid;
   place-items: center;

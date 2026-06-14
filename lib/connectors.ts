@@ -13,6 +13,7 @@ export interface ProspectInput {
   type: ProspectType;
   email?: string | null;
   phone?: string | null;
+  contactName?: string | null;
   website?: string | null;
   address?: string | null;
   city?: string | null;

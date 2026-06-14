@@ -61,9 +61,25 @@ function contactLink(html: string, base: string): string | null {
   }
 }
 
+// Best-effort: find a contact person's name near a coach/AD/director label.
+const NAME = '([A-Z][a-z]+(?:\\s+[A-Z]\\.?)?\\s+[A-Z][a-z]+(?:-[A-Z][a-z]+)?)';
+const ROLE = 'head\\s+(?:baseball|softball)\\s+coach|head\\s+coach|baseball\\s+coach|softball\\s+coach|athletic\\s+director|director\\s+of\\s+athletics|general\\s+manager|owner|president';
+
+function pickName(html: string): string | null {
+  const text = html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ');
+  // "Head Coach: Jane Smith" / "Head Coach – Jane Smith"
+  const after = text.match(new RegExp(`(?:${ROLE})\\s*[:\\-–|]\\s*${NAME}`, 'i'));
+  if (after) return after[1];
+  // "Jane Smith, Head Coach"
+  const before = text.match(new RegExp(`${NAME}\\s*,?\\s*(?:${ROLE})`, 'i'));
+  if (before) return before[1];
+  return null;
+}
+
 export interface Contact {
   email: string | null;
   phone: string | null;
+  contactName: string | null;
 }
 
 export async function findContact(website: string): Promise<Contact> {
@@ -71,16 +87,18 @@ export async function findContact(website: string): Promise<Contact> {
   const home = await fetchText(base);
   let email = home ? pickEmail(home) : null;
   let phone = home ? pickPhone(home) : null;
+  let contactName = home ? pickName(home) : null;
 
-  if (home && (!email || !phone)) {
+  if (home && (!email || !phone || !contactName)) {
     const link = contactLink(home, base);
     if (link && link !== base) {
       const page = await fetchText(link);
       if (page) {
         email = email ?? pickEmail(page);
         phone = phone ?? pickPhone(page);
+        contactName = contactName ?? pickName(page);
       }
     }
   }
-  return { email, phone };
+  return { email, phone, contactName };
 }

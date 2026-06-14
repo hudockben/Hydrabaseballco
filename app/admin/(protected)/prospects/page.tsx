@@ -9,6 +9,7 @@ interface Prospect {
   website?: string | null;
   phone?: string | null;
   email?: string | null;
+  contactName?: string | null;
   city?: string | null;
   state?: string | null;
   address?: string | null;
@@ -49,11 +50,17 @@ export default function ProspectsPage() {
         body: JSON.stringify({ website: r.website }),
       });
       const data = await res.json();
-      const found = Boolean(data.email || data.phone);
+      const found = Boolean(data.email || data.phone || data.contactName);
       setResults((rs) =>
         rs.map((x) =>
           x.sourceId === r.sourceId
-            ? { ...x, email: data.email ?? x.email, phone: data.phone ?? x.phone, enrichedNone: !found }
+            ? {
+                ...x,
+                email: data.email ?? x.email,
+                phone: data.phone ?? x.phone,
+                contactName: data.contactName ?? x.contactName,
+                enrichedNone: !found,
+              }
             : x,
         ),
       );
@@ -224,6 +231,7 @@ export default function ProspectsPage() {
                   <th>Dist.</th>
                   <th>Location</th>
                   <th>Contact</th>
+                  <th>Coach / Contact</th>
                   <th>Website</th>
                 </tr>
               </thead>
@@ -260,6 +268,7 @@ export default function ProspectsPage() {
                         '—'
                       )}
                     </td>
+                    <td className="muted">{r.contactName || '—'}</td>
                     <td>
                       {r.website ? (
                         <a href={r.website} target="_blank" rel="noreferrer">

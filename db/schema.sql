@@ -10,6 +10,7 @@ create table if not exists prospects (
                check (status in ('new', 'contacted', 'qualified', 'won', 'lost')),
   email        text,
   phone        text,
+  contact_name text,
   website      text,
   address      text,
   city         text,

@@ -9,6 +9,7 @@ interface Row {
   status: string;
   email?: string | null;
   phone?: string | null;
+  contactName?: string | null;
   website?: string | null;
   city?: string | null;
   state?: string | null;
@@ -73,14 +74,23 @@ export default function CrmPage() {
         body: JSON.stringify({ website: r.website }),
       });
       const data = await res.json();
-      if (data.email || data.phone) {
+      if (data.email || data.phone || data.contactName) {
         await fetch('/api/admin/crm', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: r.id, email: data.email ?? undefined, phone: data.phone ?? undefined }),
+          body: JSON.stringify({
+            id: r.id,
+            email: data.email ?? undefined,
+            phone: data.phone ?? undefined,
+            contact_name: data.contactName ?? undefined,
+          }),
         });
         setRows((rs) =>
-          rs.map((x) => (x.id === r.id ? { ...x, email: data.email ?? x.email, phone: data.phone ?? x.phone } : x)),
+          rs.map((x) =>
+            x.id === r.id
+              ? { ...x, email: data.email ?? x.email, phone: data.phone ?? x.phone, contactName: data.contactName ?? x.contactName }
+              : x,
+          ),
         );
       } else {
         setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, enrichedNone: true } : x)));
@@ -88,6 +98,15 @@ export default function CrmPage() {
     } finally {
       setEnriching((s) => ({ ...s, [r.id]: false }));
     }
+  }
+
+  async function saveCoach(id: number, value: string) {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, contactName: value } : r)));
+    await fetch('/api/admin/crm', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, contact_name: value }),
+    });
   }
 
   return (
@@ -126,6 +145,7 @@ export default function CrmPage() {
                 <th>Type</th>
                 <th>Location</th>
                 <th>Contact</th>
+                <th>Coach / Contact</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -158,6 +178,17 @@ export default function CrmPage() {
                     ) : (
                       '—'
                     )}
+                  </td>
+                  <td>
+                    <input
+                      key={(r.contactName ?? '') + r.id}
+                      className="cell-input"
+                      defaultValue={r.contactName ?? ''}
+                      placeholder="add coach…"
+                      onBlur={(e) => {
+                        if (e.target.value !== (r.contactName ?? '')) saveCoach(r.id, e.target.value);
+                      }}
+                    />
                   </td>
                   <td>
                     <select

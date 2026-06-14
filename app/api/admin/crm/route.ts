@@ -6,7 +6,7 @@ import type { ProspectInput } from '@/lib/connectors';
 export const dynamic = 'force-dynamic';
 
 const CSV_COLS = [
-  'name', 'type', 'status', 'email', 'phone', 'website',
+  'name', 'type', 'status', 'contact_name', 'email', 'phone', 'website',
   'address', 'city', 'state', 'postal_code', 'level', 'source', 'created_at',
 ];
 
@@ -59,12 +59,12 @@ export async function POST(req: NextRequest) {
     for (const p of items) {
       await sql`
         insert into prospects
-          (name, type, email, phone, website, address, city, state, postal_code,
+          (name, type, email, phone, contact_name, website, address, city, state, postal_code,
            country, latitude, longitude, source, source_id, level, raw)
         values
-          (${p.name}, ${p.type}, ${p.email ?? null}, ${p.phone ?? null}, ${p.website ?? null},
-           ${p.address ?? null}, ${p.city ?? null}, ${p.state ?? null}, ${p.postalCode ?? null},
-           ${p.country ?? 'US'}, ${p.latitude ?? null}, ${p.longitude ?? null},
+          (${p.name}, ${p.type}, ${p.email ?? null}, ${p.phone ?? null}, ${p.contactName ?? null},
+           ${p.website ?? null}, ${p.address ?? null}, ${p.city ?? null}, ${p.state ?? null},
+           ${p.postalCode ?? null}, ${p.country ?? 'US'}, ${p.latitude ?? null}, ${p.longitude ?? null},
            ${p.source}, ${p.sourceId}, ${p.level ?? null},
            ${JSON.stringify(p.raw ?? null)}::jsonb)
         on conflict (source, source_id) do nothing`;
@@ -88,12 +88,14 @@ export async function PATCH(req: NextRequest) {
     const notes = (body.notes as string | undefined) ?? null;
     const email = (body.email as string | undefined) ?? null;
     const phone = (body.phone as string | undefined) ?? null;
+    const contactName = (body.contact_name as string | undefined) ?? null;
     await sql`
       update prospects
       set status = coalesce(${status}, status),
           notes = coalesce(${notes}, notes),
           email = coalesce(${email}, email),
           phone = coalesce(${phone}, phone),
+          contact_name = coalesce(${contactName}, contact_name),
           updated_at = now()
       where id = ${id}`;
     return NextResponse.json({ ok: true });
