@@ -14,6 +14,9 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   - **Find Prospects** — search free/public data sources by type + location and
     save leads.
   - **CRM** — pipeline (New → Contacted → Qualified → Won → Lost), notes, CSV export.
+  - **Customer List** — a hand-maintained recruiting sheet (state, school,
+    conference, roster link, division, 1st-degree connection + notes, Instagram,
+    email, notes) with inline editing and CSV export.
   - **Pricing** — products with per-unit cost (COGS) + shipping, volume price
     tiers, and a cost → price → margin calculator for setting price points.
   - **Revenue** — log sales from won deals; revenue, COGS, shipping, profit, and

@@ -247,7 +247,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
-  align-items: end;
+  align-items: flex-end;
   background: var(--ink-2);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -655,7 +655,7 @@
 }
 .tier-row {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
   gap: 12px;
   margin-bottom: 8px;
 }
@@ -774,6 +774,64 @@ td.pos {
 .stat-n.neg,
 td.neg {
   color: var(--red);
+}
+
+/* ---------- Customer List ---------- */
+.cl-filter {
+  width: 200px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 14px;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.cl-filter:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+.customer-table td,
+.customer-table th {
+  white-space: nowrap;
+  vertical-align: middle;
+  padding: 6px 8px;
+}
+.customer-table th.wide {
+  min-width: 200px;
+}
+.cl-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cl-input {
+  width: 130px;
+  background: var(--ink);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 7px 9px;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+.customer-table td.wide .cl-input {
+  width: 210px;
+}
+.cl-input:hover {
+  border-color: var(--line);
+}
+.cl-input:focus {
+  outline: none;
+  border-color: var(--bronze);
+  background: var(--ink-2);
+}
+.cl-ext {
+  color: var(--bronze-2);
+  text-decoration: none;
+  font-size: 0.95rem;
+  flex: none;
+}
+.cl-ext:hover {
+  color: var(--bronze);
 }
 
 @media (max-width: 720px) {
