@@ -3,6 +3,7 @@ import { isAuthenticated } from '@/lib/auth';
 import { getSql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 
 type Row = Record<string, unknown>;
 
@@ -65,10 +66,42 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/** Bulk insert in chunks of 500 via unnest (one round-trip per chunk). */
+async function bulkInsert(rows: Record<string, unknown>[]): Promise<number> {
+  const sql = getSql();
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 500) {
+    const chunk = rows.slice(i, i + 500).filter((r) => FIELDS.some(([, key]) => s(r[key]) != null));
+    if (!chunk.length) continue;
+    const col = (key: string) => chunk.map((r) => s(r[key]));
+    await sql`
+      insert into customers
+        (state, school, conference, roster_link, division, first_degree_conn,
+         first_degree_notes, instagram, email, notes)
+      select * from unnest(
+        ${col('state')}::text[], ${col('school')}::text[], ${col('conference')}::text[],
+        ${col('rosterLink')}::text[], ${col('division')}::text[], ${col('firstDegreeConn')}::text[],
+        ${col('firstDegreeNotes')}::text[], ${col('instagram')}::text[], ${col('email')}::text[],
+        ${col('notes')}::text[]
+      )`;
+    inserted += chunk.length;
+  }
+  return inserted;
+}
+
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   try {
+    // Bulk import: { rows: [...] }
+    if (Array.isArray(body.rows)) {
+      if (body.rows.length > 5000) {
+        return NextResponse.json({ error: 'Too many rows at once (max 5000). Split the import.' }, { status: 400 });
+      }
+      const inserted = await bulkInsert(body.rows);
+      return NextResponse.json({ inserted });
+    }
+
     const sql = getSql();
     const rows = (await sql`
       insert into customers

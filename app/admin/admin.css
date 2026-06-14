@@ -834,6 +834,48 @@ td.neg {
   color: var(--bronze);
 }
 
+/* Bulk import */
+.cl-import-help {
+  font-size: 0.86rem;
+  margin-bottom: 12px;
+}
+.cl-import-text {
+  width: 100%;
+  min-height: 130px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  resize: vertical;
+}
+.cl-import-text:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+.cl-import-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.cl-spacer {
+  margin-left: auto;
+}
+.cl-file {
+  cursor: pointer;
+}
+.cl-import-preview {
+  margin-top: 16px;
+}
+.cl-import-more {
+  padding: 8px 4px 0;
+  font-size: 0.84rem;
+}
+
 @media (max-width: 720px) {
   .admin {
     grid-template-columns: 1fr;
