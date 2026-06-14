@@ -147,7 +147,9 @@ export default function ProspectsPage() {
           Type
           <select value={type} onChange={(e) => setType(e.target.value)}>
             <option value="facility">Facilities (cages, fields, complexes)</option>
+            <option value="highschool">High schools</option>
             <option value="college">Colleges</option>
+            <option value="league">Youth &amp; travel leagues</option>
           </select>
         </label>
         <label>

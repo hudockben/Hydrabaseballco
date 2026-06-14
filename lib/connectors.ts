@@ -6,7 +6,7 @@
 // isolated so a paid source (Google Places, Hunter, etc.) can be dropped in
 // later without touching the rest of the app.
 
-export type ProspectType = 'college' | 'facility' | 'league' | 'other';
+export type ProspectType = 'college' | 'facility' | 'league' | 'highschool' | 'other';
 
 export interface ProspectInput {
   name: string;
@@ -134,6 +134,97 @@ out center tags 120;`;
     });
   }
   return out;
+}
+
+async function runOverpass(query: string): Promise<OverpassEl[]> {
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
+      body: 'data=' + encodeURIComponent(query),
+      signal: AbortSignal.timeout(28000),
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { elements?: OverpassEl[] };
+    return data.elements ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function mapOsmElement(el: OverpassEl, type: ProspectType, level: string): ProspectInput | null {
+  const tags = el.tags ?? {};
+  if (!tags.name) return null;
+  const address = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ') || null;
+  return {
+    name: tags.name,
+    type,
+    phone: tags.phone ?? tags['contact:phone'] ?? null,
+    email: tags.email ?? tags['contact:email'] ?? null,
+    website: tags.website ?? tags['contact:website'] ?? null,
+    address,
+    city: tags['addr:city'] ?? null,
+    state: tags['addr:state'] ?? null,
+    postalCode: tags['addr:postcode'] ?? null,
+    country: tags['addr:country'] ?? 'US',
+    latitude: el.lat ?? el.center?.lat ?? null,
+    longitude: el.lon ?? el.center?.lon ?? null,
+    source: 'osm',
+    sourceId: `${el.type}/${el.id}`,
+    level,
+    raw: el,
+  };
+}
+
+function dedupeMap(els: OverpassEl[], type: ProspectType, level: string, keyword?: string): ProspectInput[] {
+  const kw = keyword?.toLowerCase().trim();
+  const seen = new Set<string>();
+  const out: ProspectInput[] = [];
+  for (const el of els) {
+    const m = mapOsmElement(el, type, level);
+    if (!m) continue;
+    if (kw && !m.name.toLowerCase().includes(kw)) continue;
+    if (seen.has(m.sourceId)) continue;
+    seen.add(m.sourceId);
+    out.push(m);
+  }
+  return out;
+}
+
+export async function searchHighSchools(opts: {
+  lat: number;
+  lon: number;
+  radiusKm: number;
+  keyword?: string;
+}): Promise<ProspectInput[]> {
+  const meters = Math.round(Math.max(1, Math.min(opts.radiusKm, 200)) * 1000);
+  // Nearly every high school fields baseball and softball, so the whole list
+  // is on-target. We query schools with a light tag-only filter (a server-side
+  // name regex over a wide radius times out on public Overpass) and keep the
+  // high schools in code.
+  const query = `[out:json][timeout:25];
+nwr["amenity"="school"](around:${meters},${opts.lat},${opts.lon});
+out center tags 250;`;
+  const els = (await runOverpass(query)).filter((el) => {
+    const n = (el.tags?.name ?? '').toLowerCase();
+    const isced = el.tags?.['isced:level'] ?? '';
+    return /high school|senior high|sr\.? high/.test(n) || isced.split(';').includes('3');
+  });
+  return dedupeMap(els, 'highschool', 'High school', opts.keyword);
+}
+
+export async function searchLeagues(opts: {
+  lat: number;
+  lon: number;
+  radiusKm: number;
+  keyword?: string;
+}): Promise<ProspectInput[]> {
+  const meters = Math.round(Math.max(1, Math.min(opts.radiusKm, 320)) * 1000);
+  // Named baseball/softball orgs: leagues, associations, youth & travel clubs.
+  const query = `[out:json][timeout:25];
+nwr["sport"~"baseball|softball"]["name"~"league|association|youth|little|travel|club|select|academy",i](around:${meters},${opts.lat},${opts.lon});
+out center tags 100;`;
+  return dedupeMap(await runOverpass(query), 'league', 'League / club', opts.keyword);
 }
 
 interface ScorecardRow {

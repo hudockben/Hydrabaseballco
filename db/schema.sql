@@ -5,7 +5,7 @@ create table if not exists prospects (
   id           bigint generated always as identity primary key,
   name         text not null,
   type         text not null default 'other'
-               check (type in ('college', 'facility', 'league', 'other')),
+               check (type in ('college', 'facility', 'league', 'highschool', 'other')),
   status       text not null default 'new'
                check (status in ('new', 'contacted', 'qualified', 'won', 'lost')),
   email        text,

@@ -5,6 +5,8 @@ import {
   haversineMiles,
   searchColleges,
   searchFacilities,
+  searchHighSchools,
+  searchLeagues,
   type ProspectInput,
 } from '@/lib/connectors';
 import { getSql } from '@/lib/db';
@@ -29,16 +31,21 @@ export async function POST(req: NextRequest) {
 
   try {
     const center = await geocode(location);
-    let results: ProspectInput[] = [];
+    const needsCenter = type === 'facility' || type === 'highschool' || type === 'league';
+    if (needsCenter && !center) {
+      return NextResponse.json(
+        { error: "Couldn't find that location — try a city + state or a ZIP." },
+        { status: 400 },
+      );
+    }
 
+    let results: ProspectInput[] = [];
     if (type === 'facility') {
-      if (!center) {
-        return NextResponse.json(
-          { error: "Couldn't find that location — try a city + state or a ZIP." },
-          { status: 400 },
-        );
-      }
-      results = await searchFacilities({ lat: center.lat, lon: center.lon, radiusKm, keyword });
+      results = await searchFacilities({ lat: center!.lat, lon: center!.lon, radiusKm, keyword });
+    } else if (type === 'highschool') {
+      results = await searchHighSchools({ lat: center!.lat, lon: center!.lon, radiusKm, keyword });
+    } else if (type === 'league') {
+      results = await searchLeagues({ lat: center!.lat, lon: center!.lon, radiusKm, keyword });
     } else if (type === 'college') {
       results = await searchColleges({ location, radiusKm, keyword });
     } else {
