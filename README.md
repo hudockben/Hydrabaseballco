@@ -1,88 +1,69 @@
-# Hydra Baseball Co. — Built for Competition
+# Hydra Baseball Co.
 
-Landing page for **Hydra Baseball Co.**, a baseball company that sells
-competition-grade ball products — full grain leather covers, cork &amp; rubber
-cores, built for every pitch, every inning, every game.
+The Hydra Baseball Co. website **plus** an internal admin tool — **Hydra
+Prospector** — for finding and managing sales leads (colleges, facilities,
+leagues) to sell baseballs to.
 
-## Brand
+Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
+**Neon Postgres**.
 
-- **Tagline:** Built for Competition.
-- **Flagship product:** Hydra Prime — Collegiate · Cork + Rubber Core · Full Grain Leather
-- **Heritage:** Inspired by the legacy of Rawlings, Wilson, and Baden.
-- **Color scheme:**
-  - Ink / near-black `#15151a`
-  - Bronze / tan accent `#c8966a`
-  - Cream / off-white `#f3efe7`
+## What's here
 
-## Files
+- **Public landing page** (`/`) — the marketing site, "Built for Competition."
+- **Admin area** (`/admin`, password-protected):
+  - **Find Prospects** — search free/public data sources by type + location and
+    save leads.
+  - **CRM** — pipeline (New → Contacted → Qualified → Won → Lost), notes, CSV export.
+  - **Dashboard** — counts by status.
 
-```
-.
-├── index.html   # The landing page
-├── styles.css   # Brand styling (colors, layout, responsive)
-└── script.js    # Nav, mobile menu, scroll reveal
-```
+## Data sources (free / public)
 
-It's a static site — no build step or dependencies.
+| Type | Source | Notes |
+|------|--------|-------|
+| Colleges | [College Scorecard API](https://collegescorecard.ed.gov/data/documentation/) | Strong coverage. Public `DEMO_KEY`, or set `SCORECARD_API_KEY`. |
+| Facilities | [OpenStreetMap Overpass](https://overpass-api.de/) + Nominatim | Coverage of *named* cages/complexes varies by area. |
+| Leagues | _coming next_ | Hardest on the free tier. |
 
-## View it locally
+> Connectors live in `lib/connectors.ts` and are isolated, so a paid source
+> (Google Places, Hunter, etc.) can be added later without touching the UI.
 
-Just open `index.html` in a browser, or serve the folder:
+## Environment variables
 
-```bash
-# Python
-python3 -m http.server 8000
-# then visit http://localhost:8000
-```
+Copy `.env.example` and set these in **Vercel → Settings → Environment Variables**
+(never commit real values):
 
-## Deploy on Vercel (auto-deploy)
+| Var | What |
+|-----|------|
+| `DATABASE_URL` | Neon Postgres connection string (pooled). |
+| `ADMIN_PASSWORD` | Password to reach `/admin`. |
+| `SESSION_SECRET` | Long random string for signing login cookies (`openssl rand -hex 32`). |
+| `SCORECARD_API_KEY` | _Optional_ — higher College Scorecard rate limits. |
 
-This repo is Vercel-ready (`vercel.json`, static — no build step). Connect it
-once and every push deploys automatically.
+## Database setup (Neon)
 
-1. Go to [vercel.com](https://vercel.com) and sign in **with GitHub**.
-2. Click **Add New… → Project**.
-3. **Import** the `hudockben/hydrabaseballco` repository.
-   (If you don't see it, click *Adjust GitHub App Permissions* and grant access.)
-4. Leave the defaults — **Framework Preset: Other**, no build command,
-   root directory `./` — and click **Deploy**.
-
-After that, Vercel deploys on every push:
-
-- **Production** ← your **Production Branch** (default `main`).
-- **Preview URL** ← every other branch and pull request.
-
-> **Heads-up:** this landing page currently lives on the
-> `claude/clever-keller-ddez9k` branch, so it will get a **preview** URL, not a
-> production one. To make it your live production site, either merge it into
-> `main`, or in **Vercel → Project Settings → Git → Production Branch** point
-> production at this branch.
-
-### Or deploy from the CLI
+Run the schema once in the **Neon SQL editor**:
 
 ```bash
-npm i -g vercel
-vercel          # first run links/creates the project
-vercel --prod   # promote to production
+# contents of db/schema.sql
 ```
 
-The CLI is great for one-off deploys, but the **GitHub import above is what
-enables automatic deploys on push**.
+## Local development
 
-## Deploy with GitHub Pages
+```bash
+npm install
+cp .env.example .env.local   # fill in the values
+npm run dev                  # http://localhost:3000  (admin at /admin)
+```
 
-1. Push to GitHub (this repo: `hudockben/hydrabaseballco`).
-2. Go to **Settings → Pages**.
-3. Under **Build and deployment**, set **Source** to *Deploy from a branch*.
-4. Choose the branch and the `/ (root)` folder, then **Save**.
-5. Your site goes live at `https://hudockben.github.io/hydrabaseballco/`.
+## Deploy
 
-## Customizing
+This repo is the source for the `hydrabaseballcompany` Vercel project. Point that
+project at this repo (Settings → Git), set the env vars above, and pushes to the
+production branch deploy automatically.
 
-- Product names, specs, and copy live in `index.html`.
-- Colors and spacing are CSS variables at the top of `styles.css` (`:root`).
-- Swap the CSS/SVG baseball illustrations for real product photos when ready.
+## Roadmap
 
----
-
-&copy; Hydra Baseball Co.™ — All rights reserved.
+- Leagues connector (Little League / travel ball)
+- Contact enrichment (scrape org sites for email/phone)
+- Per-user logins & assignment
+- Saved searches / scheduled pulls

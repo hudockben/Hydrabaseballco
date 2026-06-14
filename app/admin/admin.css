@@ -1,0 +1,408 @@
+/* Hydra Admin — prospecting + CRM styles (brand: ink / bronze / cream) */
+
+.admin,
+.login-wrap {
+  --ink: #15151a;
+  --ink-2: #1d1d24;
+  --ink-3: #26262f;
+  --bronze: #c8966a;
+  --bronze-2: #d8a877;
+  --text: #ecebe7;
+  --muted: #9a9aa3;
+  --line: rgba(255, 255, 255, 0.09);
+  --green: #4caf7d;
+  --red: #d9645a;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ---------- Login ---------- */
+.login-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(900px 500px at 50% -10%, rgba(200, 150, 106, 0.16), transparent 60%), #131318;
+  padding: 24px;
+}
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 36px 30px;
+  text-align: center;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.8);
+}
+.login-mark {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--bronze);
+  color: #20160c;
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: 2rem;
+}
+.login-card h1 {
+  color: var(--text);
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 1.6rem;
+}
+.login-sub {
+  color: var(--bronze);
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+.login-card input,
+.search-form input,
+.search-form select,
+.crm-actions select {
+  width: 100%;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 0.98rem;
+}
+.login-card input:focus,
+.search-form input:focus,
+.search-form select:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+.login-error {
+  color: var(--red);
+  font-size: 0.88rem;
+  margin: 12px 0 0;
+}
+.login-card button,
+.search-form button,
+.results-actions button,
+.admin-logout button {
+  margin-top: 16px;
+  width: 100%;
+  background: var(--bronze);
+  color: #20160c;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.login-card button:hover,
+.search-form button:hover {
+  background: var(--bronze-2);
+}
+.login-card button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---------- Admin shell ---------- */
+.admin {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--text);
+}
+.admin-sidebar {
+  background: #101015;
+  border-right: 1px solid var(--line);
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 1.15rem;
+  margin-bottom: 18px;
+}
+.admin-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--bronze);
+  color: #20160c;
+  font-style: italic;
+  font-weight: 800;
+}
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.admin-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.admin-nav a:hover {
+  background: var(--ink-3);
+  color: var(--text);
+}
+.admin-logout {
+  margin-top: auto;
+}
+.admin-logout button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.admin-logout button:hover {
+  border-color: var(--bronze);
+  color: var(--bronze);
+  background: transparent;
+}
+.admin-main {
+  padding: 36px 40px;
+  max-width: 1100px;
+}
+.admin-h1 {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 2rem;
+  margin-bottom: 24px;
+}
+.admin-msg,
+.admin-hint {
+  color: var(--muted);
+  margin: 18px 0;
+}
+.admin-callout {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--bronze);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.admin-callout code {
+  background: var(--ink);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--bronze-2);
+}
+
+/* ---------- Dashboard stats ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+.stat {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat--total {
+  border-color: rgba(200, 150, 106, 0.4);
+}
+.stat-n {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--bronze);
+}
+.stat-l {
+  color: var(--muted);
+  text-transform: capitalize;
+  font-size: 0.9rem;
+}
+
+/* ---------- Search form ---------- */
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  align-items: end;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+.search-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bronze);
+  font-weight: 600;
+}
+.search-form button {
+  margin-top: 0;
+  height: 44px;
+}
+
+/* ---------- Results / tables ---------- */
+.results-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 12px;
+}
+.results-actions span {
+  color: var(--muted);
+  margin-right: auto;
+}
+.results-actions button {
+  margin-top: 0;
+  width: auto;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 9px 16px;
+}
+.results-actions button.primary {
+  background: var(--bronze);
+  color: #20160c;
+  border-color: var(--bronze);
+}
+.results-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+}
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.data-table th {
+  background: var(--ink-2);
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.data-table a {
+  color: var(--bronze-2);
+}
+
+/* ---------- CRM ---------- */
+.crm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.crm-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.crm-actions select {
+  width: auto;
+}
+.btn-link {
+  background: var(--bronze);
+  color: #20160c;
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.status {
+  width: auto;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--text);
+  text-transform: capitalize;
+  font-size: 0.85rem;
+}
+.status-won {
+  border-color: var(--green);
+  color: var(--green);
+}
+.status-lost {
+  border-color: var(--red);
+  color: var(--red);
+}
+.status-qualified,
+.status-contacted {
+  border-color: var(--bronze);
+  color: var(--bronze-2);
+}
+.link-danger {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+}
+.link-danger:hover {
+  color: var(--red);
+}
+
+@media (max-width: 720px) {
+  .admin {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .admin-nav {
+    flex-direction: row;
+  }
+  .admin-logout {
+    margin: 0 0 0 auto;
+  }
+  .admin-main {
+    padding: 24px 18px;
+  }
+}

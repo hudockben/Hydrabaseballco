@@ -8,14 +8,17 @@
 
   /* Sticky nav background on scroll */
   function onScroll() {
+    if (!nav) return;
     if (window.scrollY > 24) {
       nav.classList.add('is-scrolled');
     } else {
       nav.classList.remove('is-scrolled');
     }
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  if (nav) {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
 
   /* Mobile menu toggle */
   if (toggle && links) {
@@ -54,4 +57,14 @@
   /* Footer year */
   var yearEl = document.getElementById('year');
   if (yearEl) { yearEl.textContent = String(new Date().getFullYear()); }
+
+  /* Contact form is a placeholder — prevent a real submit/reload */
+  var contactForm = document.querySelector('.contact__form');
+  if (contactForm) {
+    contactForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = contactForm.querySelector('button');
+      if (btn) { btn.textContent = 'Thanks — we’ll be in touch!'; }
+    });
+  }
 })();
