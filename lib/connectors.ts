@@ -55,6 +55,26 @@ export async function geocode(location: string): Promise<GeocodeResult | null> {
   return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), displayName: data[0].display_name };
 }
 
+/**
+ * Reverse-geocode a point to its US ZIP code. The College Scorecard can filter by
+ * a ZIP + radius, which is the only way to bound college results to a real
+ * distance from a city (its forward search returns a city centroid but no ZIP).
+ */
+export async function reverseZip(lat: number, lon: number): Promise<string | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=${lat}&lon=${lon}`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': UA, 'Accept-Language': 'en' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { address?: { postcode?: string } };
+    return data.address?.postcode?.match(/\d{5}/)?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Great-circle distance in miles between two lat/lon points. */
 export function haversineMiles(aLat: number, aLon: number, bLat: number, bLon: number): number {
   const R = 3958.8;
@@ -247,6 +267,8 @@ function normalizeUrl(u: string): string {
 export async function searchColleges(opts: {
   location?: string;
   state?: string;
+  lat?: number | null;
+  lon?: number | null;
   radiusKm?: number;
   keyword?: string;
 }): Promise<ProspectInput[]> {
@@ -267,14 +289,24 @@ export async function searchColleges(opts: {
   if (opts.keyword) params.set('school.name', opts.keyword);
 
   const loc = (opts.location || '').trim();
-  if (/^\d{5}$/.test(loc)) {
-    // ZIP -> precise radius filter.
-    const miles = Math.round((opts.radiusKm ?? 80) * 0.621371);
-    params.set('zip', loc);
+  const miles = Math.round((opts.radiusKm ?? 80) * 0.621371);
+  const isBareState = /^[A-Za-z]{2}$/.test(loc);
+  // Prefer Scorecard's native ZIP + radius filter: it bounds results to the
+  // distance AND is complete near the point. A whole-state filter is capped at
+  // 100 rows ordered by id, so a city's nearby schools can fall off the list
+  // while far ones (e.g. Mercyhurst, clear across PA) survive. Use a typed ZIP
+  // directly, else derive one from the geocoded city center.
+  let zip: string | null = /^\d{5}$/.test(loc) ? loc : null;
+  if (!zip && !isBareState && typeof opts.lat === 'number' && typeof opts.lon === 'number') {
+    zip = await reverseZip(opts.lat, opts.lon);
+  }
+  if (zip) {
+    params.set('zip', zip);
     params.set('distance', `${miles}mi`);
   } else if (opts.state && /^[A-Za-z]{2}$/.test(opts.state)) {
+    // Fallback: no ZIP available — filter by state (the route then caps by radius).
     params.set('school.state', opts.state.toUpperCase());
-  } else if (/^[A-Za-z]{2}$/.test(loc)) {
+  } else if (isBareState) {
     params.set('school.state', loc.toUpperCase());
   }
 

@@ -24,10 +24,11 @@ export async function POST(req: NextRequest) {
   const keyword = body.keyword ? String(body.keyword).trim() : undefined;
   const radiusMiles = Math.max(1, Math.min(Number(body.radiusMiles) || 25, 200));
   const radiusKm = radiusMiles * 1.60934;
-  // State abbreviation from "City, ST" or a bare "ST" — used to filter colleges
-  // (Scorecard filters by ZIP+distance or state, not by lat/lon radius).
+  // State abbreviation from "City, ST", "City ST", or a bare "ST" — used to filter
+  // colleges (Scorecard filters by ZIP+distance or state, not by lat/lon radius).
+  // The separator may be a comma or just a space, so "allentown pa" works too.
   const stateAbbr =
-    (location.match(/,\s*([A-Za-z]{2})\s*$/)?.[1] ?? (/^[A-Za-z]{2}$/.test(location) ? location : ''))
+    (location.match(/[,\s]\s*([A-Za-z]{2})\s*$/)?.[1] ?? (/^[A-Za-z]{2}$/.test(location) ? location : ''))
       .toUpperCase() || undefined;
 
   if (!location) {
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
         searchFacilities({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
         searchHighSchools({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
         searchLeagues({ lat: c.lat, lon: c.lon, radiusKm, keyword }),
-        searchColleges({ location, state: stateAbbr, radiusKm, keyword }),
+        searchColleges({ location, state: stateAbbr, lat: c.lat, lon: c.lon, radiusKm, keyword }),
       ]);
       for (const s of settled) if (s.status === 'fulfilled') results.push(...s.value);
     } else if (type === 'facility') {
@@ -62,7 +63,14 @@ export async function POST(req: NextRequest) {
     } else if (type === 'league') {
       results = await searchLeagues({ lat: center!.lat, lon: center!.lon, radiusKm, keyword });
     } else if (type === 'college') {
-      results = await searchColleges({ location, state: stateAbbr, radiusKm, keyword });
+      results = await searchColleges({
+        location,
+        state: stateAbbr,
+        lat: center?.lat ?? null,
+        lon: center?.lon ?? null,
+        radiusKm,
+        keyword,
+      });
     } else {
       return NextResponse.json({ error: `The "${type}" source isn't available yet.` }, { status: 400 });
     }
@@ -74,6 +82,20 @@ export async function POST(req: NextRequest) {
           r.distanceMi = Math.round(haversineMiles(center.lat, center.lon, r.latitude, r.longitude) * 10) / 10;
         }
       }
+
+      // Enforce the radius for colleges. Facilities/high schools/leagues come back
+      // from Overpass already bounded to `radiusKm`, but the College Scorecard
+      // filters by whole state (or ZIP+distance), so a city search like
+      // "Allentown, PA" would otherwise surface schools clear across the state
+      // (e.g. Mercyhurst in Erie, ~260 mi away). A bare-state query ("PA") means
+      // the whole state, so skip it there. Colleges missing coordinates are kept.
+      const isBareState = /^[A-Za-z]{2}$/.test(location);
+      if (!isBareState) {
+        results = results.filter(
+          (r) => r.type !== 'college' || r.distanceMi == null || r.distanceMi <= radiusMiles,
+        );
+      }
+
       results.sort((a, b) => (a.distanceMi ?? Infinity) - (b.distanceMi ?? Infinity));
     }
 
