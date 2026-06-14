@@ -47,6 +47,7 @@ export default function CustomerListPage() {
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [filter, setFilter] = useState('');
+  const [colFilters, setColFilters] = useState<Partial<Record<FieldKey, string>>>({});
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [importing, setImporting] = useState(false);
@@ -73,11 +74,20 @@ export default function CustomerListPage() {
 
   const displayed = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) =>
-      COLUMNS.some((c) => (r[c.key] ?? '').toLowerCase().includes(q)),
-    );
-  }, [rows, filter]);
+    const active = COLUMNS
+      .map((c) => [c.key, (colFilters[c.key] ?? '').trim().toLowerCase()] as const)
+      .filter(([, v]) => v !== '');
+    return rows.filter((r) => {
+      if (q && !COLUMNS.some((c) => (r[c.key] ?? '').toLowerCase().includes(q))) return false;
+      return active.every(([key, v]) => (r[key] ?? '').toLowerCase().includes(v));
+    });
+  }, [rows, filter, colFilters]);
+
+  const anyFilter = filter.trim() !== '' || Object.values(colFilters).some((v) => (v ?? '').trim() !== '');
+  function clearFilters() {
+    setFilter('');
+    setColFilters({});
+  }
 
   async function save(row: Customer, key: FieldKey, raw: string) {
     const value = raw.trim();
@@ -246,6 +256,23 @@ export default function CustomerListPage() {
               <tr>
                 {COLUMNS.map((c) => <th key={c.key} className={c.wide ? 'wide' : undefined}>{c.label}</th>)}
                 <th></th>
+              </tr>
+              <tr className="cl-filter-row">
+                {COLUMNS.map((c) => (
+                  <th key={c.key} className={c.wide ? 'wide' : undefined}>
+                    <input
+                      className="cl-col-filter"
+                      value={colFilters[c.key] ?? ''}
+                      placeholder="filter…"
+                      onChange={(e) => setColFilters((f) => ({ ...f, [c.key]: e.target.value }))}
+                    />
+                  </th>
+                ))}
+                <th>
+                  {anyFilter && (
+                    <button className="mini-btn" onClick={clearFilters} title="Clear all filters">clear</button>
+                  )}
+                </th>
               </tr>
             </thead>
             <tbody>
