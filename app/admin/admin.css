@@ -115,7 +115,7 @@
 /* ---------- Admin shell ---------- */
 .admin {
   display: grid;
-  grid-template-columns: 232px 1fr;
+  grid-template-columns: 232px minmax(0, 1fr);
   min-height: 100vh;
   background: var(--ink);
   color: var(--text);
@@ -208,12 +208,13 @@
 .admin-main {
   padding: 36px 40px;
   max-width: 1400px;
+  min-width: 0;
 }
 
 /* Collapsible sidebar (desktop) */
 @media (min-width: 721px) {
   .admin--collapsed {
-    grid-template-columns: 56px 1fr;
+    grid-template-columns: 56px minmax(0, 1fr);
   }
   .admin--collapsed .admin-sidebar {
     padding: 24px 12px;
