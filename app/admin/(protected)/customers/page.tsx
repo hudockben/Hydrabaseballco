@@ -34,6 +34,8 @@ const COLUMNS: { key: FieldKey; label: string; type?: 'link' | 'instagram' | 'em
 
 const DIVISIONS = ['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'NJCAA D1', 'NJCAA D2', 'NJCAA D3'];
 
+const PAGE_SIZE = 25;
+
 function hrefFor(type: 'link' | 'instagram' | 'email' | undefined, value: string): string | null {
   if (!type) return null;
   if (type === 'email') return `mailto:${value}`;
@@ -48,6 +50,7 @@ export default function CustomerListPage() {
   const [msg, setMsg] = useState('');
   const [filter, setFilter] = useState('');
   const [colFilters, setColFilters] = useState<Partial<Record<FieldKey, string>>>({});
+  const [page, setPage] = useState(1);
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [importing, setImporting] = useState(false);
@@ -87,7 +90,13 @@ export default function CustomerListPage() {
   function clearFilters() {
     setFilter('');
     setColFilters({});
+    setPage(1);
   }
+
+  const totalPages = Math.max(1, Math.ceil(displayed.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = displayed.slice(start, start + PAGE_SIZE);
 
   async function save(row: Customer, key: FieldKey, raw: string) {
     const value = raw.trim();
@@ -108,8 +117,10 @@ export default function CustomerListPage() {
       body: JSON.stringify({}),
     });
     const data = await res.json();
-    if (res.ok) setRows((rs) => [data.customer, ...rs]);
-    else setErr(data.error || 'Add failed.');
+    if (res.ok) {
+      setRows((rs) => [data.customer, ...rs]);
+      setPage(1);
+    } else setErr(data.error || 'Add failed.');
   }
 
   async function remove(id: number) {
@@ -148,6 +159,7 @@ export default function CustomerListPage() {
       setMsg(`Imported ${data.inserted} row${data.inserted === 1 ? '' : 's'}.`);
       setImportText('');
       setImportOpen(false);
+      setPage(1);
       await load();
     } finally {
       setImporting(false);
@@ -162,7 +174,10 @@ export default function CustomerListPage() {
           <input
             className="cl-filter"
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(1);
+            }}
             placeholder="Filter…"
           />
           <button className="solid-btn" onClick={addRow}>+ Add row</button>
@@ -250,6 +265,7 @@ export default function CustomerListPage() {
       </datalist>
 
       {!loading && !err && (
+        <>
         <div className="table-wrap">
           <table className="data-table customer-table">
             <thead>
@@ -264,7 +280,10 @@ export default function CustomerListPage() {
                       className="cl-col-filter"
                       value={colFilters[c.key] ?? ''}
                       placeholder="filter…"
-                      onChange={(e) => setColFilters((f) => ({ ...f, [c.key]: e.target.value }))}
+                      onChange={(e) => {
+                        setColFilters((f) => ({ ...f, [c.key]: e.target.value }));
+                        setPage(1);
+                      }}
                     />
                   </th>
                 ))}
@@ -276,7 +295,7 @@ export default function CustomerListPage() {
               </tr>
             </thead>
             <tbody>
-              {displayed.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id}>
                   {COLUMNS.map((c) => {
                     const val = r[c.key] ?? '';
@@ -312,6 +331,38 @@ export default function CustomerListPage() {
             </tbody>
           </table>
         </div>
+
+        {displayed.length > 0 && (
+          <div className="pagination">
+            <span className="pagination-info">
+              {start + 1}–{Math.min(start + PAGE_SIZE, displayed.length)} of {displayed.length}
+            </span>
+            {totalPages > 1 && (
+              <div className="pagination-controls">
+                <button
+                  type="button"
+                  className="page-btn"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage(currentPage - 1)}
+                >
+                  ← Prev
+                </button>
+                <span className="page-indicator">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="page-btn"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage(currentPage + 1)}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        </>
       )}
     </div>
   );
