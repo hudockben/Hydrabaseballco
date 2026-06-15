@@ -28,6 +28,25 @@ async function getFinance() {
   }
 }
 
+async function getInventory() {
+  // Like getFinance: the inventory tables may not exist yet, so any failure
+  // just hides the inventory row instead of breaking the dashboard.
+  try {
+    const sql = getSql();
+    const rows = (await sql`
+      select
+        count(*)::int                                                                as items,
+        coalesce(sum(quantity), 0)::int                                             as units,
+        coalesce(sum(quantity * unit_cost), 0)                                       as value,
+        (count(*) filter (where reorder_level > 0 and quantity <= reorder_level))::int as low
+      from inventory_items`) as { items: number; units: number; value: string; low: number }[];
+    const r = rows[0];
+    return { items: r.items, units: r.units, value: round2(Number(r.value)), low: r.low };
+  } catch {
+    return null;
+  }
+}
+
 async function getStats() {
   try {
     const sql = getSql();
@@ -47,6 +66,7 @@ async function getStats() {
 export default async function Dashboard() {
   const stats = await getStats();
   const finance = stats.error ? null : await getFinance();
+  const inventory = stats.error ? null : await getInventory();
 
   return (
     <div>
@@ -92,6 +112,29 @@ export default async function Dashboard() {
                 <div className="stat">
                   <span className="stat-n">{finance.orders}</span>
                   <span className="stat-l">Orders</span>
+                </div>
+              </div>
+            </>
+          )}
+          {inventory && inventory.items > 0 && (
+            <>
+              <h2 className="fin-h2 dash-sub">Inventory</h2>
+              <div className="stat-grid">
+                <div className="stat stat--total">
+                  <span className="stat-n">{inventory.units}</span>
+                  <span className="stat-l">Units on hand</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-n">{inventory.items}</span>
+                  <span className="stat-l">Items</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-n">{usd(inventory.value)}</span>
+                  <span className="stat-l">Value at cost</span>
+                </div>
+                <div className="stat">
+                  <span className={`stat-n ${inventory.low > 0 ? 'neg' : ''}`}>{inventory.low}</span>
+                  <span className="stat-l">Low stock</span>
                 </div>
               </div>
             </>

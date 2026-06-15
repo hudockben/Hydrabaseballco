@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface Item {
   id: number;
@@ -52,6 +52,11 @@ export default function InventoryPage() {
   const [log, setLog] = useState<Movement[]>([]);
   const [logLoading, setLogLoading] = useState(false);
   const [busy, setBusy] = useState<Record<number, boolean>>({});
+
+  // Click-to-edit the on-hand count (records an adjustment for the difference).
+  const [editingQty, setEditingQty] = useState<number | null>(null);
+  const [qtyDraft, setQtyDraft] = useState('');
+  const cancelSet = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -156,6 +161,39 @@ export default function InventoryPage() {
       }
       setErr('');
       setMsg(`${sign > 0 ? 'Received' : 'Shipped'} ${amount} × ${item.name || 'item'}.`);
+      setItems((rs) => rs.map((r) => (r.id === item.id ? { ...r, quantity: data.quantity } : r)));
+      if (openLog === item.id) loadLog(item.id);
+    } finally {
+      setBusy((b) => ({ ...b, [item.id]: false }));
+    }
+  }
+
+  function startEditQty(item: Item) {
+    setEditingQty(item.id);
+    setQtyDraft(String(item.quantity));
+  }
+
+  async function commitQty(item: Item) {
+    const canceled = cancelSet.current;
+    cancelSet.current = false;
+    setEditingQty(null);
+    if (canceled) return;
+    const target = Math.trunc(Number(qtyDraft));
+    if (!Number.isFinite(target) || target < 0 || target === item.quantity) return;
+    setBusy((b) => ({ ...b, [item.id]: true }));
+    try {
+      const res = await fetch('/api/admin/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ move: { id: item.id, set: target } }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErr(data.error || 'Could not set the count.');
+        return;
+      }
+      setErr('');
+      setMsg(`Set ${item.name || 'item'} on hand to ${data.quantity}.`);
       setItems((rs) => rs.map((r) => (r.id === item.id ? { ...r, quantity: data.quantity } : r)));
       if (openLog === item.id) loadLog(item.id);
     } finally {
@@ -284,12 +322,37 @@ export default function InventoryPage() {
                       {editCell(item, 'name', { wide: true })}
                       {editCell(item, 'category')}
                       <td>
-                        <span className="inv-onhand">
-                          <span className={isLow(item) ? 'inv-qty low' : 'inv-qty'}>
-                            {item.quantity}
+                        {editingQty === item.id ? (
+                          <input
+                            className="inv-amt set"
+                            type="number"
+                            min="0"
+                            autoFocus
+                            value={qtyDraft}
+                            onChange={(e) => setQtyDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') e.currentTarget.blur();
+                              else if (e.key === 'Escape') {
+                                cancelSet.current = true;
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            onBlur={() => commitQty(item)}
+                            aria-label="Set on-hand count"
+                          />
+                        ) : (
+                          <span className="inv-onhand">
+                            <button
+                              type="button"
+                              className={isLow(item) ? 'inv-qty low' : 'inv-qty'}
+                              title="Click to set the count (logs an adjustment)"
+                              onClick={() => startEditQty(item)}
+                            >
+                              {item.quantity}
+                            </button>
+                            {isLow(item) && <span className="low-badge">low</span>}
                           </span>
-                          {isLow(item) && <span className="low-badge">low</span>}
-                        </span>
+                        )}
                       </td>
                       {editCell(item, 'reorderLevel', { num: true })}
                       {editCell(item, 'unitCost', { num: true })}

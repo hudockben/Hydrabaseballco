@@ -976,8 +976,27 @@ td.neg {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+button.inv-qty {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+button.inv-qty:hover {
+  border-color: var(--line);
+  background: var(--ink-2);
+  color: var(--bronze-2);
+}
 .inv-qty.low {
   color: var(--red);
+}
+.inv-amt.set {
+  width: 72px;
 }
 .low-badge {
   font-size: 0.66rem;

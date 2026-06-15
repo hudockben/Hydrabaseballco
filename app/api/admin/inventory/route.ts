@@ -114,10 +114,39 @@ export async function POST(req: NextRequest) {
     // Updates on-hand and logs the movement atomically; refuses to go negative.
     if (body.move && typeof body.move === 'object') {
       const id = Number(body.move.id);
-      const delta = int(body.move.delta);
-      const kind = MOVE_KINDS.includes(body.move.kind) ? body.move.kind : 'adjust';
       const reason = s(body.move.reason);
       if (!id) return NextResponse.json({ error: 'Missing item id' }, { status: 400 });
+
+      // Absolute set: { move: { id, set } } — records an adjustment for the
+      // difference so the on-hand history still reconstructs the count.
+      if (body.move.set != null) {
+        const target = int(body.move.set);
+        if (target < 0) return NextResponse.json({ error: 'Count can’t be negative.' }, { status: 400 });
+        const setRes = (await sql`
+          with cur as (
+            select quantity as old_q from inventory_items where id = ${id}
+          ),
+          upd as (
+            update inventory_items
+               set quantity = ${target},
+                   updated_at = now()
+             where id = ${id}
+            returning quantity
+          ),
+          logged as (
+            insert into inventory_movements (item_id, delta, kind, reason)
+            select ${id}, ${target} - (select old_q from cur), 'adjust', ${reason}
+             where exists (select 1 from upd)
+               and ${target} - (select old_q from cur) <> 0
+            returning id
+          )
+          select quantity from upd`) as Row[];
+        if (!setRes.length) return NextResponse.json({ error: 'Item not found.' }, { status: 404 });
+        return NextResponse.json({ quantity: Number(setRes[0].quantity) });
+      }
+
+      const delta = int(body.move.delta);
+      const kind = MOVE_KINDS.includes(body.move.kind) ? body.move.kind : 'adjust';
       if (!delta) return NextResponse.json({ error: 'Enter a non-zero quantity.' }, { status: 400 });
 
       const result = (await sql`
