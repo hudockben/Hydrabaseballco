@@ -21,6 +21,7 @@ interface Row {
 }
 
 const STATUSES = ['new', 'contacted', 'qualified', 'won', 'lost'];
+const PAGE_SIZE = 25;
 
 export default function CrmPage() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -28,6 +29,7 @@ export default function CrmPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
   const [enriching, setEnriching] = useState<Record<number, boolean>>({});
+  const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,12 +111,23 @@ export default function CrmPage() {
     });
   }
 
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(start, start + PAGE_SIZE);
+
   return (
     <div>
       <div className="crm-head">
         <h1 className="admin-h1">CRM</h1>
         <div className="crm-actions">
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <select
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="">All statuses</option>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -137,6 +150,7 @@ export default function CrmPage() {
           No prospects yet. Go to <strong>Find Prospects</strong> to add some.
         </p>
       ) : (
+        <>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
@@ -151,7 +165,7 @@ export default function CrmPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id}>
                   <td>
                     {r.website ? (
@@ -213,6 +227,36 @@ export default function CrmPage() {
             </tbody>
           </table>
         </div>
+
+        <div className="pagination">
+          <span className="pagination-info">
+            {start + 1}–{Math.min(start + PAGE_SIZE, rows.length)} of {rows.length}
+          </span>
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button
+                type="button"
+                className="page-btn"
+                disabled={currentPage <= 1}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                ← Prev
+              </button>
+              <span className="page-indicator">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                className="page-btn"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </div>
+        </>
       )}
     </div>
   );
