@@ -9,6 +9,7 @@ const NAV: Array<[string, string]> = [
   ['/admin/prospects', 'Find Prospects'],
   ['/admin/crm', 'CRM'],
   ['/admin/customers', 'Customer List'],
+  ['/admin/inventory', 'Inventory'],
   ['/admin/pricing', 'Pricing'],
   ['/admin/revenue', 'Revenue'],
 ];
