@@ -77,6 +77,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `The "${type}" source isn't available yet.` }, { status: 400 });
     }
 
+    // "All types" runs several connectors, and one place (e.g. a baseball club)
+    // can come back from more than one — same source/source_id. Keep the first
+    // so it isn't rendered twice or silently dropped by the unique key on save.
+    const byKey = new Map<string, ProspectInput>();
+    for (const r of results) {
+      const key = `${r.source}/${r.sourceId}`;
+      if (!byKey.has(key)) byKey.set(key, r);
+    }
+    results = [...byKey.values()];
+
     // Distance from the search center + nearest-first ordering.
     if (center) {
       for (const r of results) {

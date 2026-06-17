@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getSql } from '@/lib/db';
+import { ensureSchema, getSql } from '@/lib/db';
 import type { ProspectInput } from '@/lib/connectors';
 
 export const dynamic = 'force-dynamic';
@@ -55,25 +55,40 @@ export async function POST(req: NextRequest) {
   if (!items.length) return NextResponse.json({ error: 'No prospects provided.' }, { status: 400 });
   try {
     const sql = getSql();
-    let saved = 0;
+    await ensureSchema();
+    let saved = 0; // rows actually inserted (skips ones already in the CRM)
+    let duplicate = 0;
+    let firstError: string | null = null;
     for (const p of items) {
-      await sql`
-        insert into prospects
-          (name, type, email, phone, contact_name, website, address, city, state, postal_code,
-           country, latitude, longitude, source, source_id, level, raw)
-        values
-          (${p.name}, ${p.type}, ${p.email ?? null}, ${p.phone ?? null}, ${p.contactName ?? null},
-           ${p.website ?? null}, ${p.address ?? null}, ${p.city ?? null}, ${p.state ?? null},
-           ${p.postalCode ?? null}, ${p.country ?? 'US'}, ${p.latitude ?? null}, ${p.longitude ?? null},
-           ${p.source}, ${p.sourceId}, ${p.level ?? null},
-           ${JSON.stringify(p.raw ?? null)}::jsonb)
-        on conflict (source, source_id) do nothing`;
-      saved++;
+      try {
+        const rows = (await sql`
+          insert into prospects
+            (name, type, email, phone, contact_name, website, address, city, state, postal_code,
+             country, latitude, longitude, source, source_id, level, raw)
+          values
+            (${p.name}, ${p.type}, ${p.email ?? null}, ${p.phone ?? null}, ${p.contactName ?? null},
+             ${p.website ?? null}, ${p.address ?? null}, ${p.city ?? null}, ${p.state ?? null},
+             ${p.postalCode ?? null}, ${p.country ?? 'US'}, ${p.latitude ?? null}, ${p.longitude ?? null},
+             ${p.source}, ${p.sourceId}, ${p.level ?? null},
+             ${JSON.stringify(p.raw ?? null)}::jsonb)
+          on conflict (source, source_id) do nothing
+          returning id`) as { id: number }[];
+        if (rows.length) saved++;
+        else duplicate++;
+      } catch (rowErr) {
+        // Don't let one bad row sink the whole batch — record it and continue.
+        if (!firstError) firstError = rowErr instanceof Error ? rowErr.message : String(rowErr);
+        console.error('crm POST row error', p.source, p.sourceId, rowErr);
+      }
     }
-    return NextResponse.json({ saved });
+    if (saved === 0 && duplicate === 0 && firstError) {
+      return NextResponse.json({ error: `Could not save: ${firstError}` }, { status: 500 });
+    }
+    return NextResponse.json({ saved, duplicate });
   } catch (err) {
     console.error('crm POST error', err);
-    return NextResponse.json({ error: 'Could not save — is the database connected?' }, { status: 500 });
+    const detail = err instanceof Error ? err.message : 'is the database connected?';
+    return NextResponse.json({ error: `Could not save — ${detail}` }, { status: 500 });
   }
 }
 
