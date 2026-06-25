@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 import { orderEconomics, sumEconomics, type OrderEconomics } from '@/lib/finance';
 
 export const dynamic = 'force-dynamic';
@@ -56,7 +56,7 @@ function mapOrder(r: Row): OrderOut {
 export async function GET() {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`
       select o.*, p.name as product_name, pr.name as prospect_name
       from orders o
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
   if (!quantity) return NextResponse.json({ error: 'Enter a quantity.' }, { status: 400 });
   const status = ['quote', 'confirmed', 'fulfilled', 'paid'].includes(body.status) ? body.status : 'confirmed';
   try {
-    const sql = getSql();
+    const sql = await db();
     const prospectId = body.prospectId ? Number(body.prospectId) : null;
     const productId = body.productId ? Number(body.productId) : null;
 
@@ -148,7 +148,7 @@ export async function PATCH(req: NextRequest) {
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const status = ['quote', 'confirmed', 'fulfilled', 'paid'].includes(body.status) ? body.status : null;
     await sql`
       update orders set
@@ -173,7 +173,7 @@ export async function DELETE(req: NextRequest) {
   const id = Number(new URL(req.url).searchParams.get('id'));
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     await sql`delete from orders where id = ${id}`;
     return NextResponse.json({ ok: true });
   } catch (err) {

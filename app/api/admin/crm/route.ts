@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { ensureSchema, getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 import type { ProspectInput } from '@/lib/connectors';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ function toCsv(rows: Record<string, unknown>[]): string {
 export async function GET(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const url = new URL(req.url);
     const status = url.searchParams.get('status');
     const type = url.searchParams.get('type');
@@ -57,8 +57,7 @@ export async function POST(req: NextRequest) {
   const items: ProspectInput[] = Array.isArray(body.prospects) ? body.prospects : [];
   if (!items.length) return NextResponse.json({ error: 'No prospects provided.' }, { status: 400 });
   try {
-    const sql = getSql();
-    await ensureSchema();
+    const sql = await db();
     let saved = 0; // rows actually inserted (skips ones already in the CRM)
     let duplicate = 0;
     let firstError: string | null = null;
@@ -101,7 +100,7 @@ export async function PATCH(req: NextRequest) {
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const status = (body.status as string | undefined) ?? null;
     const notes = (body.notes as string | undefined) ?? null;
     const email = (body.email as string | undefined) ?? null;
@@ -128,7 +127,7 @@ export async function DELETE(req: NextRequest) {
   const id = Number(new URL(req.url).searchParams.get('id'));
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     await sql`delete from prospects where id = ${id}`;
     return NextResponse.json({ ok: true });
   } catch (err) {

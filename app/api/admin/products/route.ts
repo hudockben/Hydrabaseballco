@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 import type { PriceTier, Product } from '@/lib/finance';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +27,7 @@ function cleanTiers(input: unknown): PriceTier[] {
 }
 
 async function loadProducts(): Promise<Product[]> {
-  const sql = getSql();
+  const sql = await db();
   const products = (await sql`select * from products order by active desc, name asc`) as Row[];
   const tiers = (await sql`select * from price_tiers order by min_qty asc`) as Row[];
   const byProduct = new Map<number, PriceTier[]>();
@@ -49,7 +49,7 @@ async function loadProducts(): Promise<Product[]> {
 }
 
 async function replaceTiers(productId: number, tiers: PriceTier[]) {
-  const sql = getSql();
+  const sql = await db();
   await sql`delete from price_tiers where product_id = ${productId}`;
   for (const t of tiers) {
     await sql`
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   const name = String(body.name ?? '').trim();
   if (!name) return NextResponse.json({ error: 'Product name is required.' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`
       insert into products (name, sku, unit_cost, ship_cost, active)
       values (${name}, ${body.sku ? String(body.sku) : null}, ${num(body.unitCost)},
@@ -95,7 +95,7 @@ export async function PATCH(req: NextRequest) {
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const name = body.name != null ? String(body.name).trim() : null;
     const skuProvided = body.sku !== undefined;
     const skuVal = skuProvided ? String(body.sku).trim() || null : null;
@@ -121,7 +121,7 @@ export async function DELETE(req: NextRequest) {
   const id = Number(new URL(req.url).searchParams.get('id'));
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     await sql`delete from products where id = ${id}`;
     return NextResponse.json({ ok: true });
   } catch (err) {

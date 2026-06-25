@@ -1,4 +1,4 @@
-import { getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 import { round2, usd, pct } from '@/lib/finance';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ async function getFinance() {
   // Separate from prospect stats: the finance tables may not exist yet even when
   // the database is connected, so a failure here just hides the finance row.
   try {
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`
       select
         coalesce(sum(quantity * unit_price), 0) as revenue,
@@ -32,7 +32,7 @@ async function getInventory() {
   // Like getFinance: the inventory tables may not exist yet, so any failure
   // just hides the inventory row instead of breaking the dashboard.
   try {
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`
       select
         count(*)::int                                                                as items,
@@ -49,7 +49,7 @@ async function getInventory() {
 
 async function getStats() {
   try {
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`select status, count(*)::int as n from prospects group by status`) as {
       status: string;
       n: number;

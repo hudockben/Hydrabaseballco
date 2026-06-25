@@ -10,7 +10,7 @@ import {
   searchOsmAll,
   type ProspectInput,
 } from '@/lib/connectors';
-import { getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     try {
       const ids = results.map((r) => r.sourceId);
       if (ids.length) {
-        const sql = getSql();
+        const sql = await db();
         const rows = (await sql`
           select source, source_id from prospects where source_id = any(${ids}::text[])
         `) as { source: string; source_id: string }[];

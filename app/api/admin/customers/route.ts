@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -47,7 +47,7 @@ function toCsv(rows: Row[]): string {
 export async function GET(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`
       select * from customers
       order by state asc nulls last, school asc nulls last, id asc`) as Row[];
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
 
 /** Bulk insert in chunks of 500 via unnest (one round-trip per chunk). */
 async function bulkInsert(rows: Record<string, unknown>[]): Promise<number> {
-  const sql = getSql();
+  const sql = await db();
   let inserted = 0;
   for (let i = 0; i < rows.length; i += 500) {
     const chunk = rows.slice(i, i + 500).filter((r) => FIELDS.some(([, key]) => s(r[key]) != null));
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ inserted });
     }
 
-    const sql = getSql();
+    const sql = await db();
     const rows = (await sql`
       insert into customers
         (state, school, conference, roster_link, division, first_degree_conn,
@@ -125,7 +125,7 @@ export async function PATCH(req: NextRequest) {
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     await sql`
       update customers set
         state = ${s(body.state)},
@@ -152,7 +152,7 @@ export async function DELETE(req: NextRequest) {
   const id = Number(new URL(req.url).searchParams.get('id'));
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     await sql`delete from customers where id = ${id}`;
     return NextResponse.json({ ok: true });
   } catch (err) {

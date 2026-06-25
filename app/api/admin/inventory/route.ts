@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { getSql } from '@/lib/db';
+import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -68,7 +68,7 @@ function toCsv(rows: Row[]): string {
 export async function GET(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const sql = getSql();
+    const sql = await db();
     const url = new URL(req.url);
 
     // Movement history for one item: /api/admin/inventory?movements=<id>
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   try {
-    const sql = getSql();
+    const sql = await db();
 
     // Stock movement: { move: { id, delta, kind, reason } }
     // Updates on-hand and logs the movement atomically; refuses to go negative.
@@ -197,7 +197,7 @@ export async function PATCH(req: NextRequest) {
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     // Note: quantity is intentionally not edited here — it changes only through
     // movements so the audit log stays truthful.
     await sql`
@@ -225,7 +225,7 @@ export async function DELETE(req: NextRequest) {
   const id = Number(new URL(req.url).searchParams.get('id'));
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
-    const sql = getSql();
+    const sql = await db();
     await sql`delete from inventory_items where id = ${id}`; // movements cascade
     return NextResponse.json({ ok: true });
   } catch (err) {
