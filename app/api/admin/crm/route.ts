@@ -41,7 +41,10 @@ export async function GET(req: NextRequest) {
         },
       });
     }
-    return NextResponse.json({ prospects: rows });
+    // DB columns are snake_case, but the client reads `contactName`. Expose the
+    // camelCase alias so saved coach/contact names load back into the CRM grid.
+    const prospects = rows.map((r) => ({ ...r, contactName: r.contact_name }));
+    return NextResponse.json({ prospects });
   } catch (err) {
     console.error('crm GET error', err);
     return NextResponse.json({ error: 'Database not connected.' }, { status: 500 });
