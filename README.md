@@ -9,7 +9,9 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 
 ## What's here
 
-- **Public landing page** (`/`) — the marketing site, "Built for Competition."
+- **Public landing page** (`/`) — the marketing site, "By Players For Players."
+  Photos for the hero, ball, and quote sections drop into `public/images/`
+  (see `public/images/README.md`); on-brand gradient fallbacks render until then.
 - **Admin area** (`/admin`, password-protected):
   - **Find Prospects** — search free/public data sources by type + location and
     save leads.

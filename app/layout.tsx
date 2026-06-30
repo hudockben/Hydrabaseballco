@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Hydra Baseball Co. — Built for Competition',
+  title: 'Hydra Baseball Co. — By Players For Players',
   description:
-    'Hydra Baseball Co. crafts competition-grade baseballs — full grain leather, cork and rubber cores, built for every pitch, every inning, every game.',
+    'Hydra Baseball Co. makes high quality baseballs built for competition — premium materials, consistent performance, trusted by players at every level.',
   icons: {
     icon:
       "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2315151a'/><text x='50' y='74' font-family='Arial' font-size='72' font-weight='800' font-style='italic' fill='white' text-anchor='middle'>H</text></svg>",

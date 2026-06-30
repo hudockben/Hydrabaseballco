@@ -2,36 +2,19 @@
 (function () {
   'use strict';
 
-  var nav = document.getElementById('nav');
+  var nav = document.getElementById('siteNav');
   var toggle = document.getElementById('navToggle');
-  var links = document.getElementById('navLinks');
-
-  /* Sticky nav background on scroll */
-  function onScroll() {
-    if (!nav) return;
-    if (window.scrollY > 24) {
-      nav.classList.add('is-scrolled');
-    } else {
-      nav.classList.remove('is-scrolled');
-    }
-  }
-  if (nav) {
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  }
 
   /* Mobile menu toggle */
-  if (toggle && links) {
+  if (toggle && nav) {
     toggle.addEventListener('click', function () {
-      var open = links.classList.toggle('is-open');
-      nav.classList.toggle('is-open', open);
+      var open = nav.classList.toggle('is-open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
 
     /* Close menu when a link is tapped */
-    links.addEventListener('click', function (e) {
+    nav.addEventListener('click', function (e) {
       if (e.target.tagName === 'A') {
-        links.classList.remove('is-open');
         nav.classList.remove('is-open');
         toggle.setAttribute('aria-expanded', 'false');
       }
@@ -58,13 +41,35 @@
   var yearEl = document.getElementById('year');
   if (yearEl) { yearEl.textContent = String(new Date().getFullYear()); }
 
-  /* Contact form is a placeholder — prevent a real submit/reload */
-  var contactForm = document.querySelector('.contact__form');
-  if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
+  /* Team Orders form — compose a mailto so inquiries actually reach us */
+  var ordersForm = document.getElementById('ordersForm');
+  if (ordersForm) {
+    ordersForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var btn = contactForm.querySelector('button');
-      if (btn) { btn.textContent = 'Thanks — we’ll be in touch!'; }
+
+      var data = new FormData(ordersForm);
+      var name = (data.get('name') || '').toString().trim();
+      var email = (data.get('email') || '').toString().trim();
+      var team = (data.get('team') || '').toString().trim();
+
+      var subject = 'Team Order Inquiry' + (team ? ' — ' + team : '');
+      var bodyLines = [
+        'Name: ' + (name || '(not provided)'),
+        'Email: ' + (email || '(not provided)'),
+        'Team / organization: ' + (team || '(not provided)'),
+        '',
+        'Tell us about your order (quantity, level of play, timeline):',
+        ''
+      ];
+      var href =
+        'mailto:info@hydrabaseball.co' +
+        '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(bodyLines.join('\n'));
+
+      window.location.href = href;
+
+      var btn = ordersForm.querySelector('button');
+      if (btn) { btn.textContent = 'Opening your email…'; }
     });
   }
 })();
