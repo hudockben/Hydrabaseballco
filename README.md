@@ -16,7 +16,17 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   - **Find Prospects** — search free/public data sources by type + location and
     save leads.
   - **CRM** — pipeline (New → Contacted → Qualified → Won → Lost), notes, CSV export.
-  - **Dashboard** — counts by status.
+  - **Customer List** — a hand-maintained recruiting sheet (state, school,
+    conference, roster link, division, 1st-degree connection + notes, Instagram,
+    email, notes) with inline editing and CSV export.
+  - **Inventory** — stock on hand per item (SKU, category, reorder level, unit
+    cost/price, supplier, location). Receive / ship adjustments update the count
+    and write an auditable movement log; low-stock items are flagged. CSV export.
+  - **Pricing** — products with per-unit cost (COGS) + shipping, volume price
+    tiers, and a cost → price → margin calculator for setting price points.
+  - **Revenue** — log sales from won deals; revenue, COGS, shipping, profit, and
+    gross-margin roll-ups (totals, by product, by month).
+  - **Dashboard** — prospect counts by status + headline financials.
 
 ## Data sources (free / public)
 
@@ -47,6 +57,18 @@ Run the schema once in the **Neon SQL editor**:
 
 ```bash
 # contents of db/schema.sql
+```
+
+If your database predates the pricing/revenue tools, run the migration too:
+
+```bash
+# contents of db/migrations/2026-06-14-add-finance.sql
+```
+
+If it predates the Inventory tab, run:
+
+```bash
+# contents of db/migrations/2026-06-15-add-inventory.sql
 ```
 
 ## Local development

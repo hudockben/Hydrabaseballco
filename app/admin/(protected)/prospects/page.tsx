@@ -162,7 +162,8 @@ export default function ProspectsPage() {
         const ids = new Set(chosen.map((c) => c.sourceId));
         setResults((rs) => rs.map((r) => (ids.has(r.sourceId) ? { ...r, saved: true } : r)));
         setSelected({});
-        setMsg(`Saved ${data.saved} prospect(s) to the CRM.`);
+        const dupNote = data.duplicate ? ` (${data.duplicate} already in CRM)` : '';
+        setMsg(`Saved ${data.saved} prospect(s) to the CRM${dupNote}.`);
       } else {
         setMsg(data.error || 'Save failed.');
       }

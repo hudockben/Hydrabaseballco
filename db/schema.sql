@@ -40,3 +40,107 @@ create table if not exists prospect_activity (
   body         text,
   created_at   timestamptz not null default now()
 );
+
+-- ---------------------------------------------------------------------------
+-- Pricing & revenue (the "backside": costs, pricing points, profit, margin)
+-- ---------------------------------------------------------------------------
+
+-- Products you sell, with the per-unit costs used to compute margins.
+create table if not exists products (
+  id          bigint generated always as identity primary key,
+  name        text not null,
+  sku         text,
+  unit_cost   numeric(12, 2) not null default 0, -- COGS per ball
+  ship_cost   numeric(12, 2) not null default 0, -- default shipping per ball
+  active      boolean not null default true,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+-- Volume price breaks per product (e.g. 1–99, 100–499, 500+).
+create table if not exists price_tiers (
+  id          bigint generated always as identity primary key,
+  product_id  bigint not null references products (id) on delete cascade,
+  min_qty     integer not null default 1, -- tier applies at this quantity or more
+  unit_price  numeric(12, 2) not null default 0,
+  unique (product_id, min_qty)
+);
+create index if not exists price_tiers_product_idx on price_tiers (product_id);
+
+-- Sales. Each order is usually tied to a "won" prospect; costs are snapshotted
+-- at sale time so later cost changes don't rewrite historical profit.
+create table if not exists orders (
+  id            bigint generated always as identity primary key,
+  prospect_id   bigint references prospects (id) on delete set null,
+  product_id    bigint references products (id) on delete set null,
+  customer_name text, -- snapshot, survives prospect deletion
+  quantity      integer not null default 0,
+  unit_price    numeric(12, 2) not null default 0, -- price charged per unit
+  unit_cost     numeric(12, 2) not null default 0, -- COGS per unit at sale time
+  shipping_cost numeric(12, 2) not null default 0, -- total shipping for the order
+  other_cost    numeric(12, 2) not null default 0, -- any extra per-order cost
+  status        text not null default 'confirmed'
+                check (status in ('quote', 'confirmed', 'fulfilled', 'paid')),
+  ordered_at    date not null default current_date,
+  notes         text,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists orders_prospect_idx   on orders (prospect_id);
+create index if not exists orders_product_idx    on orders (product_id);
+create index if not exists orders_ordered_at_idx on orders (ordered_at);
+
+-- Customer List: a manually-maintained recruiting sheet (college programs to
+-- sell to), separate from the auto-populated `prospects` pipeline.
+create table if not exists customers (
+  id                 bigint generated always as identity primary key,
+  state              text,
+  school             text,
+  conference         text,
+  roster_link        text,
+  division           text,
+  first_degree_conn  text,
+  first_degree_notes text,
+  instagram          text,
+  email              text,
+  notes              text,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now()
+);
+create index if not exists customers_state_idx  on customers (state);
+create index if not exists customers_school_idx on customers (school);
+
+-- ---------------------------------------------------------------------------
+-- Inventory: physical stock on hand + an audit log of every stock movement.
+-- ---------------------------------------------------------------------------
+
+create table if not exists inventory_items (
+  id            bigint generated always as identity primary key,
+  sku           text,
+  name          text,
+  category      text,
+  quantity      integer not null default 0,        -- on hand; only changed via movements
+  reorder_level integer not null default 0,        -- low-stock threshold (0 = untracked)
+  unit_cost     numeric(12, 2) not null default 0, -- what it costs us per unit
+  unit_price    numeric(12, 2) not null default 0, -- what we sell it for per unit
+  supplier      text,
+  location      text,
+  notes         text,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists inventory_items_name_idx on inventory_items (name);
+create index if not exists inventory_items_sku_idx  on inventory_items (sku);
+
+-- Every receive / ship / adjust writes a row here so on-hand history is auditable.
+create table if not exists inventory_movements (
+  id          bigint generated always as identity primary key,
+  item_id     bigint not null references inventory_items (id) on delete cascade,
+  delta       integer not null,                    -- +received, -shipped
+  kind        text not null default 'adjust'
+              check (kind in ('receive', 'ship', 'adjust')),
+  reason      text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists inventory_movements_item_idx
+  on inventory_movements (item_id, created_at desc);
