@@ -1,24 +1,14 @@
 # Landing page photos
 
-Drop real photos here to replace the gradient placeholders on the home page.
-The CSS in `public/styles.css` already references these paths — just add the
-files with these exact names and they'll appear automatically:
+The home page CSS (`public/styles.css`) already points at the files below.
+Add an image with the matching name and it appears automatically — no code
+changes needed. Until a file exists, an on-brand gradient fallback renders.
 
-| File | Where it shows | Recommended |
-|------|----------------|-------------|
-| `hero.jpg` | Hero background (pitcher) | ~2000×1200, subject on the right (text sits on the left) |
-| `ball.jpg` | "The Hydra Difference" panel (ball in grass) | ~1000×1000+ |
-| `players.jpg` | Quote band ("We play the game the right way.") | ~1200×900 |
+| File | Where it shows | Notes |
+|------|----------------|-------|
+| `hero.jpg` | Hero background — standing player, anchored to the right (the headline sits on the left). Its dark studio backdrop blends into the hero. | Portrait works well; ~1000px+ tall |
+| `players.jpg` | Quote band ("We play the game the right way.") — action photo on the left | Landscape works well; ~1200×900 |
+| `ball.jpg` | _Optional._ "The Hydra Difference" panel currently uses the Hydra ball graphic; not wired to a file. | — |
 
-To use a photo, open `public/styles.css` and add the image to the relevant
-`background-image` rule, e.g. for the hero:
-
-```css
-.hero {
-  background-image:
-    radial-gradient(900px 520px at 78% 18%, rgba(200,32,47,0.18), transparent 60%),
-    url('/images/hero.jpg');
-}
-```
-
-Until then, the page renders complete with on-brand gradient fallbacks.
+To swap positioning, edit the `background-position` / `background-size` values
+in the `.hero` and `.quote__media` rules in `public/styles.css`.
