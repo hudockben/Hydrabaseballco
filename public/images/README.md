@@ -1,14 +1,14 @@
 # Landing page photos
 
-The home page CSS (`public/styles.css`) already points at the files below.
-Add an image with the matching name and it appears automatically — no code
-changes needed. Until a file exists, an on-brand gradient fallback renders.
+These photos are referenced by `public/styles.css` and `app/page.tsx`.
+Replace a file (keep the same name) to swap the image — no code changes needed.
 
 | File | Where it shows | Notes |
 |------|----------------|-------|
-| `hero.jpg` | Hero background — standing player, anchored to the right (the headline sits on the left). Its dark studio backdrop blends into the hero. | Portrait works well; ~1000px+ tall |
-| `players.jpg` | Quote band ("We play the game the right way.") — action photo on the left | Landscape works well; ~1200×900 |
-| `ball.jpg` | _Optional._ "The Hydra Difference" panel currently uses the Hydra ball graphic; not wired to a file. | — |
+| `hero.jpg` | Hero background — player anchored right, headline on the left | Portrait; dark studio backdrop blends into the hero. Sized with `background-size: auto 90%` so the full figure fits. |
+| `ball.jpg` | "The Hydra Difference" panel | The A1492 Pro Series product photo, cropped square-ish (`cover`). |
+| `players.jpg` | Quote band ("We play the game the right way.") | Landscape action shot (`cover`, slight darkening overlay). |
 
-To swap positioning, edit the `background-position` / `background-size` values
-in the `.hero` and `.quote__media` rules in `public/styles.css`.
+To re-position, edit the `background-position` / `background-size` values in
+the `.hero`, `.difference__media`, and `.quote__media` rules in
+`public/styles.css`. If a file is missing, an on-brand gradient fallback renders.

@@ -139,28 +139,12 @@ export default function HomePage() {
 
       {/* ===== The Hydra Difference ===== */}
       <section className="difference" id="about">
-        <div className="difference__media" id="balls">
-          <div className="ball-stage">
-            <div className="ball ball--lg">
-              <svg viewBox="0 0 200 200" role="img" aria-label="Hydra A1492 Pro Series baseball">
-                <defs>
-                  <radialGradient id="ballShade" cx="38%" cy="32%" r="75%">
-                    <stop offset="0%" stopColor="#ffffff" />
-                    <stop offset="70%" stopColor="#f6f3ec" />
-                    <stop offset="100%" stopColor="#ded6c6" />
-                  </radialGradient>
-                </defs>
-                <circle cx="100" cy="100" r="94" fill="url(#ballShade)" stroke="#e7e0d1" strokeWidth="2" />
-                <path className="seam" d="M44 22 C 78 70, 78 130, 44 178" />
-                <path className="seam" d="M156 22 C 122 70, 122 130, 156 178" />
-                <path className="stitch" d="M44 22 C 78 70, 78 130, 44 178" />
-                <path className="stitch" d="M156 22 C 122 70, 122 130, 156 178" />
-              </svg>
-              <span className="ball__brand">H</span>
-            </div>
-            <span className="ball-stage__tag">A1492 · Pro Series</span>
-          </div>
-        </div>
+        <div
+          className="difference__media"
+          id="balls"
+          role="img"
+          aria-label="Hydra A1492 Pro Series baseball resting on the grass"
+        ></div>
 
         <div className="difference__panel">
           <div className="difference__inner reveal">
@@ -211,9 +195,7 @@ export default function HomePage() {
 
       {/* ===== Quote band ===== */}
       <section className="quote">
-        <div className="quote__media" aria-hidden="true">
-          <span className="quote__media-label">By Players For Players</span>
-        </div>
+        <div className="quote__media" aria-hidden="true"></div>
         <div className="quote__panel">
           <div className="quote__inner reveal">
             <span className="quote__mark" aria-hidden="true">
