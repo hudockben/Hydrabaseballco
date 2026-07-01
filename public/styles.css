@@ -107,55 +107,17 @@ ul { list-style: none; }
 .btn--header { padding: 11px 22px; font-size: 0.82rem; }
 
 /* ---------- Brand logo ---------- */
-.brand { display: inline-flex; align-items: center; gap: 12px; }
-.brand__mark {
-  font-family: var(--display);
-  font-weight: 800;
-  font-style: italic;
-  font-size: 1.55rem;
-  line-height: 1;
-  color: #fff;
-  background: var(--ink);
-  width: 42px; height: 42px;
-  display: grid; place-items: center;
-  border-radius: 6px;
-  position: relative;
-  overflow: hidden;
+.brand { display: inline-flex; align-items: center; }
+.brand__logo {
+  display: block;
+  height: 54px;
+  width: auto;
+  /* the header/footer logo image is a fixed-height, auto-width lockup */
 }
-.brand__mark::after {
-  /* stitch swoosh accent on the H tile */
-  content: "";
-  position: absolute;
-  left: -20%; right: -20%; bottom: 16%;
-  height: 3px;
-  background: var(--red);
-  transform: rotate(-12deg);
-  opacity: 0.95;
-}
-.brand__word {
-  display: flex;
-  flex-direction: column;
-  line-height: 0.94;
-}
-.brand__name {
-  font-family: var(--display);
-  font-weight: 800;
-  font-style: italic;
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-.brand__co {
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 0.62rem;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-top: 3px;
-  border-top: 1px solid var(--line);
-  margin-top: 3px;
+.brand--footer .brand__logo { height: 74px; }
+@media (max-width: 640px) {
+  .brand__logo { height: 46px; }
+  .brand--footer .brand__logo { height: 64px; }
 }
 
 /* ---------- Header / Nav ---------- */

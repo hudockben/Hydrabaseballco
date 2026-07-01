@@ -69,15 +69,17 @@ const IconMail = (
   </svg>
 );
 
-/* Stacked brand logo used in the header and footer */
+/* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
   return (
     <a href="#home" className={`brand brand--${variant}`} aria-label="Hydra Baseball Co. home">
-      <span className="brand__mark" aria-hidden="true">H</span>
-      <span className="brand__word">
-        <span className="brand__name">Hydra</span>
-        <span className="brand__co">Baseball Co.</span>
-      </span>
+      <img
+        src="/logo.png"
+        alt="Hydra Baseball Co."
+        className="brand__logo"
+        width={1037}
+        height={555}
+      />
     </a>
   );
 }
