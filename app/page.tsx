@@ -274,7 +274,7 @@ export default function HomePage() {
           </form>
 
           <p className="orders__note">
-            Prefer email? <a href="mailto:info@hydrabaseball.co">info@hydrabaseball.co</a>
+            Prefer email? <a href="mailto:info@hydrabaseballco.com">info@hydrabaseballco.com</a>
           </p>
         </div>
       </section>
@@ -300,12 +300,12 @@ export default function HomePage() {
 
           <div className="footer__col">
             <h4>Contact</h4>
-            <a href="mailto:info@hydrabaseball.co">info@hydrabaseball.co</a>
+            <a href="mailto:info@hydrabaseballco.com">info@hydrabaseballco.com</a>
             <div className="footer__social">
               <a href="https://instagram.com/hydrabaseballco" aria-label="Instagram" target="_blank" rel="noreferrer">
                 {IconInstagram}
               </a>
-              <a href="mailto:info@hydrabaseball.co" aria-label="Email us">
+              <a href="mailto:info@hydrabaseballco.com" aria-label="Email us">
                 {IconMail}
               </a>
             </div>
