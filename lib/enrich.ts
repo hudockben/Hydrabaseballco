@@ -57,10 +57,11 @@ const LINK_SCORES: Array<[RegExp, number]> = [
   [/baseball/i, 6],
   [/softball/i, 6],
   [/coach/i, 5],
+  [/coaching[\s_-]*staff|staff[\s_-]*directory/i, 5],
   [/staff[\s_-]*director|staff|roster|personnel/i, 4],
   [/athletic/i, 3],
   [/contact/i, 2],
-  [/about|team|directory/i, 1],
+  [/about|team|directory|meet/i, 1],
 ];
 
 function candidateLinks(html: string, base: string): string[] {
@@ -90,9 +91,17 @@ function candidateLinks(html: string, base: string): string[] {
 
 // Best-effort: find a contact person's name near a coach/AD/director label.
 const NAME = '([A-Z][a-z]+(?:\\s+[A-Z]\\.?)?\\s+[A-Z][a-z]+(?:-[A-Z][a-z]+)?)';
+// Separator between a role and a name: optional punctuation, or at least one
+// space. Lets us catch "Head Coach Mike Deegan" (no punctuation) as well as
+// "Head Coach: Mike Deegan".
+const SEP = '(?:\\s*[:\\-–|,]\\s*|\\s+)';
 const COACH_ROLE =
-  'head\\s+(?:baseball|softball)\\s+coach|head\\s+coach|baseball\\s+coach|softball\\s+coach|associate\\s+head\\s+coach|assistant\\s+coach';
-const CONTACT_ROLE = 'athletic\\s+director|director\\s+of\\s+athletics|general\\s+manager|owner|president';
+  'head\\s+(?:baseball|softball)\\s+coach|head\\s+coach|(?:baseball|softball)\\s+coach|' +
+  'associate\\s+head\\s+coach|assistant\\s+(?:baseball\\s+|softball\\s+)?coach|' +
+  'pitching\\s+coach|hitting\\s+coach|recruiting\\s+coordinator';
+const CONTACT_ROLE =
+  'athletic\\s+director|director\\s+of\\s+athletics|director\\s+of\\s+baseball(?:\\s+operations)?|' +
+  'general\\s+manager|program\\s+director|owner|president|founder';
 
 // Words that are not first/last names — guards against "Our History",
 // "Athletic Department", "Of The", etc. matching the name pattern.
@@ -107,6 +116,12 @@ const NAME_STOP = new Set([
   'league', 'center', 'centre', 'field', 'park', 'complex', 'information', 'directory',
   'for', 'vice', 'var', 'obj', 'and', 'function', 'return', 'enrollment', 'recreation',
   'services', 'admissions', 'apply', 'visit', 'info', 'request', 'health', 'human',
+  // Page-chrome words that share the "Two Capitalized Words" shape (kept clear
+  // of real surnames like Hall, Price, Field, Young, Long).
+  'bio', 'biography', 'full', 'view', 'profile', 'email', 'phone', 'fax', 'hometown',
+  'alumni', 'fame', 'named', 'gallery', 'video', 'faq', 'login', 'register',
+  'registration', 'donate', 'tickets', 'ticket', 'calendar', 'directions',
+  'statistics', 'featured', 'recent', 'latest', 'upcoming', 'complete', 'headlines',
 ]);
 
 function cleanText(html: string): string {
@@ -127,17 +142,66 @@ function plausibleName(s: string): boolean {
   });
 }
 
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+// Generic mailboxes that are not a person's name.
+const GENERIC_LOCAL =
+  /^(?:info|contact|admin|office|hello|hi|sales|support|webmaster|team|baseball|softball|athletic|athletics|coach|coaches|general|gm|mail|email|booking|register|registration|registrar|help|service|services|no-?reply|do-?not-?reply|inquiries|enquiries|main|front|desk|hr|jobs|careers|media|press)$/;
+
+/** "mike.deegan@…" -> "Mike Deegan". Conservative: only first.last locals. */
+function nameFromEmail(email: string | null): string | null {
+  if (!email) return null;
+  const local = email.split('@')[0].toLowerCase();
+  if (GENERIC_LOCAL.test(local)) return null;
+  const m = local.match(/^([a-z]{2,})[._]([a-z]{2,})$/);
+  if (m && !NAME_STOP.has(m[1]) && !NAME_STOP.has(m[2])) return `${cap(m[1])} ${cap(m[2])}`;
+  return null;
+}
+
+/** An email link whose visible text is a person's name — high precision. */
+function nameFromMailtoAnchor(html: string): string | null {
+  const re = /<a[^>]+href\s*=\s*["']mailto:[^"']+["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const m of html.matchAll(re)) {
+    const text = m[1].replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+    if (plausibleName(text)) return text;
+  }
+  return null;
+}
+
+/** First match of `re` whose captured name passes the plausibility guard. */
+function firstPlausibleMatch(re: RegExp, text: string): string | null {
+  for (const m of text.matchAll(re)) {
+    const name = m[1]?.replace(/\s+/g, ' ').trim();
+    if (name && plausibleName(name)) return name;
+  }
+  return null;
+}
+
 function pickName(html: string): string | null {
+  // 1) An email link whose anchor text is a name (most reliable).
+  const mailtoName = nameFromMailtoAnchor(html);
+  if (mailtoName) return mailtoName;
+
+  // 2) Role + name in the page text. Punctuated forms first (highest
+  //    confidence), then separator-optional forms; coach roles before generic
+  //    contacts. matchAll lets a later valid match win when the first is junk.
   const text = cleanText(html);
-  // "Head Coach: Mike Deegan" — separator required for precision.
-  const coach = text.match(new RegExp(`(?:${COACH_ROLE})\\s*[:\\-–|]\\s*${NAME}`, 'i'));
-  if (coach && plausibleName(coach[1])) return coach[1];
-  // "Mike Deegan, Head Baseball Coach"
-  const named = text.match(new RegExp(`${NAME}\\s*,\\s*(?:${COACH_ROLE}|${CONTACT_ROLE})`, 'i'));
-  if (named && plausibleName(named[1])) return named[1];
-  // "Owner: John Doe" / "Athletic Director: Jane Roe"
-  const contact = text.match(new RegExp(`(?:${CONTACT_ROLE})\\s*[:\\-–|]\\s*${NAME}`, 'i'));
-  if (contact && plausibleName(contact[1])) return contact[1];
+  const patterns: RegExp[] = [
+    new RegExp(`(?:${COACH_ROLE})\\s*[:\\-–|]\\s*${NAME}`, 'gi'),
+    new RegExp(`${NAME}\\s*,\\s*(?:${COACH_ROLE})`, 'gi'),
+    new RegExp(`(?:${COACH_ROLE})${SEP}${NAME}`, 'gi'),
+    new RegExp(`${NAME}${SEP}(?:${COACH_ROLE})`, 'gi'),
+    new RegExp(`(?:${CONTACT_ROLE})\\s*[:\\-–|]\\s*${NAME}`, 'gi'),
+    new RegExp(`${NAME}\\s*,\\s*(?:${CONTACT_ROLE})`, 'gi'),
+    new RegExp(`(?:${CONTACT_ROLE})${SEP}${NAME}`, 'gi'),
+    new RegExp(`${NAME}${SEP}(?:${CONTACT_ROLE})`, 'gi'),
+  ];
+  for (const re of patterns) {
+    const name = firstPlausibleMatch(re, text);
+    if (name) return name;
+  }
   return null;
 }
 
@@ -160,7 +224,7 @@ export async function findContact(website: string, deep = true): Promise<Contact
   // enough to auto-run across many search results.
   const visited = new Set<string>([base]);
   let queue = candidateLinks(home, base).filter((u) => !visited.has(u));
-  let budget = deep ? 3 : 1;
+  let budget = deep ? 4 : 1;
 
   while (queue.length && budget > 0 && !(contactName && email)) {
     const url = queue.shift()!;
@@ -177,5 +241,8 @@ export async function findContact(website: string, deep = true): Promise<Contact
       queue = [...deeper, ...queue];
     }
   }
+
+  // Last resort: a personal-looking contact email implies the contact's name.
+  if (!contactName) contactName = nameFromEmail(email);
   return { email, phone, contactName };
 }
