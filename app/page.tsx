@@ -111,7 +111,15 @@ export default function HomePage() {
 
       {/* ===== Hero ===== */}
       <section className="hero" id="home">
-        <div className="hero__scrim" aria-hidden="true"></div>
+        <div className="hero__media" id="heroSlides" aria-hidden="true">
+          {/* Slide 1 paints immediately; slides 2–4 are added by the slideshow
+              only if their image loads (missing files are skipped gracefully). */}
+          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero.jpg')" }}></div>
+          <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
+          <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
+          <div className="hero__slide" data-src="/images/hero-4.jpg"></div>
+        </div>
+        <div className="hero__dots" id="heroDots"></div>
         <div className="container hero__inner">
           <div className="hero__content reveal">
             <span className="hero__eyebrow">Hydra Baseball Co.</span>

@@ -211,24 +211,62 @@ ul { list-style: none; }
   padding: calc(var(--header-h) + 70px) 0 80px;
   color: var(--text-inv);
   background-color: #0b0b0d;
-  /* Player photo anchored right (its black backdrop blends into the hero);
-     the gradient layers are the fallback shown if /images/hero.jpg is absent */
+  /* Dark base behind the photo slideshow (also the fallback if images are absent) */
   background-image:
-    url('/images/hero.jpg'),
     radial-gradient(900px 520px at 78% 18%, rgba(200, 32, 47, 0.18), transparent 60%),
     linear-gradient(95deg, #0a0a0c 0%, #101014 38%, #1a1a20 100%);
-  background-repeat: no-repeat, no-repeat, no-repeat;
-  background-position: right bottom, center, center;
-  background-size: auto 90%, cover, cover;
+  background-size: cover, cover;
+  background-position: center, center;
   overflow: hidden;
 }
-.hero__scrim {
+/* ----- Hero photo slideshow (right panel) ----- */
+.hero__media {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 58%;
+  overflow: hidden;
+}
+.hero__slide {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(8, 8, 10, 0.92) 0%, rgba(8, 8, 10, 0.55) 48%, rgba(8, 8, 10, 0.12) 100%);
-  pointer-events: none;
+  background-size: cover;
+  background-position: center 22%;
+  opacity: 0;
+  transition: opacity 0.9s ease;
 }
-.hero__inner { position: relative; }
+.hero__slide.is-active { opacity: 1; }
+/* Blend the panel's left edge into the dark hero so the photos melt in */
+.hero__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, #0b0b0d 0%, rgba(11, 11, 13, 0.5) 20%, transparent 52%);
+}
+.hero__dots {
+  position: absolute;
+  z-index: 4;
+  right: 30px;
+  bottom: 26px;
+  display: flex;
+  gap: 10px;
+}
+.hero__dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.hero__dot:hover { background: rgba(255, 255, 255, 0.75); }
+.hero__dot.is-active { background: #fff; transform: scale(1.3); }
+.hero__inner { position: relative; z-index: 3; }
 .hero__content { max-width: 640px; }
 .hero__eyebrow {
   display: inline-block;
@@ -479,6 +517,14 @@ ul { list-style: none; }
   .btn--header { display: none; }
   .nav-toggle { display: flex; }
 
+  /* Hero slideshow spans full width behind the text on smaller screens */
+  .hero__media { width: 100%; }
+  .hero__media::after {
+    background: linear-gradient(180deg, rgba(11, 11, 13, 0.62) 0%, rgba(11, 11, 13, 0.42) 45%, rgba(11, 11, 13, 0.74) 100%);
+  }
+  .hero__slide { background-position: center 18%; }
+  .hero__dots { right: 50%; transform: translateX(50%); }
+
   .difference { grid-template-columns: 1fr; }
   .difference__media { min-height: 360px; }
   .quote { grid-template-columns: 1fr; }
@@ -504,6 +550,7 @@ ul { list-style: none; }
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .hero__slide { transition: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .btn { transition: none; }
 }
