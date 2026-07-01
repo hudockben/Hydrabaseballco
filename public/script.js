@@ -87,7 +87,7 @@
         active[idx].classList.add('is-active');
         if (dots[idx]) { dots[idx].classList.add('is-active'); }
       }
-      function start() { if (!reduce) { timer = window.setInterval(function () { go(idx + 1); }, 5000); } }
+      function start() { if (!reduce) { timer = window.setInterval(function () { go(idx + 1); }, 3000); } }
       function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
       function restart() { stop(); start(); }
 
