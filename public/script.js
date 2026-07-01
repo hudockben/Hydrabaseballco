@@ -123,8 +123,8 @@
 
     var labels = {
       name: 'Name', email: 'Email', phone: 'Phone',
-      team: 'Team / organization', level: 'Level of play',
-      quantity: 'Approx. # of baseballs', message: 'Message'
+      team: 'Team / organization', state: 'State', zip: 'Zip code',
+      level: 'Level of play', quantity: 'Approx. # of baseballs', message: 'Message'
     };
 
     function fieldLines(data) {
