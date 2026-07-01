@@ -427,12 +427,15 @@ ul { list-style: none; }
 .orders__lead { color: var(--muted); font-size: 1.08rem; margin: 18px auto 0; max-width: 52ch; }
 .orders__form {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin: 34px 0 16px;
   text-align: left;
 }
-.orders__form input {
+.orders__form input,
+.orders__form select,
+.orders__form textarea {
+  width: 100%;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -441,10 +444,37 @@ ul { list-style: none; }
   font-family: var(--body);
   font-size: 1rem;
 }
-.orders__form input::placeholder { color: #9a9aa0; }
-.orders__form input:focus { outline: none; border-color: var(--ink); }
-.orders__form input[name="team"] { grid-column: 1 / -1; }
+.orders__form input::placeholder,
+.orders__form textarea::placeholder { color: #9a9aa0; }
+.orders__form input:focus,
+.orders__form select:focus,
+.orders__form textarea:focus { outline: none; border-color: var(--ink); }
+/* Custom dropdown arrow */
+.orders__form select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b6b73' d='M6 8 0 2l1.4-1.4L6 5.2 10.6.6 12 2z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+.orders__form select:invalid { color: #9a9aa0; } /* show placeholder color until chosen */
+.orders__form textarea { resize: vertical; min-height: 112px; line-height: 1.5; }
+.orders__form textarea { grid-column: 1 / -1; }
 .orders__form .btn { grid-column: 1 / -1; justify-self: start; }
+/* Honeypot — hidden from real users */
+.orders__honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.orders__thanks {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--text);
+  padding: 22px 18px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--cream);
+}
 .orders__note { color: var(--muted); }
 .orders__note a { color: var(--red); font-weight: 600; }
 

@@ -267,7 +267,48 @@ export default function HomePage() {
           <form className="orders__form" id="ordersForm" noValidate>
             <input type="text" name="name" placeholder="Name" aria-label="Name" required />
             <input type="email" name="email" placeholder="Email" aria-label="Email" required />
-            <input type="text" name="team" placeholder="Team or organization" aria-label="Team or organization" />
+            <input type="tel" name="phone" placeholder="Phone (optional)" aria-label="Phone" />
+            <input type="text" name="team" placeholder="Team or organization" aria-label="Team or organization" required />
+            <select name="level" aria-label="Level of play" defaultValue="" required>
+              <option value="" disabled>
+                Level of play
+              </option>
+              <option>Youth</option>
+              <option>High School</option>
+              <option>Travel / Club</option>
+              <option>College</option>
+              <option>Adult / League</option>
+              <option>Other</option>
+            </select>
+            <input
+              type="number"
+              name="quantity"
+              min="1"
+              inputMode="numeric"
+              placeholder="Approx. # of baseballs"
+              aria-label="Approximate number of baseballs"
+            />
+            <textarea
+              name="message"
+              rows={4}
+              placeholder="Anything else? Timeline, product interest, budget, questions…"
+              aria-label="Message"
+            ></textarea>
+
+            {/* Form-to-email service config (read by FormSubmit) */}
+            <input type="hidden" name="_subject" value="New Team Order Inquiry — Hydra Baseball Co." />
+            <input type="hidden" name="_template" value="table" />
+            <input type="hidden" name="_captcha" value="false" />
+            {/* Honeypot: bots fill this, humans don't */}
+            <input
+              type="text"
+              name="_honey"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="orders__honey"
+            />
+
             <button type="submit" className="btn btn--dark">
               Request Info
             </button>

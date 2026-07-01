@@ -113,35 +113,61 @@
   var yearEl = document.getElementById('year');
   if (yearEl) { yearEl.textContent = String(new Date().getFullYear()); }
 
-  /* Team Orders form — compose a mailto so inquiries actually reach us */
+  /* Team Orders form — submit to the form-to-email service so every inquiry
+     lands in the inbox. If that request fails, fall back to a pre-filled
+     email so a submission is never lost. */
   var ordersForm = document.getElementById('ordersForm');
   if (ordersForm) {
+    var ORDERS_ENDPOINT = 'https://formsubmit.co/ajax/info@hydrabaseballco.com';
+    var CONTACT_EMAIL = 'info@hydrabaseballco.com';
+
+    var labels = {
+      name: 'Name', email: 'Email', phone: 'Phone',
+      team: 'Team / organization', level: 'Level of play',
+      quantity: 'Approx. # of baseballs', message: 'Message'
+    };
+
+    function fieldLines(data) {
+      var lines = [];
+      Object.keys(labels).forEach(function (key) {
+        var v = (data.get(key) || '').toString().trim();
+        if (v) { lines.push(labels[key] + ': ' + v); }
+      });
+      return lines;
+    }
+
+    function mailtoFallback(data) {
+      var href = 'mailto:' + CONTACT_EMAIL +
+        '?subject=' + encodeURIComponent('Team Order Inquiry') +
+        '&body=' + encodeURIComponent(fieldLines(data).join('\n'));
+      window.location.href = href;
+    }
+
+    function showThanks() {
+      ordersForm.innerHTML =
+        '<p class="orders__thanks">Thanks — your request is in. We&rsquo;ll be in touch shortly.</p>';
+    }
+
     ordersForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (!ordersForm.checkValidity()) { ordersForm.reportValidity(); return; }
 
       var data = new FormData(ordersForm);
-      var name = (data.get('name') || '').toString().trim();
-      var email = (data.get('email') || '').toString().trim();
-      var team = (data.get('team') || '').toString().trim();
+      var btn = ordersForm.querySelector('button[type="submit"]');
+      var label = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
-      var subject = 'Team Order Inquiry' + (team ? ' — ' + team : '');
-      var bodyLines = [
-        'Name: ' + (name || '(not provided)'),
-        'Email: ' + (email || '(not provided)'),
-        'Team / organization: ' + (team || '(not provided)'),
-        '',
-        'Tell us about your order (quantity, level of play, timeline):',
-        ''
-      ];
-      var href =
-        'mailto:info@hydrabaseballco.com' +
-        '?subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(bodyLines.join('\n'));
+      var reset = function () { if (btn) { btn.disabled = false; btn.textContent = label; } };
 
-      window.location.href = href;
+      if (!('fetch' in window)) { mailtoFallback(data); reset(); return; }
 
-      var btn = ordersForm.querySelector('button');
-      if (btn) { btn.textContent = 'Opening your email…'; }
+      fetch(ORDERS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: data
+      })
+        .then(function (r) { return r.ok ? showThanks() : (mailtoFallback(data), reset()); })
+        .catch(function () { mailtoFallback(data); reset(); });
     });
   }
 })();
