@@ -94,7 +94,9 @@ export default function HomePage() {
 
           <nav className="site-nav" id="siteNav" aria-label="Primary">
             <a href="#about">About</a>
+            <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
@@ -120,6 +122,8 @@ export default function HomePage() {
           <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-4.jpg"></div>
+          <div className="hero__slide" data-src="/images/hero-5.jpg"></div>
+          <div className="hero__slide" data-src="/images/hero-6.jpg"></div>
         </div>
         <div className="hero__dots" id="heroDots"></div>
         <div className="container hero__inner">
@@ -200,6 +204,24 @@ export default function HomePage() {
               </li>
             </ul>
           </div>
+        </div>
+      </section>
+
+      {/* ===== Our Mission ===== */}
+      <section className="mission" id="mission">
+        <div className="container mission__inner reveal">
+          <span className="eyebrow eyebrow--red">Our Mission</span>
+          <h2 className="section-title mission__title">
+            Giving Back
+            <br />
+            To The Game
+          </h2>
+          <span className="mission__rule" aria-hidden="true"></span>
+          <p className="mission__text">
+            We&rsquo;re former players who know what it takes between the lines &mdash; and what
+            players truly want and need. Hydra is our way of giving back to the game that gave us
+            everything, putting quality gear in the hands of the players who live it every day.
+          </p>
         </div>
       </section>
 
@@ -387,6 +409,18 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Apparel (Coming Soon) ===== */}
+      <section className="apparel" id="apparel">
+        <div className="container apparel__inner reveal">
+          <span className="eyebrow eyebrow--red">Apparel</span>
+          <h2 className="section-title apparel__title">Coming Soon&hellip;</h2>
+          <span className="apparel__rule" aria-hidden="true"></span>
+          <p className="apparel__text">
+            Hydra gear for players &mdash; on the field and off. Our apparel line is on deck.
+          </p>
+        </div>
+      </section>
+
       {/* ===== Footer ===== */}
       <footer className="footer" id="contact">
         <div className="container footer__grid">
@@ -401,7 +435,9 @@ export default function HomePage() {
           <nav className="footer__col" aria-label="Quick links">
             <h4>Quick Links</h4>
             <a href="#about">About</a>
+            <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
