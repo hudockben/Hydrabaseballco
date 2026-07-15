@@ -301,6 +301,13 @@ ul { list-style: none; }
 }
 .feature p { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
+/* ---------- Our Mission ---------- */
+.mission { background: var(--paper); padding: clamp(64px, 9vw, 110px) 0; text-align: center; }
+.mission__inner { max-width: 720px; margin: 0 auto; }
+.mission__title { color: var(--text); }
+.mission__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.mission__text { color: var(--muted); font-size: 1.12rem; line-height: 1.7; max-width: 54ch; margin: 0 auto; }
+
 /* ---------- Quote band ---------- */
 .quote {
   display: grid;

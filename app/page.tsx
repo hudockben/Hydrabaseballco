@@ -94,6 +94,7 @@ export default function HomePage() {
 
           <nav className="site-nav" id="siteNav" aria-label="Primary">
             <a href="#about">About</a>
+            <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
@@ -200,6 +201,24 @@ export default function HomePage() {
               </li>
             </ul>
           </div>
+        </div>
+      </section>
+
+      {/* ===== Our Mission ===== */}
+      <section className="mission" id="mission">
+        <div className="container mission__inner reveal">
+          <span className="eyebrow eyebrow--red">Our Mission</span>
+          <h2 className="section-title mission__title">
+            Giving Back
+            <br />
+            To The Game
+          </h2>
+          <span className="mission__rule" aria-hidden="true"></span>
+          <p className="mission__text">
+            We&rsquo;re former players who know what it takes between the lines &mdash; and what
+            players truly want and need. Hydra is our way of giving back to the game that gave us
+            everything, putting quality gear in the hands of the players who live it every day.
+          </p>
         </div>
       </section>
 
@@ -401,6 +420,7 @@ export default function HomePage() {
           <nav className="footer__col" aria-label="Quick links">
             <h4>Quick Links</h4>
             <a href="#about">About</a>
+            <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
