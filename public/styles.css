@@ -447,6 +447,13 @@ ul { list-style: none; }
 .orders__note { color: var(--muted); }
 .orders__note a { color: var(--red); font-weight: 600; }
 
+/* ---------- Apparel (Coming Soon) ---------- */
+.apparel { background: var(--ink); color: var(--text-inv); padding: clamp(64px, 9vw, 110px) 0; text-align: center; }
+.apparel__inner { max-width: 680px; margin: 0 auto; }
+.apparel__title { color: #fff; }
+.apparel__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.apparel__text { color: var(--muted-inv); font-size: 1.08rem; margin: 0 auto; max-width: 48ch; }
+
 /* ---------- Footer ---------- */
 .footer { background: var(--cream); border-top: 1px solid var(--line); }
 .footer__grid {

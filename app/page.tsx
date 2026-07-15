@@ -96,6 +96,7 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
@@ -408,6 +409,18 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Apparel (Coming Soon) ===== */}
+      <section className="apparel" id="apparel">
+        <div className="container apparel__inner reveal">
+          <span className="eyebrow eyebrow--red">Apparel</span>
+          <h2 className="section-title apparel__title">Coming Soon&hellip;</h2>
+          <span className="apparel__rule" aria-hidden="true"></span>
+          <p className="apparel__text">
+            Hydra gear for players &mdash; on the field and off. Our apparel line is on deck.
+          </p>
+        </div>
+      </section>
+
       {/* ===== Footer ===== */}
       <footer className="footer" id="contact">
         <div className="container footer__grid">
@@ -424,6 +437,7 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
