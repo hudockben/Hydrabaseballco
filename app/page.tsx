@@ -225,25 +225,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Quote band ===== */}
-      <section className="quote">
-        <div className="quote__media" aria-hidden="true"></div>
-        <div className="quote__panel">
-          <div className="quote__inner reveal">
-            <span className="quote__mark" aria-hidden="true">
-              &ldquo;
-            </span>
-            <blockquote className="quote__text">
-              We play the game
-              <br />
-              the right way.
-            </blockquote>
-            <span className="quote__rule" aria-hidden="true"></span>
-            <p className="quote__attrib">By Players For Players</p>
-          </div>
-        </div>
-      </section>
-
       {/* ===== Trust bar ===== */}
       <section className="trustbar">
         <div className="container trustbar__grid">
