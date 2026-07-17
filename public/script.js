@@ -37,9 +37,10 @@
     revealEls.forEach(function (el) { el.classList.add('is-visible'); });
   }
 
-  /* Hero photo slideshow — cross-fades through the player photos.
-     Slides load their image first; any that 404 are skipped, so the
-     rotation only ever contains photos that actually exist. */
+  /* Hero slideshow — cross-fades through the player photos and the intro
+     video. Photos load their image first and the video waits until it can
+     play; any media that 404s or can't be played is skipped, so the rotation
+     only ever contains media that actually works. */
   var heroMedia = document.getElementById('heroSlides');
   if (heroMedia) {
     var slides = Array.prototype.slice.call(heroMedia.querySelectorAll('.hero__slide'));
@@ -51,6 +52,32 @@
     };
 
     slides.forEach(function (slide) {
+      var video = slide.querySelector('video');
+      if (video) {
+        // Ready once the browser can play the clip; drop the slide if the
+        // source errors (e.g. an unsupported format on this browser).
+        var settled = false;
+        var ready = function () {
+          if (settled) { return; } settled = true;
+          slide.setAttribute('data-ready', '1'); settle();
+        };
+        var drop = function () {
+          if (settled) { return; } settled = true;
+          if (slide.parentNode) { slide.parentNode.removeChild(slide); }
+          settle();
+        };
+        video.muted = true; // required for muted autoplay
+        if (video.readyState >= 2) { ready(); }
+        else {
+          video.addEventListener('loadeddata', ready, { once: true });
+          video.addEventListener('error', drop, { once: true });
+          // Don't let a slow-loading clip hold up the whole slideshow — after a
+          // short wait, start anyway and keep the slide (it streams on its turn).
+          // (preload="auto" already fetches the source, so no explicit load().)
+          window.setTimeout(ready, 2500);
+        }
+        return;
+      }
       var src = slide.getAttribute('data-src');
       if (!src) { slide.setAttribute('data-ready', '1'); settle(); return; } // slide 1: inline bg
       var probe = new Image();
@@ -70,25 +97,72 @@
       var active = Array.prototype.slice.call(
         heroMedia.querySelectorAll('.hero__slide[data-ready]')
       );
+      var reduce = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function videoOf(slide) { return slide ? slide.querySelector('video') : null; }
+      function playVideo(v) {
+        if (!v || reduce) { return null; }
+        v.muted = true;
+        try { v.currentTime = 0; } catch (e) {}
+        try { return v.play() || null; } catch (e) { return null; }
+      }
+      function pauseVideo(v) { if (v) { try { v.pause(); } catch (e) {} } }
+
       active.forEach(function (s, i) { s.classList.toggle('is-active', i === 0); });
-      if (active.length <= 1) return; // nothing to rotate through
+      if (active.length <= 1) {
+        var only = videoOf(active[0]);
+        if (only) { only.loop = true; var p0 = playVideo(only); if (p0 && p0.catch) { p0.catch(function () {}); } }
+        return;
+      }
 
       var dotsWrap = document.getElementById('heroDots');
       var dots = [];
       var idx = 0;
       var timer = null;
-      var reduce = window.matchMedia &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var endedVideo = null;
+      var endedHandler = null;
+      var PHOTO_MS = 2600;
+      var VIDEO_MAX_MS = 20000; // safety cap if a clip's 'ended' never fires
+      var VIDEO_FAIL_MS = 2500;  // poster dwell if the clip can't play at all
 
+      function clearTimers() {
+        if (timer) { window.clearTimeout(timer); timer = null; }
+        if (endedVideo && endedHandler) { endedVideo.removeEventListener('ended', endedHandler); }
+        endedVideo = null; endedHandler = null;
+      }
+      function advance() { go(idx + 1); schedule(); }
+      function schedule() {
+        clearTimers();
+        if (reduce) { return; }
+        var v = videoOf(active[idx]);
+        if (v) {
+          // Play the clip, then move on when it ends (safety cap if 'ended'
+          // never fires). If it can't play, only linger on the poster briefly.
+          endedVideo = v; endedHandler = advance;
+          v.addEventListener('ended', endedHandler);
+          timer = window.setTimeout(advance, VIDEO_MAX_MS);
+          var p = playVideo(v);
+          if (p && p.catch) {
+            p.catch(function () {
+              if (timer) { window.clearTimeout(timer); }
+              timer = window.setTimeout(advance, VIDEO_FAIL_MS);
+            });
+          }
+        } else {
+          timer = window.setTimeout(advance, PHOTO_MS);
+        }
+      }
       function go(n) {
         active[idx].classList.remove('is-active');
         if (dots[idx]) { dots[idx].classList.remove('is-active'); }
+        pauseVideo(videoOf(active[idx]));
         idx = (n + active.length) % active.length;
         active[idx].classList.add('is-active');
         if (dots[idx]) { dots[idx].classList.add('is-active'); }
       }
-      function start() { if (!reduce) { timer = window.setInterval(function () { go(idx + 1); }, 2000); } }
-      function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
+      function stop() { clearTimers(); }
+      function start() { schedule(); }
       function restart() { stop(); start(); }
 
       if (dotsWrap) {
@@ -96,7 +170,7 @@
           var b = document.createElement('button');
           b.type = 'button';
           b.className = 'hero__dot' + (i === 0 ? ' is-active' : '');
-          b.setAttribute('aria-label', 'Show hero photo ' + (i + 1));
+          b.setAttribute('aria-label', 'Show hero slide ' + (i + 1));
           b.addEventListener('click', function () { go(i); restart(); });
           dotsWrap.appendChild(b);
           dots.push(b);

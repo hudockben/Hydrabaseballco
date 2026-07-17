@@ -116,12 +116,27 @@ export default function HomePage() {
       {/* ===== Hero ===== */}
       <section className="hero" id="home">
         <div className="hero__media" id="heroSlides" aria-hidden="true">
-          {/* Slide 1 paints immediately; slides 2–4 are added by the slideshow
-              only if their image loads (missing files are skipped gracefully). */}
-          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero.jpg')" }}></div>
-          <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
+          {/* Slide 1 paints immediately; the remaining slides (photos and the
+              video) are added by the slideshow only once their media loads —
+              anything that fails to load is skipped gracefully. */}
+          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-2.jpg')" }}></div>
+          <div className="hero__slide hero__slide--video">
+            <video
+              className="hero__video"
+              muted
+              loop={false}
+              playsInline
+              preload="auto"
+              poster="/images/hero-video-poster.jpg"
+            >
+              {/* H.264 first for Safari and other browsers; VP9/WebM rescues
+                  any browser without H.264. The browser downloads only the
+                  first source it can play. */}
+              <source src="/videos/hero.mp4" type="video/mp4" />
+              <source src="/videos/hero.webm" type="video/webm" />
+            </video>
+          </div>
           <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
-          <div className="hero__slide" data-src="/images/hero-4.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-5.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-6.jpg"></div>
         </div>
