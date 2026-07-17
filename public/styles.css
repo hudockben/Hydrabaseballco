@@ -199,6 +199,16 @@ ul { list-style: none; }
   transition: opacity 0.9s ease;
 }
 .hero__slide.is-active { opacity: 1; }
+/* Video slide fills the panel just like the photos (cover-crop, no controls) */
+.hero__slide--video { background-color: #0b0b0d; }
+.hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
 /* Blend the panel's left edge into the dark hero so the photos melt in */
 .hero__media::after {
   content: "";
