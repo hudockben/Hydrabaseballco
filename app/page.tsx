@@ -203,6 +203,30 @@ export default function HomePage() {
                 </div>
               </li>
             </ul>
+
+            <div className="grades">
+              <h3 className="grades__title">Available Leather Grades</h3>
+              <ul className="grades__list">
+                <li className="grade">
+                  <span className="grade__badge" aria-hidden="true">+</span>
+                  <div>
+                    <h4 className="grade__name">B Grade Leather</h4>
+                    <p className="grade__desc">
+                      Our higher grade, marked with a &ldquo;+&rdquo; on the ball.
+                    </p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain" aria-hidden="true">C</span>
+                  <div>
+                    <h4 className="grade__name">C Grade Leather</h4>
+                    <p className="grade__desc">
+                      Dependable leather built for everyday practice and play.
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -222,25 +246,6 @@ export default function HomePage() {
             players truly want and need. Hydra is our way of giving back to the game that gave us
             everything, putting quality gear in the hands of the players who live it every day.
           </p>
-        </div>
-      </section>
-
-      {/* ===== Quote band ===== */}
-      <section className="quote">
-        <div className="quote__media" aria-hidden="true"></div>
-        <div className="quote__panel">
-          <div className="quote__inner reveal">
-            <span className="quote__mark" aria-hidden="true">
-              &ldquo;
-            </span>
-            <blockquote className="quote__text">
-              We play the game
-              <br />
-              the right way.
-            </blockquote>
-            <span className="quote__rule" aria-hidden="true"></span>
-            <p className="quote__attrib">By Players For Players</p>
-          </div>
         </div>
       </section>
 
