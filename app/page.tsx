@@ -203,6 +203,30 @@ export default function HomePage() {
                 </div>
               </li>
             </ul>
+
+            <div className="grades">
+              <h3 className="grades__title">Available Leather Grades</h3>
+              <ul className="grades__list">
+                <li className="grade">
+                  <span className="grade__badge" aria-hidden="true">+</span>
+                  <div>
+                    <h4 className="grade__name">B Grade Leather</h4>
+                    <p className="grade__desc">
+                      Our higher grade, marked with a &ldquo;+&rdquo; on the ball.
+                    </p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain" aria-hidden="true">C</span>
+                  <div>
+                    <h4 className="grade__name">C Grade Leather</h4>
+                    <p className="grade__desc">
+                      Dependable leather built for everyday practice and play.
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

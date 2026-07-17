@@ -301,6 +301,56 @@ ul { list-style: none; }
 }
 .feature p { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
+/* ---------- Leather grades ---------- */
+.grades {
+  margin-top: 40px;
+  padding-top: 34px;
+  border-top: 1px solid var(--line);
+}
+.grades__title {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.02rem;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.grades__list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 36px;
+}
+.grade { display: flex; gap: 14px; align-items: flex-start; }
+.grade__badge {
+  flex: 0 0 auto;
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.grade__badge--plain {
+  background: transparent;
+  color: var(--text);
+  border: 2px solid var(--line);
+  font-size: 1.05rem;
+}
+.grade__name {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.92rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
+
 /* ---------- Our Mission ---------- */
 .mission { background: var(--paper); padding: clamp(64px, 9vw, 110px) 0; text-align: center; }
 .mission__inner { max-width: 720px; margin: 0 auto; }
@@ -547,6 +597,7 @@ ul { list-style: none; }
 @media (max-width: 560px) {
   .hero { min-height: 80vh; }
   .feature-grid { grid-template-columns: 1fr; gap: 24px; }
+  .grades__list { grid-template-columns: 1fr; gap: 20px; }
   .orders__form { grid-template-columns: 1fr; }
   .orders__form input[name="team"] { grid-column: auto; }
   .trustbar__grid { grid-template-columns: 1fr; }
