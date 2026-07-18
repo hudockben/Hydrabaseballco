@@ -220,10 +220,10 @@ export default function HomePage() {
             </ul>
 
             <div className="grades">
-              <h3 className="grades__title">Our Leather</h3>
+              <h3 className="grades__title">Choose Your Ball</h3>
               <ul className="grades__list">
                 <li className="grade">
-                  <span className="grade__badge" aria-hidden="true">+</span>
+                  <span className="grade__badge">A1492+</span>
                   <div>
                     <h4 className="grade__name">Premium Leather Game Ball</h4>
                     <p className="grade__desc">
@@ -232,7 +232,7 @@ export default function HomePage() {
                   </div>
                 </li>
                 <li className="grade">
-                  <span className="grade__badge grade__badge--plain" aria-hidden="true"></span>
+                  <span className="grade__badge grade__badge--plain">A1492</span>
                   <div>
                     <h4 className="grade__name">Premium Leather Everyday Practice Ball</h4>
                     <p className="grade__desc">
