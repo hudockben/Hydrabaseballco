@@ -68,6 +68,13 @@ const IconMail = (
     <path d="M4.4 7.6l7.6 5 7.6-5" />
   </svg>
 );
+const IconUpload = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 15.4V3.8" />
+    <path d="M8 7.8l4-4 4 4" />
+    <path d="M4.6 14.2v4a2 2 0 0 0 2 2h10.8a2 2 0 0 0 2-2v-4" />
+  </svg>
+);
 
 /* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
@@ -96,6 +103,7 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
@@ -264,6 +272,116 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Custom ball preview ===== */}
+      <section className="customizer" id="customize">
+        <div className="container customizer__inner reveal">
+          <div className="customizer__head">
+            <span className="eyebrow eyebrow--red">Custom Balls</span>
+            <h2 className="section-title customizer__title">
+              Your Logo.
+              <br />
+              Our Leather.
+            </h2>
+            <span className="customizer__rule" aria-hidden="true"></span>
+            <p className="customizer__lead">
+              Drop in your program&rsquo;s mark and see it stamped on an A1492 before you order.
+              It all happens right here in your browser &mdash; your artwork never leaves this page.
+            </p>
+          </div>
+
+          <div className="customizer__grid">
+            <div className="customizer__stage">
+              {/* The mockup is painted entirely by script.js; the canvas shows a
+                  plain A1492 until a logo is loaded. */}
+              <canvas
+                id="ballStage"
+                className="customizer__canvas"
+                width={860}
+                height={860}
+                role="img"
+                aria-label="Preview of your logo on a Hydra A1492 baseball"
+              ></canvas>
+              <p className="customizer__hint" id="ballHint">
+                Upload a logo to get started.
+              </p>
+            </div>
+
+            <div className="customizer__panel">
+              <div className="dropzone" id="logoDrop">
+                <input
+                  type="file"
+                  id="logoInput"
+                  className="dropzone__input"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
+                />
+                <label htmlFor="logoInput" className="dropzone__label">
+                  <span className="dropzone__icon">{IconUpload}</span>
+                  <strong>Upload your logo</strong>
+                  <span className="dropzone__meta">
+                    PNG, JPG, SVG or WebP &mdash; up to 12&nbsp;MB.
+                    <br />A PNG with a transparent background looks best.
+                  </span>
+                </label>
+              </div>
+
+              <p className="customizer__status" id="logoStatus" role="status" aria-live="polite"></p>
+
+              {/* Revealed by script.js once a logo is loaded */}
+              <div className="controls" id="logoControls" hidden>
+                <div className="control">
+                  <label className="control__label" htmlFor="logoSize">
+                    Size
+                  </label>
+                  <input
+                    type="range"
+                    id="logoSize"
+                    className="control__range"
+                    min="20"
+                    max="130"
+                    defaultValue="62"
+                    step="1"
+                  />
+                </div>
+
+                <div className="control">
+                  <span className="control__label" id="inkLabel">
+                    Stamp color
+                  </span>
+                  <div className="swatches" role="group" aria-labelledby="inkLabel">
+                    <button type="button" className="swatch is-active" data-ink="full" aria-pressed="true">
+                      Full color
+                    </button>
+                    <button type="button" className="swatch" data-ink="black" aria-pressed="false">
+                      Black
+                    </button>
+                    <button type="button" className="swatch" data-ink="red" aria-pressed="false">
+                      Hydra Red
+                    </button>
+                  </div>
+                </div>
+
+                <label className="control__check">
+                  <input type="checkbox" id="logoKnockout" />
+                  <span>Remove background</span>
+                </label>
+
+                <div className="controls__actions">
+                  <button type="button" className="btn btn--light" id="logoAttach">
+                    Add To My Order
+                  </button>
+                  <button type="button" className="btn btn--outline" id="logoDownload">
+                    Download Mockup
+                  </button>
+                  <button type="button" className="controls__reset" id="logoReset">
+                    Start over
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== Trust bar ===== */}
       <section className="trustbar">
         <div className="container trustbar__grid">
@@ -404,6 +522,9 @@ export default function HomePage() {
               aria-label="Message"
             ></textarea>
 
+            {/* Set by the custom ball preview when a logo mockup is attached */}
+            <input type="hidden" name="logo" id="ordersLogo" value="" />
+
             {/* Form-to-email service config (read by FormSubmit) */}
             <input type="hidden" name="_subject" value="New Team Order Inquiry — Hydra Baseball Co." />
             <input type="hidden" name="_template" value="table" />
@@ -457,6 +578,7 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>

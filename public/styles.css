@@ -150,6 +150,10 @@ ul { list-style: none; }
   transition: color .18s ease;
 }
 .site-nav a:hover { color: var(--red); }
+/* A squeezed row would break a two-word link across lines rather than
+   overflow, which reads as a layout bug; the breakpoints below keep the row
+   wide enough that it never comes to that. */
+.site-nav a { white-space: nowrap; }
 .btn--header { margin-left: 4px; }
 
 .nav-toggle {
@@ -370,6 +374,174 @@ ul { list-style: none; }
 .mission__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
 .mission__text { color: var(--muted); font-size: 1.12rem; line-height: 1.7; max-width: 54ch; margin: 0 auto; }
 
+/* ---------- Custom ball preview ---------- */
+.customizer {
+  background: var(--ink);
+  color: var(--text-inv);
+  padding: clamp(64px, 9vw, 110px) 0 clamp(52px, 7vw, 90px);
+}
+.customizer__head { max-width: 640px; margin: 0 auto; text-align: center; }
+.customizer__title { color: #fff; }
+.customizer__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.customizer__lead { color: var(--muted-inv); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
+
+.customizer__grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: clamp(24px, 4vw, 60px);
+  margin-top: clamp(36px, 5vw, 58px);
+  text-align: left;
+}
+
+/* ----- Stage ----- */
+.customizer__stage { display: flex; flex-direction: column; align-items: center; }
+.customizer__canvas {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  /* the pointer drags the logo across the ball, so don't let it pan the page */
+  touch-action: none;
+  border-radius: 10px;
+}
+.customizer__canvas.is-draggable { cursor: grab; }
+.customizer__canvas.is-dragging { cursor: grabbing; }
+.customizer__canvas:focus-visible { outline: 2px solid var(--red); outline-offset: 6px; }
+.customizer__hint {
+  color: var(--muted-inv);
+  font-size: 0.86rem;
+  text-align: center;
+  margin-top: 6px;
+  min-height: 1.4em;
+}
+
+/* ----- Control panel ----- */
+.customizer__panel { max-width: 460px; }
+
+.dropzone {
+  position: relative;
+  border: 2px dashed rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color .2s ease, background .2s ease;
+}
+.dropzone:hover,
+.dropzone.is-over { border-color: var(--red); background: rgba(200, 32, 47, 0.08); }
+.dropzone:focus-within { border-color: var(--red); }
+/* Kept in the layout (not display:none) so it stays keyboard reachable */
+.dropzone__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.dropzone__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 26px;
+  text-align: center;
+  cursor: pointer;
+}
+.dropzone__icon { width: 30px; height: 30px; color: var(--red); }
+.dropzone__icon svg { width: 100%; height: 100%; }
+.dropzone__label strong {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+  color: #fff;
+}
+.dropzone__meta { color: var(--muted-inv); font-size: 0.84rem; line-height: 1.5; }
+
+.customizer__status {
+  min-height: 1.5em;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  color: var(--muted-inv);
+}
+.customizer__status.is-error { color: #ff8f8f; }
+
+.controls { margin-top: 18px; display: flex; flex-direction: column; gap: 20px; }
+.controls[hidden] { display: none; }
+.control { display: flex; flex-direction: column; gap: 10px; }
+.control__label {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  color: var(--muted-inv);
+}
+
+/* Range — styled for both engines; the track is a thin rule, thumb is red */
+.control__range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+.control__range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.control__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--red);
+}
+.control__range::-moz-range-track { height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); }
+.control__range::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--red); }
+.control__range:focus-visible { outline: 2px solid var(--red); outline-offset: 4px; border-radius: 4px; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-inv);
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.swatch:hover { color: #fff; border-color: rgba(255, 255, 255, 0.5); }
+.swatch.is-active { color: #fff; background: var(--red); border-color: var(--red); }
+
+.control__check { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--muted-inv); font-size: 0.92rem; }
+.control__check input { width: 17px; height: 17px; accent-color: var(--red); cursor: pointer; }
+
+.controls__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.controls__actions .btn { padding: 12px 22px; font-size: 0.84rem; }
+.controls__reset {
+  background: none;
+  border: 0;
+  padding: 6px 2px;
+  color: var(--muted-inv);
+  font-family: var(--body);
+  font-size: 0.88rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.controls__reset:hover { color: #fff; }
+
 /* ---------- Quote band ---------- */
 .quote {
   display: grid;
@@ -565,7 +737,15 @@ ul { list-style: none; }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 960px) {
+/* Seven nav links need more room than six did. Tighten the row once the
+   container stops growing, and hand over to the menu button below 1120px —
+   measured against the widest labels, that's where the row can no longer
+   hold all seven alongside the brand and the header button. */
+@media (max-width: 1260px) {
+  .site-nav { gap: 22px; }
+}
+
+@media (max-width: 1120px) {
   .site-nav {
     position: fixed;
     inset: var(--header-h) 0 auto 0;
@@ -584,6 +764,12 @@ ul { list-style: none; }
   .site-nav a { padding: 14px 28px; }
   .btn--header { display: none; }
   .nav-toggle { display: flex; }
+}
+
+@media (max-width: 960px) {
+  .customizer__grid { grid-template-columns: 1fr; }
+  .customizer__panel { max-width: 540px; width: 100%; margin: 0 auto; }
+  .customizer__stage { order: -1; }
 
   /* Hero slideshow spans full width behind the text on smaller screens */
   .hero__media { width: 100%; }
@@ -622,4 +808,5 @@ ul { list-style: none; }
   .hero__slide { transition: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .btn { transition: none; }
+  .swatch, .dropzone { transition: none; }
 }
