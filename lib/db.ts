@@ -20,6 +20,21 @@ export function getSql(): ReturnType<typeof neon> {
 let schemaReady: Promise<void> | null = null;
 
 /**
+ * Run a statement that improves the schema but isn't worth an outage.
+ *
+ * Table creation still throws — without the tables nothing works. Back-fill
+ * `alter`s and indexes go through here instead, so one bad statement degrades a
+ * single tab rather than making every page report "database not connected".
+ */
+async function optional(run: () => Promise<unknown>): Promise<void> {
+  try {
+    await run();
+  } catch (err) {
+    console.error('ensureSchema: skipped a statement', err);
+  }
+}
+
+/**
  * Create the full schema (idempotently) before reading or writing.
  *
  * `db/schema.sql` and `db/migrations/*.sql` are otherwise run by hand, so a
@@ -124,35 +139,37 @@ export function ensureSchema(): Promise<void> {
         reason     text,
         created_at timestamptz not null default now())`;
 
-      // --- Indexes ------------------------------------------------------------
-      await sql`create index if not exists prospects_status_idx on prospects (status)`;
-      await sql`create index if not exists prospects_type_idx on prospects (type)`;
-      await sql`create index if not exists price_tiers_product_idx on price_tiers (product_id)`;
-      await sql`create index if not exists orders_prospect_idx on orders (prospect_id)`;
-      await sql`create index if not exists orders_product_idx on orders (product_id)`;
-      await sql`create index if not exists orders_ordered_at_idx on orders (ordered_at)`;
-      await sql`create index if not exists customers_state_idx on customers (state)`;
-      await sql`create index if not exists customers_school_idx on customers (school)`;
-      await sql`create index if not exists customers_status_idx on customers (status)`;
-      await sql`create index if not exists inventory_items_name_idx on inventory_items (name)`;
-      await sql`create index if not exists inventory_items_sku_idx on inventory_items (sku)`;
-      await sql`create index if not exists inventory_movements_item_idx
-        on inventory_movements (item_id, created_at desc)`;
+      // --- Back-fill columns on databases that predate a feature ---------------
+      // These run BEFORE the indexes: an index on a column that doesn't exist
+      // yet fails, and a failure here used to take the whole admin down.
+      await optional(() => sql`alter table customers add column if not exists coach_name text`);
+      await optional(() => sql`alter table customers add column if not exists phone text`);
+      await optional(() => sql`alter table customers add column if not exists website text`);
+      await optional(() => sql`alter table customers add column if not exists status text not null default 'new'`);
+      await optional(() => sql`alter table customers add column if not exists tier_override text`);
+      await optional(() => sql`alter table customers add column if not exists last_contacted timestamptz`);
+      await optional(() => sql`alter table customers add column if not exists enriched_at timestamptz`);
 
-      // --- Back-fill the Customer List reach-out columns (tiering + outreach) --
-      await sql`alter table customers add column if not exists coach_name text`;
-      await sql`alter table customers add column if not exists phone text`;
-      await sql`alter table customers add column if not exists website text`;
-      await sql`alter table customers add column if not exists status text not null default 'new'`;
-      await sql`alter table customers add column if not exists tier_override text`;
-      await sql`alter table customers add column if not exists last_contacted timestamptz`;
-      await sql`alter table customers add column if not exists enriched_at timestamptz`;
+      // Older `prospects` tables (Coach column + High School type).
+      await optional(() => sql`alter table prospects add column if not exists contact_name text`);
+      await optional(() => sql`alter table prospects drop constraint if exists prospects_type_check`);
+      await optional(() => sql`alter table prospects add constraint prospects_type_check
+        check (type in ('college', 'facility', 'league', 'highschool', 'other'))`);
 
-      // --- Back-fill older `prospects` tables (Coach column + High School type)
-      await sql`alter table prospects add column if not exists contact_name text`;
-      await sql`alter table prospects drop constraint if exists prospects_type_check`;
-      await sql`alter table prospects add constraint prospects_type_check
-        check (type in ('college', 'facility', 'league', 'highschool', 'other'))`;
+      // --- Indexes -------------------------------------------------------------
+      await optional(() => sql`create index if not exists prospects_status_idx on prospects (status)`);
+      await optional(() => sql`create index if not exists prospects_type_idx on prospects (type)`);
+      await optional(() => sql`create index if not exists price_tiers_product_idx on price_tiers (product_id)`);
+      await optional(() => sql`create index if not exists orders_prospect_idx on orders (prospect_id)`);
+      await optional(() => sql`create index if not exists orders_product_idx on orders (product_id)`);
+      await optional(() => sql`create index if not exists orders_ordered_at_idx on orders (ordered_at)`);
+      await optional(() => sql`create index if not exists customers_state_idx on customers (state)`);
+      await optional(() => sql`create index if not exists customers_school_idx on customers (school)`);
+      await optional(() => sql`create index if not exists customers_status_idx on customers (status)`);
+      await optional(() => sql`create index if not exists inventory_items_name_idx on inventory_items (name)`);
+      await optional(() => sql`create index if not exists inventory_items_sku_idx on inventory_items (sku)`);
+      await optional(() => sql`create index if not exists inventory_movements_item_idx
+        on inventory_movements (item_id, created_at desc)`);
     })().catch((err) => {
       // Let a transient failure be retried on the next request.
       schemaReady = null;
