@@ -285,8 +285,8 @@ export default function HomePage() {
             <span className="customizer__rule" aria-hidden="true"></span>
             <p className="customizer__lead">
               Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
-              ball, photographed, with your logo on the open panel. It all happens right here in
-              your browser &mdash; your artwork never leaves this page.
+              ball, photographed, with your logo on the open panel or up in the horseshoe. It all
+              happens right here in your browser &mdash; your artwork never leaves this page.
             </p>
           </div>
 
@@ -330,6 +330,20 @@ export default function HomePage() {
 
               {/* Revealed by script.js once a logo is loaded */}
               <div className="controls" id="logoControls" hidden>
+                <div className="control">
+                  <span className="control__label" id="spotLabel">
+                    Print location
+                  </span>
+                  <div className="swatches" role="group" aria-labelledby="spotLabel">
+                    <button type="button" className="swatch is-active" data-spot="panel" aria-pressed="true">
+                      Panel
+                    </button>
+                    <button type="button" className="swatch" data-spot="horseshoe" aria-pressed="false">
+                      Horseshoe
+                    </button>
+                  </div>
+                </div>
+
                 <div className="control">
                   <label className="control__label" htmlFor="logoSize">
                     Size

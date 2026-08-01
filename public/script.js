@@ -261,12 +261,26 @@
        comes from a least-squares fit of the limb — centre (545.5, 519.8),
        radius 394.5 — and the cleared panel is centred at (565, 588). Both are
        scaled by 900/1100 here. tools/make-ball-blank.py builds the photo. */
-    var PHOTO_SRC = '/images/ball-blank.jpg';
     var W = 900, H = 900;
     var CX = 446.3, CY = 425.3, R = 322.8;
-    /* The empty panel's centre in flat decal units — where a logo starts. */
-    var PANEL_X = 0.05, PANEL_Y = 0.174;
     var TAU = Math.PI * 2;
+
+    /* Where a mark can go, in flat decal units, with the box it is fitted into
+       and the photo that has that spot cleared. The horseshoe is where the
+       Hydra wordmark is printed, so putting a team's mark there needs the
+       version with the wordmark retouched out too. Both spots were measured
+       off the photo and mapped through the projection below. */
+    var PLACEMENTS = {
+      panel: {
+        x: 0.05, y: 0.174, fitW: 0.8, fitH: 0.4,
+        src: '/images/ball-blank.jpg'
+      },
+      horseshoe: {
+        x: 0.09, y: -0.95, fitW: 1.05, fitH: 0.66,
+        src: '/images/ball-blank-horseshoe.jpg'
+      }
+    };
+    var placement = 'panel';
 
     var hint = document.getElementById('ballHint');
     var statusEl = document.getElementById('logoStatus');
@@ -278,7 +292,8 @@
     var downloadBtn = document.getElementById('logoDownload');
     var attachBtn = document.getElementById('logoAttach');
     var resetBtn = document.getElementById('logoReset');
-    var swatchEls = document.querySelectorAll('.swatch');
+    var swatchEls = document.querySelectorAll('.swatch[data-ink]');
+    var spotEls = document.querySelectorAll('.swatch[data-spot]');
 
     var INK = { full: null, black: [20, 20, 24], red: [200, 32, 47] };
     var INK_LABEL = { full: 'full colour', black: 'black stamp', red: 'red stamp' };
@@ -289,7 +304,7 @@
        radius at the centre of the sphere (see the projection note below). */
     var logoImg = null, logoSrcW = 0, logoSrcH = 0, logoName = '';
     var logoData = null, logoW = 0, logoH = 0;
-    var posX = PANEL_X, posY = PANEL_Y, widthU = 0.55;
+    var posX = PLACEMENTS.panel.x, posY = PLACEMENTS.panel.y, widthU = 0.55;
     var ink = 'full', knockout = false;
 
     function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
@@ -326,15 +341,14 @@
        bottom of the circle, and a printed mark must not paint over it. Grass is
        the one strongly green thing in the frame, so greenness keys it out —
        white leather, black print and red seams all stay printable. */
-    var photo = new Image();
-    var photoReady = false;
+    var photos = {};
     var leather = null;
 
-    function buildLeatherMask() {
+    function buildLeatherMask(img) {
       var c = makeLayer();
       var cc = c.getContext('2d');
       if (!cc) { return; }
-      cc.drawImage(photo, 0, 0, W, H);
+      cc.drawImage(img, 0, 0, W, H);
       var px;
       try {
         px = cc.getImageData(0, 0, W, H).data;
@@ -351,15 +365,34 @@
       leather = m;
     }
 
-    photo.onload = function () {
-      photoReady = true;
-      buildLeatherMask();
-      compose();
-    };
-    photo.onerror = function () {
-      fail('The ball photo didn\u2019t load. Reload the page and try again.');
-    };
-    photo.src = PHOTO_SRC;
+    /* Only the photo for the spot in use is fetched; the second one arrives
+       the first time somebody picks the horseshoe. The grass runs across both
+       identically, so the leather mask is built once from whichever lands. */
+    function loadPhoto(key) {
+      var entry = photos[key];
+      if (entry) { return entry; }
+      var img = new Image();
+      entry = photos[key] = { img: img, ready: false };
+      img.onload = function () {
+        entry.ready = true;
+        if (!leather) { buildLeatherMask(img); }
+        compose();
+      };
+      img.onerror = function () {
+        fail('The ball photo didn\u2019t load. Reload the page and try again.');
+      };
+      img.src = PLACEMENTS[key].src;
+      return entry;
+    }
+    loadPhoto('panel');
+
+    /* Flat decal units back to canvas pixels — the inverse of kAt(). */
+    function flatToScreen(fx, fy) {
+      var r = Math.sqrt(fx * fx + fy * fy);
+      if (r < 1e-6) { return [CX, CY]; }
+      var scale = Math.sin(r > Math.PI / 2 ? Math.PI / 2 : r) / r;
+      return [CX + fx * scale * R, CY + fy * scale * R];
+    }
 
     var logoLayer = makeLayer();
     var logoCtx = logoLayer.getContext('2d');
@@ -464,6 +497,30 @@
       logoData = img;
     }
 
+    /* Centre the mark on the chosen spot and size it to that spot's box. */
+    function fitToPlacement() {
+      var spot = PLACEMENTS[placement];
+      posX = spot.x;
+      posY = spot.y;
+      if (logoSrcW && logoSrcH) {
+        widthU = clamp(Math.min(spot.fitW, spot.fitH * (logoSrcW / logoSrcH)), 0.2, 1.3);
+        if (sizeInput) { sizeInput.value = String(Math.round(widthU * 100)); }
+      }
+    }
+
+    function setPlacement(next) {
+      if (!PLACEMENTS[next] || next === placement) { return; }
+      placement = next;
+      loadPhoto(next);
+      for (var i = 0; i < spotEls.length; i++) {
+        var on = spotEls[i].getAttribute('data-spot') === next;
+        spotEls[i].classList.toggle('is-active', on);
+        spotEls[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      fitToPlacement();
+      queueDraw();
+    }
+
     /* ---- Wrapping the artwork onto the sphere -------------------------- */
     function renderLogoLayer() {
       if (!logoCtx || !logoImage) { return; }
@@ -514,19 +571,27 @@
       logoCtx.putImageData(logoImage, 0, 0);
     }
 
-    /* Before anything is uploaded, show where a mark would land. */
+    /* Before anything is uploaded, show where a mark would land. The spot's
+       fit box is mapped through the projection, so the guide sits on the
+       leather the same way the artwork will — flatter up on the horseshoe. */
     function drawPanelGuide() {
-      var gx = CX + PANEL_X * R, gy = CY + PANEL_Y * R;
+      var spot = PLACEMENTS[placement];
+      var left = flatToScreen(spot.x - spot.fitW / 2, spot.y);
+      var right = flatToScreen(spot.x + spot.fitW / 2, spot.y);
+      var top = flatToScreen(spot.x, spot.y - spot.fitH / 2);
+      var bottom = flatToScreen(spot.x, spot.y + spot.fitH / 2);
+      var gx = (left[0] + right[0]) / 2, gy = (top[1] + bottom[1]) / 2;
+      var rx = Math.abs(right[0] - left[0]) / 2, ry = Math.abs(bottom[1] - top[1]) / 2;
       ctx.save();
       ctx.setLineDash([11, 9]);
       ctx.lineWidth = 3;
       ctx.strokeStyle = 'rgba(11, 11, 13, 0.26)';
       ctx.beginPath();
-      ctx.ellipse(gx, gy, R * 0.47, R * 0.23, 0, 0, TAU);
+      ctx.ellipse(gx, gy, rx, ry, 0, 0, TAU);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = 'rgba(11, 11, 13, 0.32)';
-      ctx.font = '600 26px "Saira Condensed", "Arial Narrow", sans-serif';
+      ctx.font = '600 ' + Math.max(15, Math.round(ry * 0.42)) + 'px "Saira Condensed", "Arial Narrow", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('YOUR LOGO HERE', gx, gy);
@@ -535,9 +600,13 @@
 
     function compose() {
       ctx.clearRect(0, 0, W, H);
-      if (photoReady) { ctx.drawImage(photo, 0, 0, W, H); }
-      if (photoReady && !logoData) { drawPanelGuide(); }
-      if (logoData && photoReady) {
+      /* While a newly-picked photo loads, the one already decoded stands in. */
+      var entry = photos[placement];
+      if (!entry || !entry.ready) { entry = photos.panel; }
+      var ready = Boolean(entry && entry.ready);
+      if (ready) { ctx.drawImage(entry.img, 0, 0, W, H); }
+      if (ready && !logoData) { drawPanelGuide(); }
+      if (logoData && ready) {
         ctx.save();
         ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU); ctx.clip();
         /* Multiply so the leather's grain, shading and highlight come through
@@ -623,12 +692,10 @@
           knockout = /jpe?g/i.test(file.type || '');
           if (knockBox) { knockBox.checked = knockout; }
 
-          /* Drop the mark straight into the cleared panel, scaled to fit
-             between the seams, so a wide wordmark and a tall crest both land
-             somewhere sensible before the size slider is ever touched. */
-          posX = PANEL_X; posY = PANEL_Y;
-          widthU = clamp(Math.min(0.8, 0.4 * (logoSrcW / logoSrcH)), 0.2, 1.3);
-          if (sizeInput) { sizeInput.value = String(Math.round(widthU * 100)); }
+          /* Drop the mark straight onto the chosen spot, scaled to fill it,
+             so a wide wordmark and a tall crest both land somewhere sensible
+             before the size slider is ever touched. */
+          fitToPlacement();
           setInk('full');
 
           prepareLogo();
@@ -687,6 +754,16 @@
         if (isNaN(v)) { return; }
         widthU = v / 100;
         queueDraw();
+      });
+    }
+
+    for (var pi = 0; pi < spotEls.length; pi++) {
+      spotEls[pi].addEventListener('click', function () {
+        var next = this.getAttribute('data-spot') || 'panel';
+        setPlacement(next);
+        say(next === 'horseshoe'
+          ? 'Printed on the horseshoe — the Hydra mark makes way for yours.'
+          : 'Printed on the panel between the seams.');
       });
     }
 
@@ -796,7 +873,8 @@
         var field = document.getElementById('ordersLogo');
         if (field) {
           field.value = 'Mocked up on site: ' + (logoName || 'team logo') +
-            ' (' + INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
+            ' (' + (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
+            INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
         }
         var msg = ordersForm ? ordersForm.querySelector('textarea[name="message"]') : null;
         if (msg && msg.value.indexOf('custom logo') === -1) {
@@ -816,7 +894,8 @@
         logoImg = null;
         logoData = null;
         logoName = '';
-        posX = PANEL_X; posY = PANEL_Y; widthU = 0.55;
+        setPlacement('panel');
+        posX = PLACEMENTS.panel.x; posY = PLACEMENTS.panel.y; widthU = 0.55;
         knockout = false;
         if (knockBox) { knockBox.checked = false; }
         if (sizeInput) { sizeInput.value = '55'; }

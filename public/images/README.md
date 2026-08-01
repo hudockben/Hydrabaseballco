@@ -26,7 +26,13 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | File | Where it shows | Notes |
 |------|----------------|-------|
 | `ball.jpg` | "The Hydra Difference" panel | The A1492 Pro Series product photo, cropped square-ish (`cover`). |
-| `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. Generated from `ball.jpg` by `tools/make-ball-blank.py` — re-run it after replacing `ball.jpg`, and re-measure the ball circle in `public/script.js` if the new shot frames the ball differently. |
+| `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. |
+| `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | As above **plus** the Hydra wordmark cleared, since that's the spot the mark is taking. Fetched only when someone picks that placement. |
+
+Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
+tools/make-ball-blank.py` from the repo root). Re-run it after replacing
+`ball.jpg` — and if the new shot frames the ball differently, re-measure the
+ball circle and the two print spots in `public/script.js`.
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
 
 If a file is missing, an on-brand gradient fallback renders in its place.
