@@ -246,18 +246,26 @@
     });
   }
 
-  /* Custom ball preview — paints a studio-lit A1492 on a canvas and wraps an
-     uploaded team logo onto the leather. The logo is read and composited
-     entirely in the browser; the file is never sent anywhere. */
+  /* Custom ball preview — puts an uploaded team logo on the real A1492.
+     The stage is the product photograph with the printed A1492 panel retouched
+     out (public/images/ball-blank.jpg), so a mark lands on bare leather while
+     the Hydra wordmark, the seams, the grain and the light stay exactly as they
+     were shot. The artwork is read and composited entirely in the browser; the
+     file is never sent anywhere. */
   var stage = document.getElementById('ballStage');
   if (stage && stage.getContext && stage.getContext('2d') && window.FileReader) {
     var ctx = stage.getContext('2d');
 
-    /* ---- Geometry (internal pixels; CSS scales the canvas down) ---- */
-    var SIZE = 860;
-    var CX = SIZE / 2;
-    var CY = 412;
-    var R = 320;
+    /* ---- Geometry (internal pixels; CSS scales the canvas down) --------
+       The canvas is the retouched photo (1100x1100) at 900px wide. Its ball
+       comes from a least-squares fit of the limb — centre (545.5, 519.8),
+       radius 394.5 — and the cleared panel is centred at (565, 588). Both are
+       scaled by 900/1100 here. tools/make-ball-blank.py builds the photo. */
+    var PHOTO_SRC = '/images/ball-blank.jpg';
+    var W = 900, H = 900;
+    var CX = 446.3, CY = 425.3, R = 322.8;
+    /* The empty panel's centre in flat decal units — where a logo starts. */
+    var PANEL_X = 0.05, PANEL_Y = 0.174;
     var TAU = Math.PI * 2;
 
     var hint = document.getElementById('ballHint');
@@ -281,14 +289,14 @@
        radius at the centre of the sphere (see the projection note below). */
     var logoImg = null, logoSrcW = 0, logoSrcH = 0, logoName = '';
     var logoData = null, logoW = 0, logoH = 0;
-    var posX = 0, posY = 0.01, widthU = 0.62;
+    var posX = PANEL_X, posY = PANEL_Y, widthU = 0.55;
     var ink = 'full', knockout = false;
 
     function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
     function makeLayer() {
       var c = document.createElement('canvas');
-      c.width = SIZE; c.height = SIZE;
+      c.width = W; c.height = H;
       return c;
     }
 
@@ -312,243 +320,50 @@
       return kTable[i] + (kTable[i + 1] - kTable[i]) * (f - i);
     }
 
-    /* ---- Leather ------------------------------------------------------- */
-    function grainPattern(c) {
-      var t = document.createElement('canvas');
-      t.width = t.height = 96;
-      var g = t.getContext('2d');
-      if (!g) { return null; }
-      var img = g.createImageData(96, 96), d = img.data, i, n;
-      for (i = 0; i < d.length; i += 4) {
-        n = Math.random();
-        if (n > 0.5) { d[i] = d[i + 1] = d[i + 2] = 255; d[i + 3] = (n - 0.5) * 40; }
-        else { d[i] = d[i + 1] = d[i + 2] = 0; d[i + 3] = (0.5 - n) * 30; }
+    /* ---- The ball ------------------------------------------------------
+       One photograph, drawn straight onto the canvas. The only thing derived
+       from it is a leather mask: grass crosses in front of the ball along the
+       bottom of the circle, and a printed mark must not paint over it. Grass is
+       the one strongly green thing in the frame, so greenness keys it out —
+       white leather, black print and red seams all stay printable. */
+    var photo = new Image();
+    var photoReady = false;
+    var leather = null;
+
+    function buildLeatherMask() {
+      var c = makeLayer();
+      var cc = c.getContext('2d');
+      if (!cc) { return; }
+      cc.drawImage(photo, 0, 0, W, H);
+      var px;
+      try {
+        px = cc.getImageData(0, 0, W, H).data;
+      } catch (err) {
+        return; /* same-origin, so this shouldn't happen — but don't die on it */
       }
-      g.putImageData(img, 0, 0);
-      return c.createPattern(t, 'repeat');
-    }
-
-    /* Everything beneath the logo: backdrop, contact shadow, bare leather. */
-    function drawUnder(c) {
-      /* Stops short of the canvas corners so the backdrop never reads as a box
-         sitting on the section behind it. */
-      var glow = c.createRadialGradient(CX, CY - R * 0.1, R * 0.2, CX, CY, R * 1.28);
-      glow.addColorStop(0, 'rgba(255,255,255,0.06)');
-      glow.addColorStop(0.7, 'rgba(255,255,255,0.02)');
-      glow.addColorStop(1, 'rgba(255,255,255,0)');
-      c.fillStyle = glow;
-      c.fillRect(0, 0, SIZE, SIZE);
-
-      c.save();
-      c.translate(CX, CY + R * 1.03);
-      c.scale(1, 0.17);
-      var sh = c.createRadialGradient(0, 0, 0, 0, 0, R * 0.94);
-      sh.addColorStop(0, 'rgba(0,0,0,0.62)');
-      sh.addColorStop(0.55, 'rgba(0,0,0,0.26)');
-      sh.addColorStop(1, 'rgba(0,0,0,0)');
-      c.fillStyle = sh;
-      c.beginPath(); c.arc(0, 0, R * 0.94, 0, TAU); c.fill();
-      c.restore();
-
-      c.save();
-      c.beginPath(); c.arc(CX, CY, R, 0, TAU); c.clip();
-      var lg = c.createRadialGradient(
-        CX - R * 0.34, CY - R * 0.40, R * 0.05,
-        CX - R * 0.10, CY - R * 0.12, R * 1.5
-      );
-      lg.addColorStop(0, '#fffdf9');
-      lg.addColorStop(0.22, '#faf6ee');
-      lg.addColorStop(0.45, '#f2ede2');
-      lg.addColorStop(0.68, '#e3dccd');
-      lg.addColorStop(0.86, '#cdc4b3');
-      lg.addColorStop(1, '#a89e8d');
-      c.fillStyle = lg;
-      c.fillRect(0, 0, SIZE, SIZE);
-
-      var grain = grainPattern(c);
-      if (grain) { c.fillStyle = grain; c.fillRect(0, 0, SIZE, SIZE); }
-      c.restore();
-    }
-
-    /* ---- Seams --------------------------------------------------------- */
-    /* Two cubics in radius units: the upper seam dips, the lower one rises,
-       leaving the panel between them free for a logo — same as the A1492. */
-    var SEAM_TOP = [[-0.871, -0.403], [-0.42, -0.18], [0.42, -0.18], [0.871, -0.403]];
-    var SEAM_BOT = [[-0.871, 0.403], [-0.42, 0.207], [0.42, 0.207], [0.871, 0.403]];
-
-    function bezPoint(p, t) {
-      var m = 1 - t, a = m * m * m, b = 3 * m * m * t, cc = 3 * m * t * t, d = t * t * t;
-      return [
-        CX + R * (a * p[0][0] + b * p[1][0] + cc * p[2][0] + d * p[3][0]),
-        CY + R * (a * p[0][1] + b * p[1][1] + cc * p[2][1] + d * p[3][1])
-      ];
-    }
-    function bezTangent(p, t) {
-      var m = 1 - t, a = 3 * m * m, b = 6 * m * t, cc = 3 * t * t;
-      var x = a * (p[1][0] - p[0][0]) + b * (p[2][0] - p[1][0]) + cc * (p[3][0] - p[2][0]);
-      var y = a * (p[1][1] - p[0][1]) + b * (p[2][1] - p[1][1]) + cc * (p[3][1] - p[2][1]);
-      var len = Math.sqrt(x * x + y * y) || 1;
-      return [x / len, y / len];
-    }
-
-    /* Walk a seam at even arc length and record where each stitch sits. */
-    function stitchPoints(p, spacing) {
-      var pts = [], STEPS = 700, prev = bezPoint(p, 0), acc = 0;
-      for (var i = 1; i <= STEPS; i++) {
-        var t = i / STEPS, cur = bezPoint(p, t);
-        var dx = cur[0] - prev[0], dy = cur[1] - prev[1];
-        acc += Math.sqrt(dx * dx + dy * dy);
-        if (acc >= spacing) {
-          acc -= spacing;
-          var tan = bezTangent(p, t);
-          /* Stitches near the silhouette are seen almost edge-on, so shorten
-             them by the sphere's foreshortening at that point. */
-          var u = (cur[0] - CX) / R, v = (cur[1] - CY) / R;
-          var w = 1 - (u * u + v * v);
-          pts.push({
-            x: cur[0], y: cur[1], tx: tan[0], ty: tan[1],
-            f: 0.45 + 0.55 * Math.sqrt(w > 0 ? w : 0)
-          });
-        }
-        prev = cur;
+      var m = new Uint8Array(W * H);
+      for (var i = 0, o = 0; i < m.length; i++, o += 4) {
+        var other = px[o] > px[o + 2] ? px[o] : px[o + 2];
+        var green = px[o + 1] - other;
+        /* <= 2 is leather or ink, >= 18 is grass, ramp across the edge. */
+        m[i] = green <= 2 ? 255 : (green >= 18 ? 0 : Math.round((18 - green) * 255 / 16));
       }
-      return pts;
+      leather = m;
     }
 
-    function seamCurve(c, p) {
-      var a = bezPoint(p, 0);
-      c.moveTo(a[0], a[1]);
-      c.bezierCurveTo(
-        CX + R * p[1][0], CY + R * p[1][1],
-        CX + R * p[2][0], CY + R * p[2][1],
-        CX + R * p[3][0], CY + R * p[3][1]
-      );
-    }
+    photo.onload = function () {
+      photoReady = true;
+      buildLeatherMask();
+      compose();
+    };
+    photo.onerror = function () {
+      fail('The ball photo didn\u2019t load. Reload the page and try again.');
+    };
+    photo.src = PHOTO_SRC;
 
-    /* Each stitch is a pair of slashes leaning the same way across the seam,
-       which reads as the chevron run on a real ball. Both seams go into one
-       path so a single stroke lays down the whole run. */
-    function stitchPath(c, runs, gap, len, lean) {
-      c.beginPath();
-      for (var r = 0; r < runs.length; r++) {
-        var pts = runs[r];
-        for (var i = 0; i < pts.length; i++) {
-          var s = pts[i], f = s.f;
-          var g = gap * f, l = len * f, ln = lean * f;
-          var nx = -s.ty, ny = s.tx;
-          c.moveTo(s.x + nx * g - s.tx * ln, s.y + ny * g - s.ty * ln);
-          c.lineTo(s.x + nx * (g + l) + s.tx * ln, s.y + ny * (g + l) + s.ty * ln);
-          c.moveTo(s.x - nx * g - s.tx * ln, s.y - ny * g - s.ty * ln);
-          c.lineTo(s.x - nx * (g + l) + s.tx * ln, s.y - ny * (g + l) + s.ty * ln);
-        }
-      }
-    }
-
-    function drawRimLight(c) {
-      var t = makeLayer(), g = t.getContext('2d');
-      if (!g) { return; }
-      g.save();
-      g.beginPath(); g.arc(CX, CY, R, 0, TAU); g.clip();
-      var ring = g.createRadialGradient(CX, CY, R * 0.78, CX, CY, R);
-      ring.addColorStop(0, 'rgba(255,252,244,0)');
-      ring.addColorStop(0.70, 'rgba(255,252,244,0.26)');
-      ring.addColorStop(1, 'rgba(255,252,244,0.80)');
-      g.fillStyle = ring;
-      g.fillRect(0, 0, SIZE, SIZE);
-      /* Keep the bounce light on the shadow side only. */
-      g.globalCompositeOperation = 'destination-in';
-      var mask = g.createLinearGradient(CX - R * 0.5, CY - R * 0.5, CX + R * 0.9, CY + R * 0.9);
-      mask.addColorStop(0, 'rgba(0,0,0,0)');
-      mask.addColorStop(0.5, 'rgba(0,0,0,0)');
-      mask.addColorStop(1, 'rgba(0,0,0,1)');
-      g.fillStyle = mask;
-      g.fillRect(0, 0, SIZE, SIZE);
-      g.restore();
-      c.drawImage(t, 0, 0);
-    }
-
-    /* Everything above the logo: stitching, then the lighting that has to sit
-       over the artwork so a printed mark picks up the same shading. */
-    function drawOver(c) {
-      var gap = R * 0.016, len = R * 0.047, lean = R * 0.016;
-      var runs = [stitchPoints(SEAM_TOP, R * 0.069), stitchPoints(SEAM_BOT, R * 0.069)];
-
-      c.save();
-      c.beginPath(); c.arc(CX, CY, R, 0, TAU); c.clip();
-      c.lineCap = 'round';
-
-      /* The leather dips along the seam line itself. */
-      c.beginPath(); seamCurve(c, SEAM_TOP); seamCurve(c, SEAM_BOT);
-      c.strokeStyle = 'rgba(150,138,120,0.30)';
-      c.lineWidth = R * 0.011;
-      c.stroke();
-
-      c.save();
-      c.translate(R * 0.003, R * 0.005);
-      stitchPath(c, runs, gap, len, lean);
-      c.strokeStyle = 'rgba(84,44,40,0.38)';
-      c.lineWidth = R * 0.024;
-      c.stroke();
-      c.restore();
-
-      stitchPath(c, runs, gap, len, lean);
-      c.strokeStyle = '#c1212f';
-      c.lineWidth = R * 0.019;
-      c.stroke();
-
-      c.save();
-      c.translate(-R * 0.002, -R * 0.003);
-      stitchPath(c, runs, gap, len, lean);
-      c.strokeStyle = 'rgba(255,158,158,0.42)';
-      c.lineWidth = R * 0.006;
-      c.stroke();
-      c.restore();
-
-      /* Ambient occlusion around the limb. */
-      var ao = c.createRadialGradient(CX, CY, R * 0.55, CX, CY, R);
-      ao.addColorStop(0, 'rgba(26,20,14,0)');
-      ao.addColorStop(0.72, 'rgba(26,20,14,0.10)');
-      ao.addColorStop(1, 'rgba(26,20,14,0.46)');
-      c.fillStyle = ao;
-      c.fillRect(0, 0, SIZE, SIZE);
-
-      /* Falloff away from the key light at the upper left. */
-      var core = c.createRadialGradient(
-        CX - R * 0.35, CY - R * 0.42, R * 0.10,
-        CX - R * 0.20, CY - R * 0.25, R * 1.55
-      );
-      core.addColorStop(0, 'rgba(20,16,12,0)');
-      core.addColorStop(0.55, 'rgba(20,16,12,0.05)');
-      core.addColorStop(1, 'rgba(20,16,12,0.34)');
-      c.fillStyle = core;
-      c.fillRect(0, 0, SIZE, SIZE);
-
-      c.restore();
-
-      drawRimLight(c);
-
-      c.save();
-      c.beginPath(); c.arc(CX, CY, R, 0, TAU); c.clip();
-      c.translate(CX - R * 0.40, CY - R * 0.46);
-      c.rotate(-0.5);
-      c.scale(1, 0.62);
-      var spec = c.createRadialGradient(0, 0, 0, 0, 0, R * 0.42);
-      spec.addColorStop(0, 'rgba(255,255,255,0.50)');
-      spec.addColorStop(0.5, 'rgba(255,255,255,0.14)');
-      spec.addColorStop(1, 'rgba(255,255,255,0)');
-      c.fillStyle = spec;
-      c.beginPath(); c.arc(0, 0, R * 0.42, 0, TAU); c.fill();
-      c.restore();
-    }
-
-    /* The ball never changes, so both halves are painted once and reused. */
-    var underLayer = makeLayer(), overLayer = makeLayer(), logoLayer = makeLayer();
-    var underCtx = underLayer.getContext('2d');
-    var overCtx = overLayer.getContext('2d');
+    var logoLayer = makeLayer();
     var logoCtx = logoLayer.getContext('2d');
-    if (underCtx) { drawUnder(underCtx); }
-    if (overCtx) { drawOver(overCtx); }
-    var logoImage = logoCtx ? logoCtx.createImageData(SIZE, SIZE) : null;
+    var logoImage = logoCtx ? logoCtx.createImageData(W, H) : null;
 
     var scratch = document.createElement('canvas');
     var scratchCtx = scratch.getContext('2d');
@@ -660,8 +475,8 @@
       var heightU = widthU * (logoH / logoW);
       var invW = 1 / widthU, invH = 1 / heightU;
       var lastX = logoW - 1, lastY = logoH - 1;
-      var x0 = Math.max(0, Math.floor(CX - R)), x1 = Math.min(SIZE, Math.ceil(CX + R));
-      var y0 = Math.max(0, Math.floor(CY - R)), y1 = Math.min(SIZE, Math.ceil(CY + R));
+      var x0 = Math.max(0, Math.floor(CX - R)), x1 = Math.min(W, Math.ceil(CX + R));
+      var y0 = Math.max(0, Math.floor(CY - R)), y1 = Math.min(H, Math.ceil(CY + R));
 
       for (var y = y0; y < y1; y++) {
         var dv = (y + 0.5 - CY) / R, dv2 = dv * dv;
@@ -688,29 +503,50 @@
           var a01 = w01 * src[o01 + 3], a11 = w11 * src[o11 + 3];
           var pa = a00 + a10 + a01 + a11;
           if (pa < 1) { continue; }
-          var o = (y * SIZE + x) << 2;
+          var idx = y * W + x, o = idx << 2;
           dst[o] = (a00 * src[o00] + a10 * src[o10] + a01 * src[o01] + a11 * src[o11]) / pa;
           dst[o + 1] = (a00 * src[o00 + 1] + a10 * src[o10 + 1] + a01 * src[o01 + 1] + a11 * src[o11 + 1]) / pa;
           dst[o + 2] = (a00 * src[o00 + 2] + a10 * src[o10 + 2] + a01 * src[o01 + 2] + a11 * src[o11 + 2]) / pa;
-          dst[o + 3] = pa;
+          /* Ink stops where the grass crosses in front of the ball. */
+          dst[o + 3] = leather ? pa * leather[idx] / 255 : pa;
         }
       }
       logoCtx.putImageData(logoImage, 0, 0);
     }
 
+    /* Before anything is uploaded, show where a mark would land. */
+    function drawPanelGuide() {
+      var gx = CX + PANEL_X * R, gy = CY + PANEL_Y * R;
+      ctx.save();
+      ctx.setLineDash([11, 9]);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(11, 11, 13, 0.26)';
+      ctx.beginPath();
+      ctx.ellipse(gx, gy, R * 0.47, R * 0.23, 0, 0, TAU);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(11, 11, 13, 0.32)';
+      ctx.font = '600 26px "Saira Condensed", "Arial Narrow", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('YOUR LOGO HERE', gx, gy);
+      ctx.restore();
+    }
+
     function compose() {
-      ctx.clearRect(0, 0, SIZE, SIZE);
-      ctx.drawImage(underLayer, 0, 0);
-      if (logoData) {
+      ctx.clearRect(0, 0, W, H);
+      if (photoReady) { ctx.drawImage(photo, 0, 0, W, H); }
+      if (photoReady && !logoData) { drawPanelGuide(); }
+      if (logoData && photoReady) {
         ctx.save();
         ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU); ctx.clip();
-        /* Multiply so the mark reads as ink on leather rather than a sticker. */
+        /* Multiply so the leather's grain, shading and highlight come through
+           the ink — printed on, not pasted on. */
         ctx.globalCompositeOperation = 'multiply';
-        ctx.globalAlpha = 0.95;
+        ctx.globalAlpha = 0.94;
         ctx.drawImage(logoLayer, 0, 0);
         ctx.restore();
       }
-      ctx.drawImage(overLayer, 0, 0);
     }
 
     var frame = 0;
@@ -787,11 +623,11 @@
           knockout = /jpe?g/i.test(file.type || '');
           if (knockBox) { knockBox.checked = knockout; }
 
-          /* Fit the mark to the panel between the seams, so a wide wordmark
-             and a tall crest both land somewhere sensible before the size
-             slider is ever touched. */
-          posX = 0; posY = 0.01;
-          widthU = clamp(Math.min(0.95, 0.44 / (logoSrcH / logoSrcW)), 0.2, 1.3);
+          /* Drop the mark straight into the cleared panel, scaled to fit
+             between the seams, so a wide wordmark and a tall crest both land
+             somewhere sensible before the size slider is ever touched. */
+          posX = PANEL_X; posY = PANEL_Y;
+          widthU = clamp(Math.min(0.8, 0.4 * (logoSrcW / logoSrcH)), 0.2, 1.3);
           if (sizeInput) { sizeInput.value = String(Math.round(widthU * 100)); }
           setInk('full');
 
@@ -874,8 +710,8 @@
     function screenToFlat(clientX, clientY) {
       var rect = stage.getBoundingClientRect();
       if (!rect.width || !rect.height) { return [posX, posY]; }
-      var du = ((clientX - rect.left) * (SIZE / rect.width) - CX) / R;
-      var dv = ((clientY - rect.top) * (SIZE / rect.height) - CY) / R;
+      var du = ((clientX - rect.left) * (W / rect.width) - CX) / R;
+      var dv = ((clientY - rect.top) * (H / rect.height) - CY) / R;
       var r = Math.sqrt(du * du + dv * dv);
       if (r > 0.995) { var s = 0.995 / r; du *= s; dv *= s; r = 0.995; }
       var k = kAt(r);
@@ -980,6 +816,11 @@
         logoImg = null;
         logoData = null;
         logoName = '';
+        posX = PANEL_X; posY = PANEL_Y; widthU = 0.55;
+        knockout = false;
+        if (knockBox) { knockBox.checked = false; }
+        if (sizeInput) { sizeInput.value = '55'; }
+        setInk('full');
         if (fileInput) { fileInput.value = ''; }
         if (controls) { controls.hidden = true; }
         var field = document.getElementById('ordersLogo');

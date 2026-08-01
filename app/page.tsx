@@ -284,20 +284,22 @@ export default function HomePage() {
             </h2>
             <span className="customizer__rule" aria-hidden="true"></span>
             <p className="customizer__lead">
-              Drop in your program&rsquo;s mark and see it stamped on an A1492 before you order.
-              It all happens right here in your browser &mdash; your artwork never leaves this page.
+              Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
+              ball, photographed, with your logo on the open panel. It all happens right here in
+              your browser &mdash; your artwork never leaves this page.
             </p>
           </div>
 
           <div className="customizer__grid">
             <div className="customizer__stage">
-              {/* The mockup is painted entirely by script.js; the canvas shows a
-                  plain A1492 until a logo is loaded. */}
+              {/* script.js draws the A1492 photo here — the same shot as the Ball
+                  section with its printed panel retouched out — and wraps an
+                  uploaded logo onto the leather. Dimensions match that photo. */}
               <canvas
                 id="ballStage"
                 className="customizer__canvas"
-                width={860}
-                height={860}
+                width={900}
+                height={900}
                 role="img"
                 aria-label="Preview of your logo on a Hydra A1492 baseball"
               ></canvas>
@@ -338,7 +340,7 @@ export default function HomePage() {
                     className="control__range"
                     min="20"
                     max="130"
-                    defaultValue="62"
+                    defaultValue="55"
                     step="1"
                   />
                 </div>
