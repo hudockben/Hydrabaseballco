@@ -104,11 +104,20 @@ create table if not exists customers (
   instagram          text,
   email              text,
   notes              text,
+  -- Reach-out queue: who to contact, and where the conversation stands.
+  coach_name         text,
+  phone              text,
+  website            text,
+  status             text not null default 'new', -- new | contacted | replied | interested | customer | passed
+  tier_override      text,                        -- A/B/C/D set by hand, beats the computed tier
+  last_contacted     timestamptz,
+  enriched_at        timestamptz,                 -- last automatic contact lookup
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
 create index if not exists customers_state_idx  on customers (state);
 create index if not exists customers_school_idx on customers (school);
+create index if not exists customers_status_idx on customers (status);
 
 -- ---------------------------------------------------------------------------
 -- Inventory: physical stock on hand + an audit log of every stock movement.
