@@ -144,12 +144,23 @@ export function instagramUrl(value: string): string {
   return `https://instagram.com/${v.replace(/^@/, '')}`;
 }
 
-export function hasContact(row: CustomerRecord): boolean {
-  return Boolean(row.email || row.phone || row.instagram);
-}
+// ---------------------------------------------------------------------------
+// 1st-degree connections
+// ---------------------------------------------------------------------------
 
-/** Best URL to crawl for this program's coaching-staff contact info. */
-export function programSite(row: Pick<CustomerRecord, 'website' | 'rosterLink'>): string | null {
-  const raw = (row.website || row.rosterLink || '').trim();
-  return raw ? externalUrl(raw) : null;
+/** What people type in the connection column when there is nobody. */
+const NO_CONNECTION = new Set([
+  'no', 'none', 'nobody', 'no one', 'noone', 'not yet', 'none yet', 'no one yet',
+  'no connection', 'na', 'n/a', 'tbd', 'unknown', 'x', '0',
+]);
+
+/**
+ * Is there a real connection on this row? Shared by the tier scoring and the
+ * `has:connection` search filter so the two can never disagree.
+ */
+export function hasWarmConnection(row: Pick<CustomerRecord, 'firstDegreeConn'>): boolean {
+  const v = (row.firstDegreeConn ?? '').trim().toLowerCase().replace(/[.!]+$/, '');
+  if (!v) return false;
+  if (NO_CONNECTION.has(v)) return false;
+  return !/^[-—–?.\s]+$/.test(v); // dashes, question marks, punctuation only
 }

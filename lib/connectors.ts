@@ -356,7 +356,13 @@ export async function searchColleges(opts: {
   }
 
   const url = `https://api.data.gov/ed/collegescorecard/v1/schools?${params.toString()}`;
-  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  // Bounded like the other connectors: a hung api.data.gov call would otherwise
+  // burn the caller's whole time budget (the Customer List looks schools up here
+  // when a row has no roster link).
+  const res = await fetch(url, {
+    headers: { 'User-Agent': UA },
+    signal: AbortSignal.timeout(12000),
+  });
   if (!res.ok) return [];
   const data = (await res.json()) as { results?: ScorecardRow[] };
   const out: ProspectInput[] = [];

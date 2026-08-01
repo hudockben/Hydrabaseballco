@@ -9,6 +9,7 @@
 import {
   divisionKey,
   DIVISION_LABELS,
+  hasWarmConnection,
   stateAbbr,
   STATE_NAMES,
   statusOf,
@@ -43,7 +44,9 @@ export interface ParsedQuery {
   has: FlagKey[];
   missing: FlagKey[];
   tiers: Tier[];
+  notTiers: Tier[];
   statuses: CustomerStatus[];
+  notStatuses: CustomerStatus[];
   chips: SearchChip[];
   isEmpty: boolean;
 }
@@ -89,7 +92,8 @@ const unquote = (s: string) => s.replace(/"/g, '').trim();
 /** Turn the search box text into a structured query. Never throws. */
 export function parseQuery(raw: string): ParsedQuery {
   const q: ParsedQuery = {
-    raw, terms: [], has: [], missing: [], tiers: [], statuses: [], chips: [], isEmpty: true,
+    raw, terms: [], has: [], missing: [], tiers: [], notTiers: [],
+    statuses: [], notStatuses: [], chips: [], isEmpty: true,
   };
   const tokens = raw.match(QUOTED_TOKEN_RE) ?? [];
 
@@ -105,6 +109,9 @@ export function parseQuery(raw: string): ParsedQuery {
       const key = body.slice(0, colon).toLowerCase().replace(/[^a-z0-9]/g, '');
       const value = unquote(body.slice(colon + 1)).toLowerCase();
       if (value && addOperator(q, key, value, negate)) continue;
+      // Half-typed operator ("state:") — ignore it instead of searching for the
+      // literal text, which would blank the list mid-keystroke.
+      if (!value && isOperator(key)) continue;
     }
     const text = unquote(body).toLowerCase();
     if (!text) continue;
@@ -112,8 +119,17 @@ export function parseQuery(raw: string): ParsedQuery {
     q.chips.push({ label: negate ? `not “${text}”` : `“${text}”`, kind: negate ? 'exclude' : 'term' });
   }
 
-  q.isEmpty = !q.terms.length && !q.has.length && !q.missing.length && !q.tiers.length && !q.statuses.length;
+  q.isEmpty =
+    !q.terms.length && !q.has.length && !q.missing.length &&
+    !q.tiers.length && !q.notTiers.length && !q.statuses.length && !q.notStatuses.length;
   return q;
+}
+
+const FLAG_KEYS = ['has', 'with', 'no', 'missing', 'without', 'needs'];
+
+/** Is this a `key:` the parser understands (so `key:` alone can be ignored)? */
+function isOperator(key: string): boolean {
+  return FLAG_KEYS.includes(key) || key === 'tier' || key === 'status' || key === 'stage' || key in FIELD_ALIASES;
 }
 
 /** Handle `field:value`, `has:x`, `tier:a`, `status:new`. Returns false if unknown. */
@@ -139,8 +155,10 @@ function addOperator(q: ParsedQuery, key: string, value: string, negate: boolean
     const letters = value.replace(/[^abcd]/gi, '').toUpperCase().split('');
     const tiers = letters.map((l) => normalizeTier(l)).filter(Boolean) as Tier[];
     if (!tiers.length) return false;
-    q.tiers.push(...tiers);
-    for (const t of tiers) q.chips.push({ label: `Tier ${t}`, kind: 'tier' });
+    (negate ? q.notTiers : q.tiers).push(...tiers);
+    for (const t of tiers) {
+      q.chips.push({ label: `${negate ? 'not ' : ''}Tier ${t}`, kind: negate ? 'exclude' : 'tier' });
+    }
     return true;
   }
   if (key === 'status' || key === 'stage') {
@@ -148,8 +166,10 @@ function addOperator(q: ParsedQuery, key: string, value: string, negate: boolean
       .map((v) => (v === 'uncontacted' || v === 'none' ? 'new' : v))
       .filter((v): v is CustomerStatus => (CUSTOMER_STATUSES as string[]).includes(v));
     if (!statuses.length) return false;
-    q.statuses.push(...statuses);
-    for (const s of statuses) q.chips.push({ label: s, kind: 'status' });
+    (negate ? q.notStatuses : q.statuses).push(...statuses);
+    for (const s of statuses) {
+      q.chips.push({ label: `${negate ? 'not ' : ''}${s}`, kind: negate ? 'exclude' : 'status' });
+    }
     return true;
   }
 
@@ -201,15 +221,18 @@ function flagValue(row: CustomerRecord, flag: FlagKey): boolean {
     case 'roster': return t(row.rosterLink);
     case 'website': return t(row.website);
     case 'notes': return t(row.notes);
-    case 'connection': return t(row.firstDegreeConn) && !/^(no|none|n\/?a|-+|tbd)$/i.test((row.firstDegreeConn ?? '').trim());
+    case 'connection': return hasWarmConnection(row);
     case 'contact': return t(row.email) || t(row.phone) || t(row.instagram);
   }
 }
 
 export function matchesQuery(item: ScoredCustomer, q: ParsedQuery): boolean {
   const { row } = item;
+  const status = statusOf(row);
   if (q.tiers.length && !q.tiers.includes(item.tier.tier)) return false;
-  if (q.statuses.length && !q.statuses.includes(statusOf(row))) return false;
+  if (q.notTiers.includes(item.tier.tier)) return false;
+  if (q.statuses.length && !q.statuses.includes(status)) return false;
+  if (q.notStatuses.includes(status)) return false;
   for (const f of q.has) if (!flagValue(row, f)) return false;
   for (const f of q.missing) if (flagValue(row, f)) return false;
   for (const term of q.terms) {

@@ -3,7 +3,7 @@ import { isAuthenticated } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { csvFilename, customerCsv } from '@/lib/customer-export';
 import { scoreAll } from '@/lib/customer-tiers';
-import type { CustomerRecord } from '@/lib/customers';
+import { CUSTOMER_STATUSES, type CustomerRecord } from '@/lib/customers';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -33,6 +33,15 @@ const FIELDS: Array<[string, string]> = [
 const s = (v: unknown): string | null => {
   const t = (v == null ? '' : String(v)).trim();
   return t || null;
+};
+
+/**
+ * `status` is NOT NULL and drives the tiering, so anything unrecognized — an
+ * imported sheet with its own Status column, say — lands on 'new'.
+ */
+const status = (v: unknown): string => {
+  const t = (v == null ? '' : String(v)).trim().toLowerCase();
+  return (CUSTOMER_STATUSES as string[]).includes(t) ? t : 'new';
 };
 
 /** timestamptz (Date or string, depending on the driver) -> ISO string. */
@@ -87,8 +96,7 @@ async function bulkInsert(rows: Record<string, unknown>[]): Promise<number> {
     const chunk = rows.slice(i, i + 500).filter((r) => FIELDS.some(([, key]) => s(r[key]) != null));
     if (!chunk.length) continue;
     const col = (key: string) => chunk.map((r) => s(r[key]));
-    // `status` is NOT NULL, so blanks become 'new' rather than failing the insert.
-    const statuses = chunk.map((r) => s(r.status) ?? 'new');
+    const statuses = chunk.map((r) => status(r.status));
     await sql`
       insert into customers
         (state, school, conference, roster_link, division, first_degree_conn,
@@ -127,7 +135,7 @@ export async function POST(req: NextRequest) {
         (${s(body.state)}, ${s(body.school)}, ${s(body.conference)}, ${s(body.rosterLink)},
          ${s(body.division)}, ${s(body.firstDegreeConn)}, ${s(body.firstDegreeNotes)},
          ${s(body.instagram)}, ${s(body.email)}, ${s(body.notes)}, ${s(body.coachName)},
-         ${s(body.phone)}, ${s(body.website)}, ${s(body.status) ?? 'new'})
+         ${s(body.phone)}, ${s(body.website)}, ${status(body.status)})
       returning *`) as Row[];
     return NextResponse.json({ customer: mapRow(rows[0]) });
   } catch (err) {
@@ -173,7 +181,7 @@ export async function PATCH(req: NextRequest) {
         coach_name = ${v('coach_name', 'coachName')},
         phone = ${v('phone', 'phone')},
         website = ${v('website', 'website')},
-        status = ${v('status', 'status') ?? 'new'},
+        status = ${status(v('status', 'status'))},
         tier_override = ${v('tier_override', 'tierOverride')},
         last_contacted = ${lastContacted},
         enriched_at = ${enrichedAt},

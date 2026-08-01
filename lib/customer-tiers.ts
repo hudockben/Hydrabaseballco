@@ -7,6 +7,7 @@
 
 import {
   divisionKey,
+  hasWarmConnection,
   isAdjacentState,
   stateAbbr,
   statusOf,
@@ -43,8 +44,6 @@ export interface TierResult {
   rankScore: number;
   tier: Tier;
   signals: TierSignal[];
-  /** Can we actually contact them today? */
-  reachable: boolean;
   /** Set by hand in the Tier column; beats the computed tier. */
   overridden: boolean;
   /** The one thing to do next for this school. */
@@ -65,8 +64,6 @@ const PASSED_RE =
 const RELATIONSHIP_RE =
   /\b(played (?:with|for|against)|teammate|roommate|alum(?:ni|nus|na)?|friend|buddy|family|dad|father|mom|mother|brother|sister|cousin|uncle|nephew|coached|knows|know him|know her|met|classmate|trainer|travel ball|summer ball|high ?school coach|hs coach|former)\b/i;
 
-/** Values people type in the connection column that mean "nobody". */
-const NO_CONNECTION_RE = /^(no|none|n\/?a|-+|—|tbd|\?+|0|unknown)$/i;
 
 // --- Fit weights ------------------------------------------------------------
 
@@ -115,8 +112,7 @@ export function scoreCustomer(row: CustomerRecord, opts: TierOptions = {}): Tier
   const status = statusOf(row);
 
   // 1. A warm intro is the single biggest predictor of a first order.
-  const hasConnection = Boolean(conn) && !NO_CONNECTION_RE.test(conn);
-  if (hasConnection) {
+  if (hasWarmConnection(row)) {
     add('1st-degree connection', 30);
     if (connNotes) add('Connection details written down', 8);
     if (RELATIONSHIP_RE.test(`${conn} ${connNotes}`)) add('Personal tie (played/coached/knows)', 6);
@@ -170,7 +166,6 @@ export function scoreCustomer(row: CustomerRecord, opts: TierOptions = {}): Tier
     rankScore: override ? TIER_SORT_FLOOR[override] + score / 100 : score,
     tier,
     signals,
-    reachable: Boolean(filled(row.email) || filled(row.phone) || filled(row.instagram)),
     overridden: override != null,
     nextAction: nextAction(row, status),
   };
