@@ -4,13 +4,35 @@
 
 export type CustomerField =
   | 'state' | 'school' | 'conference' | 'rosterLink' | 'division'
-  | 'firstDegreeConn' | 'firstDegreeNotes' | 'instagram' | 'email' | 'notes';
+  | 'firstDegreeConn' | 'firstDegreeNotes' | 'instagram' | 'email' | 'notes'
+  | 'coachName' | 'phone' | 'website' | 'status';
 
 // Canonical column order — also the positional fallback when there's no header.
+// The original ten come first so a paste of the old sheet still lines up; the
+// reach-out columns only fill in when a header names them.
 export const CUSTOMER_FIELDS: CustomerField[] = [
   'state', 'school', 'conference', 'rosterLink', 'division',
   'firstDegreeConn', 'firstDegreeNotes', 'instagram', 'email', 'notes',
+  'coachName', 'phone', 'website', 'status',
 ];
+
+/** Column headings, for the import preview and the sheet view. */
+export const CUSTOMER_FIELD_LABELS: Record<CustomerField, string> = {
+  state: 'State',
+  school: 'School',
+  conference: 'Conference',
+  rosterLink: '2026 Roster Link',
+  division: 'Division',
+  firstDegreeConn: '1st Degree Conn',
+  firstDegreeNotes: '1st Degree Notes',
+  instagram: 'Instagram',
+  email: 'Email',
+  notes: 'Notes',
+  coachName: 'Coach / Contact',
+  phone: 'Phone',
+  website: 'Website',
+  status: 'Status',
+};
 
 export interface ParsedImport {
   records: Record<CustomerField, string>[];
@@ -30,6 +52,10 @@ const ALIASES: Record<CustomerField, string[]> = {
   instagram: ['instagram', 'ig', 'insta'],
   email: ['email', 'emailaddress', 'mail'],
   notes: ['notes', 'note', 'comment', 'comments'],
+  coachName: ['coach', 'coachname', 'headcoach', 'contactname', 'contact'],
+  phone: ['phone', 'phonenumber', 'telephone', 'tel', 'cell'],
+  website: ['website', 'site', 'url', 'homepage', 'athleticssite'],
+  status: ['status', 'stage'],
 };
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');

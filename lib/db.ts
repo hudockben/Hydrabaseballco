@@ -97,6 +97,10 @@ export function ensureSchema(): Promise<void> {
         state text, school text, conference text, roster_link text, division text,
         first_degree_conn text, first_degree_notes text,
         instagram text, email text, notes text,
+        coach_name text, phone text, website text,
+        status text not null default 'new',
+        tier_override text,
+        last_contacted timestamptz, enriched_at timestamptz,
         created_at timestamptz not null default now(),
         updated_at timestamptz not null default now())`;
 
@@ -129,10 +133,20 @@ export function ensureSchema(): Promise<void> {
       await sql`create index if not exists orders_ordered_at_idx on orders (ordered_at)`;
       await sql`create index if not exists customers_state_idx on customers (state)`;
       await sql`create index if not exists customers_school_idx on customers (school)`;
+      await sql`create index if not exists customers_status_idx on customers (status)`;
       await sql`create index if not exists inventory_items_name_idx on inventory_items (name)`;
       await sql`create index if not exists inventory_items_sku_idx on inventory_items (sku)`;
       await sql`create index if not exists inventory_movements_item_idx
         on inventory_movements (item_id, created_at desc)`;
+
+      // --- Back-fill the Customer List reach-out columns (tiering + outreach) --
+      await sql`alter table customers add column if not exists coach_name text`;
+      await sql`alter table customers add column if not exists phone text`;
+      await sql`alter table customers add column if not exists website text`;
+      await sql`alter table customers add column if not exists status text not null default 'new'`;
+      await sql`alter table customers add column if not exists tier_override text`;
+      await sql`alter table customers add column if not exists last_contacted timestamptz`;
+      await sql`alter table customers add column if not exists enriched_at timestamptz`;
 
       // --- Back-fill older `prospects` tables (Coach column + High School type)
       await sql`alter table prospects add column if not exists contact_name text`;
