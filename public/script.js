@@ -247,11 +247,11 @@
   }
 
   /* Custom ball preview — puts an uploaded team logo on the real A1492.
-     The stage is the product photograph with the printed A1492 panel retouched
-     out (public/images/ball-blank.jpg), so a mark lands on bare leather while
-     the Hydra wordmark, the seams, the grain and the light stay exactly as they
-     were shot. The artwork is read and composited entirely in the browser; the
-     file is never sent anywhere. */
+     The stage is the product photograph with the spot being printed retouched
+     out (tools/make-ball-blank.py), so a mark lands on bare leather while the
+     seams, the grain and the light stay exactly as they were shot. Everything
+     else about the ball is the photograph. The artwork is read and composited
+     entirely in the browser; the file is never sent anywhere. */
   var stage = document.getElementById('ballStage');
   if (stage && stage.getContext && stage.getContext('2d') && window.FileReader) {
     var ctx = stage.getContext('2d');
@@ -503,7 +503,7 @@
       posX = spot.x;
       posY = spot.y;
       if (logoSrcW && logoSrcH) {
-        widthU = clamp(Math.min(spot.fitW, spot.fitH * (logoSrcW / logoSrcH)), 0.2, 1.3);
+        widthU = clamp(Math.min(spot.fitW, spot.fitH * (logoSrcW / logoSrcH)), 0.15, 1.3);
         if (sizeInput) { sizeInput.value = String(Math.round(widthU * 100)); }
       }
     }

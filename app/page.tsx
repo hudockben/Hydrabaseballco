@@ -352,7 +352,7 @@ export default function HomePage() {
                     type="range"
                     id="logoSize"
                     className="control__range"
-                    min="20"
+                    min="15"
                     max="130"
                     defaultValue="55"
                     step="1"
