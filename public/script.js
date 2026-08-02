@@ -295,6 +295,7 @@
     var resetBtn = document.getElementById('logoReset');
     var swatchEls = document.querySelectorAll('.swatch[data-ink]');
     var spotEls = document.querySelectorAll('.swatch[data-spot]');
+    var nudgeEls = document.querySelectorAll('[data-nudge]');
 
     var INK = { full: null, black: [20, 20, 24], red: [200, 32, 47] };
     var INK_LABEL = { full: 'full colour', black: 'black stamp', red: 'red stamp' };
@@ -309,6 +310,19 @@
     var ink = 'full', knockout = false;
 
     function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+    /* The spot's outline, shown while the mark is being moved or resized so a
+       logo growing toward a seam is something you can see coming. */
+    var guideOn = false, guideTimer = 0;
+    function flashGuide() {
+      guideOn = true;
+      if (guideTimer) { clearTimeout(guideTimer); }
+      guideTimer = setTimeout(function () {
+        guideOn = false;
+        guideTimer = 0;
+        queueDraw();
+      }, 1400);
+    }
 
     function makeLayer() {
       var c = document.createElement('canvas');
@@ -498,11 +512,16 @@
       logoData = img;
     }
 
+    /* Drop the mark back into the middle of the spot it's printed on. */
+    function centreLogo() {
+      posX = PLACEMENTS[placement].x;
+      posY = PLACEMENTS[placement].y;
+    }
+
     /* Centre the mark on the chosen spot and size it to that spot's box. */
     function fitToPlacement() {
       var spot = PLACEMENTS[placement];
-      posX = spot.x;
-      posY = spot.y;
+      centreLogo();
       if (logoSrcW && logoSrcH) {
         widthU = clamp(Math.min(spot.fitW, spot.fitH * (logoSrcW / logoSrcH)), 0.15, 1.3);
         if (sizeInput) { sizeInput.value = String(Math.round(widthU * 100)); }
@@ -575,7 +594,7 @@
     /* Before anything is uploaded, show where a mark would land. The spot's
        fit box is mapped through the projection, so the guide sits on the
        leather the same way the artwork will — flatter up on the horseshoe. */
-    function drawPanelGuide() {
+    function drawPanelGuide(withCaption) {
       var spot = PLACEMENTS[placement];
       var left = flatToScreen(spot.x - spot.fitW / 2, spot.y);
       var right = flatToScreen(spot.x + spot.fitW / 2, spot.y);
@@ -591,11 +610,13 @@
       ctx.ellipse(gx, gy, rx, ry, 0, 0, TAU);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(11, 11, 13, 0.32)';
-      ctx.font = '600 ' + Math.max(15, Math.round(ry * 0.42)) + 'px "Saira Condensed", "Arial Narrow", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('YOUR LOGO HERE', gx, gy);
+      if (withCaption) {
+        ctx.fillStyle = 'rgba(11, 11, 13, 0.32)';
+        ctx.font = '600 ' + Math.max(15, Math.round(ry * 0.42)) + 'px "Saira Condensed", "Arial Narrow", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('YOUR LOGO HERE', gx, gy);
+      }
       ctx.restore();
     }
 
@@ -606,7 +627,6 @@
       if (!entry || !entry.ready) { entry = photos.panel; }
       var ready = Boolean(entry && entry.ready);
       if (ready) { ctx.drawImage(entry.img, 0, 0, W, H); }
-      if (ready && !logoData) { drawPanelGuide(); }
       if (logoData && ready) {
         ctx.save();
         ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU); ctx.clip();
@@ -617,6 +637,8 @@
         ctx.drawImage(logoLayer, 0, 0);
         ctx.restore();
       }
+      /* Over the mark, so the outline stays readable while it's being placed. */
+      if (ready && (!logoData || guideOn)) { drawPanelGuide(!logoData); }
     }
 
     var frame = 0;
@@ -754,6 +776,25 @@
         var v = parseFloat(sizeInput.value);
         if (isNaN(v)) { return; }
         widthU = v / 100;
+        flashGuide();
+        queueDraw();
+      });
+    }
+
+    var NUDGE_STEP = 0.03;
+    var NUDGE = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    for (var ki = 0; ki < nudgeEls.length; ki++) {
+      nudgeEls[ki].addEventListener('click', function () {
+        var dir = this.getAttribute('data-nudge');
+        if (dir === 'center') {
+          centreLogo();
+        } else if (NUDGE[dir]) {
+          posX = clamp(posX + NUDGE[dir][0] * NUDGE_STEP, -1.2, 1.2);
+          posY = clamp(posY + NUDGE[dir][1] * NUDGE_STEP, -1.2, 1.2);
+        } else {
+          return;
+        }
+        flashGuide();
         queueDraw();
       });
     }
@@ -819,6 +860,7 @@
         var f = screenToFlat(e.clientX, e.clientY);
         posX = clamp(f[0] + grabX, -1.2, 1.2);
         posY = clamp(f[1] + grabY, -1.2, 1.2);
+        flashGuide();
         queueDraw();
       });
 
@@ -845,6 +887,7 @@
       posX = clamp(posX, -1.2, 1.2);
       posY = clamp(posY, -1.2, 1.2);
       e.preventDefault();
+      flashGuide();
       queueDraw();
     });
 

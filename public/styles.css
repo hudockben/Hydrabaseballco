@@ -524,6 +524,40 @@ ul { list-style: none; }
 .swatch:hover { color: #fff; border-color: rgba(255, 255, 255, 0.5); }
 .swatch.is-active { color: #fff; background: var(--red); border-color: var(--red); }
 
+/* Arrow pad: nudge the mark around the spot, or drop it back in the middle.
+   The size slider grows a logo from its own centre, so a big mark can creep
+   onto a seam - this is how you walk it back without a steady mouse hand. */
+.nudge {
+  display: grid;
+  grid-template-columns: 44px 96px 44px;
+  grid-template-rows: repeat(3, 34px);
+  gap: 6px;
+}
+.nudge__btn {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-inv);
+  font-family: var(--display);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.nudge__btn:hover { color: #fff; border-color: var(--red); background: rgba(214, 26, 42, 0.16); }
+.nudge__btn:active { background: var(--red); color: #fff; }
+.nudge__centre {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.nudge__up { grid-area: 1 / 2; }
+.nudge__left { grid-area: 2 / 1; }
+.nudge__centre { grid-area: 2 / 2; }
+.nudge__right { grid-area: 2 / 3; }
+.nudge__down { grid-area: 3 / 2; }
+
 .control__check { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--muted-inv); font-size: 0.92rem; }
 .control__check input { width: 17px; height: 17px; accent-color: var(--red); cursor: pointer; }
 

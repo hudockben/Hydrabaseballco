@@ -360,6 +360,54 @@ export default function HomePage() {
                 </div>
 
                 <div className="control">
+                  <span className="control__label" id="nudgeLabel">
+                    Position
+                  </span>
+                  <div className="nudge" role="group" aria-labelledby="nudgeLabel">
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__up"
+                      data-nudge="up"
+                      aria-label="Move the logo up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__left"
+                      data-nudge="left"
+                      aria-label="Move the logo left"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__centre"
+                      data-nudge="center"
+                      title="Put the logo back in the middle of the spot"
+                    >
+                      Center
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__right"
+                      data-nudge="right"
+                      aria-label="Move the logo right"
+                    >
+                      →
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__down"
+                      data-nudge="down"
+                      aria-label="Move the logo down"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
+
+                <div className="control">
                   <span className="control__label" id="inkLabel">
                     Stamp color
                   </span>
