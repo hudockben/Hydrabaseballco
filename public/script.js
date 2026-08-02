@@ -266,10 +266,11 @@
     var TAU = Math.PI * 2;
 
     /* Where a mark can go, in flat decal units, with the box it is fitted into
-       and the photo that has that spot cleared. The horseshoe is where the
-       Hydra wordmark is printed, so putting a team's mark there needs the
-       version with the wordmark retouched out too. Both spots were measured
-       off the photo and mapped through the projection below. */
+       and the photo that has that spot cleared. Each photo clears only the spot
+       being printed on, so the ball keeps one mark of its own either way: the
+       Hydra wordmark when a logo goes on the panel, the A1492 model between the
+       seams when a logo takes the horseshoe. Both spots were measured off the
+       photo and mapped through the projection below. */
     var PLACEMENTS = {
       panel: {
         x: 0.05, y: 0.174, fitW: 0.8, fitH: 0.4,

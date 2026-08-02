@@ -3,10 +3,11 @@
 Reads public/images/ball.jpg (the A1492 product shot) and writes two versions:
 
   ball-blank.jpg            the A1492 / PRO SERIES panel cleared
-  ball-blank-horseshoe.jpg  that panel *and* the Hydra wordmark cleared
+  ball-blank-horseshoe.jpg  the Hydra wordmark cleared instead
 
 The preview shows the first by default and swaps to the second when a team puts
-its mark in the horseshoe, where the Hydra wordmark normally sits.
+its mark in the horseshoe, where the Hydra wordmark normally sits. Only the spot
+being printed on is cleared, so the ball keeps one mark of its own either way.
 
 Ink is found by a morphological black top-hat: a closing fills anything darker
 and thinner than its kernel, so closing - image is the printing and nothing
@@ -131,6 +132,9 @@ def save(photo, path):
 
 
 photo = np.asarray(Image.open(SRC).convert('RGB')).astype(np.float32)
-panel = clear(photo, PANEL_BOX, 'panel')
-save(panel, OUT_PANEL)
-save(clear(panel, WORDMARK_BOX, 'wordmark'), OUT_HORSESHOE)
+
+# Each version clears only the spot being printed on, so the ball always keeps
+# one mark of its own: the Hydra wordmark when a logo goes on the panel, the
+# A1492 model when a logo goes on the horseshoe.
+save(clear(photo, PANEL_BOX, 'panel'), OUT_PANEL)
+save(clear(photo, WORDMARK_BOX, 'wordmark'), OUT_HORSESHOE)

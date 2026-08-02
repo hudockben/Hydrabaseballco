@@ -26,8 +26,8 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | File | Where it shows | Notes |
 |------|----------------|-------|
 | `ball.jpg` | "The Hydra Difference" panel | The A1492 Pro Series product photo, cropped square-ish (`cover`). |
-| `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. |
-| `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | As above **plus** the Hydra wordmark cleared, since that's the spot the mark is taking. Fetched only when someone picks that placement. |
+| `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
+| `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — the A1492 model stays printed between the seams. Fetched only when someone picks that placement. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
 tools/make-ball-blank.py` from the repo root). Re-run it after replacing
