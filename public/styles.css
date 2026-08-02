@@ -104,6 +104,8 @@ ul { list-style: none; }
 .btn--light:hover { background: var(--cream); border-color: var(--cream); transform: translateY(-2px); }
 .btn--outline { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.55); }
 .btn--outline:hover { border-color: #fff; background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.btn--outline-ink { background: transparent; color: var(--ink); border-color: rgba(17, 17, 20, 0.28); }
+.btn--outline-ink:hover { border-color: var(--ink); background: rgba(17, 17, 20, 0.05); transform: translateY(-2px); }
 .btn--header { padding: 11px 22px; font-size: 0.82rem; }
 
 /* ---------- Brand logo ---------- */
@@ -268,6 +270,58 @@ ul { list-style: none; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 36px; }
 
 /* ---------- The Hydra Difference ---------- */
+/* ---------- The Ball ---------- */
+.balls { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
+.balls__head { max-width: 660px; margin: 0 auto clamp(36px, 5vw, 56px); text-align: center; }
+.balls__title { color: var(--text); }
+.balls__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.balls__lead { color: var(--muted); font-size: 1.06rem; line-height: 1.7; max-width: 58ch; margin: 0 auto; }
+.balls__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
+.balls__photo {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #2f4624;
+  box-shadow: var(--shadow);
+}
+/* The source photo carries a black band along its top edge; a square crop
+   sampled low drops it without touching the file the retouch tool measures. */
+.balls__photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 1100x1117 cropped square from the bottom edge = exactly the 17px band. */
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center bottom;
+}
+.balls__models { display: flex; flex-direction: column; gap: 28px; }
+/* One model per row here — the pair reads as a lineup rather than a footnote.
+   Scoped past .grades__list, which sets two columns further down the file. */
+.balls .grades__list { grid-template-columns: 1fr; gap: 20px; }
+.specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 26px;
+}
+.spec { display: flex; flex-direction: column; gap: 3px; }
+.spec__k {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.spec__v { color: var(--text); font-size: 0.98rem; }
+.balls__cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
 .difference {
   display: grid;
   grid-template-columns: 1fr 1.1fr;
@@ -277,9 +331,10 @@ ul { list-style: none; }
   position: relative;
   min-height: 540px;
   background-color: #2f4624;
-  /* A1492 product photo; radial gradient is the fallback if the file is absent */
+  /* A tray of A1492s; radial gradient is the fallback if the file is absent.
+     The single-ball product shot leads the Balls section further up. */
   background-image:
-    url('/images/ball.jpg'),
+    url('/images/hero-6.jpg'),
     radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
@@ -813,6 +868,8 @@ ul { list-style: none; }
   .hero__slide { background-position: center 18%; }
   .hero__dots { right: 50%; transform: translateX(50%); }
 
+  .balls__grid { grid-template-columns: 1fr; }
+  .balls__photo { max-width: 520px; margin: 0 auto; }
   .difference { grid-template-columns: 1fr; }
   .difference__media { min-height: 360px; }
   .quote { grid-template-columns: 1fr; }

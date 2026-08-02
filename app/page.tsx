@@ -100,10 +100,10 @@ export default function HomePage() {
           <Brand />
 
           <nav className="site-nav" id="siteNav" aria-label="Primary">
-            <a href="#about">About</a>
-            <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#customize">Customize</a>
+            <a href="#about">About</a>
+            <a href="#mission">Mission</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
@@ -127,7 +127,7 @@ export default function HomePage() {
           {/* Slide 1 paints immediately; the remaining slides (photos and the
               video) are added by the slideshow only once their media loads —
               anything that fails to load is skipped gracefully. */}
-          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-2.jpg')" }}></div>
+          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-6.jpg')" }}></div>
           <div className="hero__slide hero__slide--video">
             <video
               className="hero__video"
@@ -144,9 +144,9 @@ export default function HomePage() {
               <source src="/videos/hero.webm" type="video/webm" />
             </video>
           </div>
+          <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-5.jpg"></div>
-          <div className="hero__slide" data-src="/images/hero-6.jpg"></div>
         </div>
         <div className="hero__dots" id="heroDots"></div>
         <div className="container hero__inner">
@@ -158,117 +158,96 @@ export default function HomePage() {
               For Players
             </h1>
             <p className="hero__lead">
-              High quality baseballs. Built for competition.
+              The A1492 Pro Series &mdash; full-grain leather, cushioned cork center.
               <br />
-              Trusted by players at every level.
+              Built for competition, trusted by players at every level.
             </p>
             <div className="hero__cta">
-              <a href="#team-orders" className="btn btn--light">
-                Team Orders
+              <a href="#balls" className="btn btn--light">
+                See The Ball
               </a>
-              <a href="#about" className="btn btn--outline">
-                Learn More
+              <a href="#team-orders" className="btn btn--outline">
+                Team Orders
               </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== The Hydra Difference ===== */}
-      <section className="difference" id="about">
-        <div
-          className="difference__media"
-          id="balls"
-          role="img"
-          aria-label="Hydra A1492 Pro Series baseball resting on the grass"
-        ></div>
-
-        <div className="difference__panel">
-          <div className="difference__inner reveal">
-            <span className="eyebrow eyebrow--red">The Hydra Difference</span>
-            <h2 className="section-title">
-              Game Quality.
-              <br />
-              Every Time.
-            </h2>
-            <p className="lead-dark">
-              Hydra baseballs are engineered for performance and consistency. Premium materials, precise
-              construction, and rigorous testing deliver the quality players demand.
+      {/* ===== The Ball ===== */}
+      <section className="balls" id="balls">
+        <div className="container balls__inner reveal">
+          <div className="balls__head">
+            <span className="eyebrow eyebrow--red">The Ball</span>
+            <h2 className="section-title balls__title">A1492 Pro Series</h2>
+            <span className="balls__rule" aria-hidden="true"></span>
+            <p className="balls__lead">
+              One ball, built to be the one you reach for all season. Full-grain leather over a red
+              cushioned cork center, compression tested to hold up from the first bullpen of the
+              spring to the last inning of the year.
             </p>
+          </div>
 
-            <ul className="feature-grid">
-              <li className="feature">
-                <span className="feature__icon">{IconShieldCheck}</span>
-                <div>
-                  <h3>Premium Materials</h3>
-                  <p>Full grain leather, pro quality construction</p>
-                </div>
-              </li>
-              <li className="feature">
-                <span className="feature__icon">{IconTarget}</span>
-                <div>
-                  <h3>Consistent Performance</h3>
-                  <p>Compression tested for reliability you can trust</p>
-                </div>
-              </li>
-              <li className="feature">
-                <span className="feature__icon">{IconDiamond}</span>
-                <div>
-                  <h3>Durable &amp; Long Lasting</h3>
-                  <p>Built to handle the grind of practice and play</p>
-                </div>
-              </li>
-              <li className="feature">
-                <span className="feature__icon">{IconUsers}</span>
-                <div>
-                  <h3>Trusted By Players</h3>
-                  <p>Used by competitive programs at every level</p>
-                </div>
-              </li>
-            </ul>
+          <div className="balls__grid">
+            <figure className="balls__photo">
+              <img
+                src="/images/ball.jpg"
+                alt="Hydra A1492 Pro Series baseball resting on the grass"
+                width={1100}
+                height={1117}
+                loading="lazy"
+              />
+            </figure>
 
-            <div className="grades">
-              <h3 className="grades__title">Choose Your Ball</h3>
-              <ul className="grades__list">
+            <div className="balls__models">
+              <ul className="grades__list balls__list">
                 <li className="grade">
                   <span className="grade__badge">A1492+</span>
                   <div>
-                    <h4 className="grade__name">Premium Leather Game Ball</h4>
+                    <h3 className="grade__name">Premium Leather Game Ball</h3>
                     <p className="grade__desc">
-                      Marked with a &ldquo;+&rdquo; on the ball.
+                      The game-day ball, marked with a &ldquo;+&rdquo; on the leather.
                     </p>
                   </div>
                 </li>
                 <li className="grade">
                   <span className="grade__badge grade__badge--plain">A1492</span>
                   <div>
-                    <h4 className="grade__name">Premium Leather Everyday Practice Ball</h4>
-                    <p className="grade__desc">
-                      Built for everyday practice and play.
-                    </p>
+                    <h3 className="grade__name">Premium Leather Everyday Practice Ball</h3>
+                    <p className="grade__desc">Built for everyday practice and play.</p>
                   </div>
                 </li>
               </ul>
+
+              <ul className="specs">
+                <li className="spec">
+                  <span className="spec__k">Size</span>
+                  <span className="spec__v">9 in. &middot; 5 oz.</span>
+                </li>
+                <li className="spec">
+                  <span className="spec__k">Cover</span>
+                  <span className="spec__v">Full-grain leather</span>
+                </li>
+                <li className="spec">
+                  <span className="spec__k">Center</span>
+                  <span className="spec__v">Red cushioned cork</span>
+                </li>
+                <li className="spec">
+                  <span className="spec__k">Build</span>
+                  <span className="spec__v">DuraCore&trade; construction</span>
+                </li>
+              </ul>
+
+              <div className="balls__cta">
+                <a href="#team-orders" className="btn btn--dark">
+                  Team Orders
+                </a>
+                <a href="#customize" className="btn btn--outline-ink">
+                  Put Your Logo On It
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ===== Our Mission ===== */}
-      <section className="mission" id="mission">
-        <div className="container mission__inner reveal">
-          <span className="eyebrow eyebrow--red">Our Mission</span>
-          <h2 className="section-title mission__title">
-            Giving Back
-            <br />
-            To The Game
-          </h2>
-          <span className="mission__rule" aria-hidden="true"></span>
-          <p className="mission__text">
-            We&rsquo;re former players who know what it takes between the lines &mdash; and what
-            players truly want and need. Hydra is our way of giving back to the game that gave us
-            everything, putting quality gear in the hands of the players who live it every day.
-          </p>
         </div>
       </section>
 
@@ -443,6 +422,80 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ===== The Hydra Difference ===== */}
+      <section className="difference" id="about">
+        <div
+          className="difference__media"
+          role="img"
+          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf"
+        ></div>
+
+        <div className="difference__panel">
+          <div className="difference__inner reveal">
+            <span className="eyebrow eyebrow--red">The Hydra Difference</span>
+            <h2 className="section-title">
+              Game Quality.
+              <br />
+              Every Time.
+            </h2>
+            <p className="lead-dark">
+              Hydra baseballs are engineered for performance and consistency. Premium materials, precise
+              construction, and rigorous testing deliver the quality players demand.
+            </p>
+
+            <ul className="feature-grid">
+              <li className="feature">
+                <span className="feature__icon">{IconShieldCheck}</span>
+                <div>
+                  <h3>Premium Materials</h3>
+                  <p>Full grain leather, pro quality construction</p>
+                </div>
+              </li>
+              <li className="feature">
+                <span className="feature__icon">{IconTarget}</span>
+                <div>
+                  <h3>Consistent Performance</h3>
+                  <p>Compression tested for reliability you can trust</p>
+                </div>
+              </li>
+              <li className="feature">
+                <span className="feature__icon">{IconDiamond}</span>
+                <div>
+                  <h3>Durable &amp; Long Lasting</h3>
+                  <p>Built to handle the grind of practice and play</p>
+                </div>
+              </li>
+              <li className="feature">
+                <span className="feature__icon">{IconUsers}</span>
+                <div>
+                  <h3>Trusted By Players</h3>
+                  <p>Used by competitive programs at every level</p>
+                </div>
+              </li>
+            </ul>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Our Mission ===== */}
+      <section className="mission" id="mission">
+        <div className="container mission__inner reveal">
+          <span className="eyebrow eyebrow--red">Our Mission</span>
+          <h2 className="section-title mission__title">
+            Giving Back
+            <br />
+            To The Game
+          </h2>
+          <span className="mission__rule" aria-hidden="true"></span>
+          <p className="mission__text">
+            We&rsquo;re former players who know what it takes between the lines &mdash; and what
+            players truly want and need. Hydra is our way of giving back to the game that gave us
+            everything, putting quality gear in the hands of the players who live it every day.
+          </p>
         </div>
       </section>
 
