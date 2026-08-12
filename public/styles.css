@@ -176,7 +176,7 @@ ul { list-style: none; }
   min-height: 88vh;
   display: flex;
   align-items: center;
-  padding: calc(var(--header-h) + 70px) 0 80px;
+  padding: calc(var(--header-h) + 40px) 0 80px;
   color: var(--text-inv);
   background-color: #0b0b0d;
   /* Dark base behind the photo slideshow (also the fallback if images are absent) */
@@ -266,7 +266,7 @@ ul { list-style: none; }
   text-transform: uppercase;
   color: #fff;
 }
-.hero__lead { color: #d6d6dc; font-size: 1.12rem; margin-top: 26px; max-width: 40ch; }
+.hero__lead { color: #d6d6dc; font-size: 1.12rem; margin-top: 26px; max-width: 44ch; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 36px; }
 
 /* ---------- The Hydra Difference ---------- */
@@ -421,13 +421,6 @@ ul { list-style: none; }
   margin-bottom: 4px;
 }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
-
-/* ---------- Our Mission ---------- */
-.mission { background: var(--paper); padding: clamp(64px, 9vw, 110px) 0; text-align: center; }
-.mission__inner { max-width: 720px; margin: 0 auto; }
-.mission__title { color: var(--text); }
-.mission__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
-.mission__text { color: var(--muted); font-size: 1.12rem; line-height: 1.7; max-width: 54ch; margin: 0 auto; }
 
 /* ---------- Custom ball preview ---------- */
 .customizer {
