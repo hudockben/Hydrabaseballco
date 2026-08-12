@@ -134,10 +134,10 @@ export default function HomePage() {
           <Brand />
 
           <nav className="site-nav" id="siteNav" aria-label="Primary">
-            <a href="#balls">Balls</a>
-            <a href="#customize">Customize</a>
-            <a href="#about">About</a>
             <a href="#mission">Mission</a>
+            <a href="#balls">Balls</a>
+            <a href="#about">About</a>
+            <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
@@ -203,6 +203,58 @@ export default function HomePage() {
               <a href="#team-orders" className="btn btn--outline">
                 Team Orders
               </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Our Mission ===== */}
+      <section className="mission" id="mission">
+        <div className="container mission__inner reveal">
+          <span className="eyebrow eyebrow--red">Our Mission</span>
+          <h2 className="section-title mission__title">
+            Giving Back
+            <br />
+            To The Game
+          </h2>
+          <span className="mission__rule" aria-hidden="true"></span>
+          <p className="mission__text">
+            We&rsquo;re former players who know what it takes between the lines &mdash; and what
+            players truly want and need. Hydra is our way of giving back to the game that gave us
+            everything, putting quality gear in the hands of the players who live it every day.
+          </p>
+        </div>
+      </section>
+
+      {/* ===== Trust bar ===== */}
+      <section className="trustbar">
+        <div className="container trustbar__grid">
+          <div className="trust">
+            <span className="trust__icon">{IconShield}</span>
+            <div className="trust__text">
+              <strong>Competition Ready</strong>
+              <span>Built for game day</span>
+            </div>
+          </div>
+          <div className="trust">
+            <span className="trust__icon">{IconStar}</span>
+            <div className="trust__text">
+              <strong>Player Trusted</strong>
+              <span>Performance you can feel</span>
+            </div>
+          </div>
+          <div className="trust">
+            <span className="trust__icon">{IconTrophy}</span>
+            <div className="trust__text">
+              <strong>Team Focused</strong>
+              <span>Built for programs</span>
+            </div>
+          </div>
+          <div className="trust">
+            <span className="trust__icon">{IconHeadset}</span>
+            <div className="trust__text">
+              <strong>Dedicated Support</strong>
+              <span>We&rsquo;re here for you</span>
             </div>
           </div>
         </div>
@@ -281,6 +333,62 @@ export default function HomePage() {
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== The Hydra Difference ===== */}
+      <section className="difference" id="about">
+        <div
+          className="difference__media"
+          role="img"
+          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf"
+        ></div>
+
+        <div className="difference__panel">
+          <div className="difference__inner reveal">
+            <span className="eyebrow eyebrow--red">The Hydra Difference</span>
+            <h2 className="section-title">
+              Game Quality.
+              <br />
+              Every Time.
+            </h2>
+            <p className="lead-dark">
+              Hydra baseballs are engineered for performance and consistency. Premium materials, precise
+              construction, and rigorous testing deliver the quality players demand.
+            </p>
+
+            <ul className="feature-grid">
+              <li className="feature">
+                <span className="feature__icon">{IconShieldCheck}</span>
+                <div>
+                  <h3>Premium Materials</h3>
+                  <p>Full grain leather, pro quality construction</p>
+                </div>
+              </li>
+              <li className="feature">
+                <span className="feature__icon">{IconTarget}</span>
+                <div>
+                  <h3>Consistent Performance</h3>
+                  <p>Compression tested for reliability you can trust</p>
+                </div>
+              </li>
+              <li className="feature">
+                <span className="feature__icon">{IconDiamond}</span>
+                <div>
+                  <h3>Durable &amp; Long Lasting</h3>
+                  <p>Built to handle the grind of practice and play</p>
+                </div>
+              </li>
+              <li className="feature">
+                <span className="feature__icon">{IconUsers}</span>
+                <div>
+                  <h3>Trusted By Players</h3>
+                  <p>Used by competitive programs at every level</p>
+                </div>
+              </li>
+            </ul>
+
           </div>
         </div>
       </section>
@@ -474,114 +582,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== The Hydra Difference ===== */}
-      <section className="difference" id="about">
-        <div
-          className="difference__media"
-          role="img"
-          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf"
-        ></div>
-
-        <div className="difference__panel">
-          <div className="difference__inner reveal">
-            <span className="eyebrow eyebrow--red">The Hydra Difference</span>
-            <h2 className="section-title">
-              Game Quality.
-              <br />
-              Every Time.
-            </h2>
-            <p className="lead-dark">
-              Hydra baseballs are engineered for performance and consistency. Premium materials, precise
-              construction, and rigorous testing deliver the quality players demand.
-            </p>
-
-            <ul className="feature-grid">
-              <li className="feature">
-                <span className="feature__icon">{IconShieldCheck}</span>
-                <div>
-                  <h3>Premium Materials</h3>
-                  <p>Full grain leather, pro quality construction</p>
-                </div>
-              </li>
-              <li className="feature">
-                <span className="feature__icon">{IconTarget}</span>
-                <div>
-                  <h3>Consistent Performance</h3>
-                  <p>Compression tested for reliability you can trust</p>
-                </div>
-              </li>
-              <li className="feature">
-                <span className="feature__icon">{IconDiamond}</span>
-                <div>
-                  <h3>Durable &amp; Long Lasting</h3>
-                  <p>Built to handle the grind of practice and play</p>
-                </div>
-              </li>
-              <li className="feature">
-                <span className="feature__icon">{IconUsers}</span>
-                <div>
-                  <h3>Trusted By Players</h3>
-                  <p>Used by competitive programs at every level</p>
-                </div>
-              </li>
-            </ul>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ===== Our Mission ===== */}
-      <section className="mission" id="mission">
-        <div className="container mission__inner reveal">
-          <span className="eyebrow eyebrow--red">Our Mission</span>
-          <h2 className="section-title mission__title">
-            Giving Back
-            <br />
-            To The Game
-          </h2>
-          <span className="mission__rule" aria-hidden="true"></span>
-          <p className="mission__text">
-            We&rsquo;re former players who know what it takes between the lines &mdash; and what
-            players truly want and need. Hydra is our way of giving back to the game that gave us
-            everything, putting quality gear in the hands of the players who live it every day.
-          </p>
-        </div>
-      </section>
-
-      {/* ===== Trust bar ===== */}
-      <section className="trustbar">
-        <div className="container trustbar__grid">
-          <div className="trust">
-            <span className="trust__icon">{IconShield}</span>
-            <div className="trust__text">
-              <strong>Competition Ready</strong>
-              <span>Built for game day</span>
-            </div>
-          </div>
-          <div className="trust">
-            <span className="trust__icon">{IconStar}</span>
-            <div className="trust__text">
-              <strong>Player Trusted</strong>
-              <span>Performance you can feel</span>
-            </div>
-          </div>
-          <div className="trust">
-            <span className="trust__icon">{IconTrophy}</span>
-            <div className="trust__text">
-              <strong>Team Focused</strong>
-              <span>Built for programs</span>
-            </div>
-          </div>
-          <div className="trust">
-            <span className="trust__icon">{IconHeadset}</span>
-            <div className="trust__text">
-              <strong>Dedicated Support</strong>
-              <span>We&rsquo;re here for you</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ===== Team Orders / Inquiry ===== */}
       <section className="orders" id="team-orders">
         <div className="container orders__inner reveal">
@@ -741,9 +741,9 @@ export default function HomePage() {
 
           <nav className="footer__col" aria-label="Quick links">
             <h4>Quick Links</h4>
-            <a href="#about">About</a>
             <a href="#mission">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
