@@ -3,11 +3,15 @@
 Reads public/images/ball.jpg (the A1492 product shot) and writes two versions:
 
   ball-blank.jpg            the A1492 / PRO SERIES panel cleared
-  ball-blank-horseshoe.jpg  the Hydra wordmark cleared instead
+  ball-blank-horseshoe.jpg  the Hydra wordmark cleared, and the panel restamped
+                            with the HYDRA / A1492 lockup
 
 The preview shows the first by default and swaps to the second when a team puts
-its mark in the horseshoe, where the Hydra wordmark normally sits. Only the spot
-being printed on is cleared, so the ball keeps one mark of its own either way.
+its mark in the horseshoe, where the Hydra wordmark normally sits. The ball
+keeps the Hydra name either way: printed in the horseshoe as it ships, or moved
+down onto the panel over the model mark when a team takes the horseshoe. That
+lockup is built by tools/make-panel-lockup.py - run it first if it or the logo
+has changed.
 
 Ink is found by a morphological black top-hat: a closing fills anything darker
 and thinner than its kernel, so closing - image is the printing and nothing
@@ -16,12 +20,20 @@ panel's own shading - unlike diffusion it cannot leave a bright ghost inside a
 thick stroke - and the real grain is tiled back over it. Everything the mask
 does not touch is the photograph, untouched.
 
+The lockup goes back on the way a decal wraps a sphere: a screen point r radii
+from the centre is asin(r) radians of arc out, so the artwork is read at that
+arc and multiplied over the rebuilt leather. Multiplied, not painted, so the
+grain and the shading of the panel still read through the ink - and it lands at
+the density the printing it replaced was measured at, which is what lets the
+preview find it again and restamp it in a team's Pantone colour.
+
 Run from the repo root:  python3 tools/make-ball-blank.py
 """
 from PIL import Image
 import numpy as np
 
 SRC = 'public/images/ball.jpg'
+LOCKUP = 'public/images/panel-lockup.png'
 OUT_PANEL = 'public/images/ball-blank.jpg'
 OUT_HORSESHOE = 'public/images/ball-blank-horseshoe.jpg'
 
@@ -37,6 +49,14 @@ WORDMARK_BOX = (385, 765, 158, 330)   # H / HYDRA / BASEBALL CO. on the horsesho
 # Clean leather to lift grain from. It is high-pass only, so the same patch
 # works anywhere on the ball.
 GRAIN_BOX = (185, 345, 520, 690)
+
+# Where the lockup prints, in flat decal units (1 = the ball's radius at the
+# centre of the sphere): the centre and width of the printing it replaces, so
+# it lands in the panel exactly where the model mark was.
+LOCKUP_AT = (0.025, 0.1825)
+LOCKUP_W = 0.89
+# The printing on this ball reflects about 5% of the leather it sits on.
+INK_REFLECT = 0.05
 
 
 def blur3(x):
@@ -125,6 +145,39 @@ def clear(photo, box, label):
     return out
 
 
+def stamp(photo, box, art, centre, width, label):
+    """Return `photo` with flat `art` printed inside `box`, wrapped to the ball."""
+    x0, x1, y0, y1 = box
+    h, w = art.shape
+    height = width * h / w
+
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    u = (xx + 0.5 - BALL_CX) / BALL_R
+    v = (yy + 0.5 - BALL_CY) / BALL_R
+    r = np.hypot(u, v)
+    # Screen back to the flat the artwork is drawn on. The arc is undefined off
+    # the limb, so hold r there and let the uv test throw those away.
+    k = np.arcsin(np.clip(r, 0, 1)) / np.maximum(r, 1e-6)
+    ux = (u * k - centre[0]) / width + 0.5
+    uy = (v * k - centre[1]) / height + 0.5
+    on = (r < 0.999) & (ux >= 0) & (ux < 1) & (uy >= 0) & (uy < 1)
+
+    sx = np.clip(ux * (w - 1), 0, w - 1.001)
+    sy = np.clip(uy * (h - 1), 0, h - 1.001)
+    i, j = sx.astype(int), sy.astype(int)
+    tx, ty = sx - i, sy - j
+    cover = (art[j, i] * (1 - tx) * (1 - ty) + art[j, i + 1] * tx * (1 - ty) +
+             art[j + 1, i] * (1 - tx) * ty + art[j + 1, i + 1] * tx * ty)
+    cover = np.where(on, cover, 0.0)
+    print('%-9s ink covers %.1f%% of its box' % (label, 100 * (cover > 0.5).mean()))
+
+    out = photo.copy()
+    # Multiply: the ink filters the leather rather than replacing it, so the
+    # grain and the light on the panel carry straight through the glyphs.
+    out[y0:y1, x0:x1] = photo[y0:y1, x0:x1] * (1 - cover * (1 - INK_REFLECT))[..., None]
+    return out
+
+
 def save(photo, path):
     cropped = photo[TOP_CROP:, :, :]
     Image.fromarray(np.clip(cropped, 0, 255).astype(np.uint8)).save(path, quality=92, subsampling=0)
@@ -132,9 +185,14 @@ def save(photo, path):
 
 
 photo = np.asarray(Image.open(SRC).convert('RGB')).astype(np.float32)
+lockup = np.asarray(Image.open(LOCKUP).convert('RGBA')).astype(np.float32)[..., 3] / 255.0
 
-# Each version clears only the spot being printed on, so the ball always keeps
-# one mark of its own: the Hydra wordmark when a logo goes on the panel, the
-# A1492 model when a logo goes on the horseshoe.
+# A logo on the panel leaves the Hydra wordmark where it is printed, up in the
+# horseshoe, so that version only clears the panel.
 save(clear(photo, PANEL_BOX, 'panel'), OUT_PANEL)
-save(clear(photo, WORDMARK_BOX, 'wordmark'), OUT_HORSESHOE)
+
+# A logo in the horseshoe takes the wordmark's place, so the Hydra name moves
+# down to the panel: clear both spots, then print the lockup over the model
+# mark that was there.
+horseshoe = clear(clear(photo, WORDMARK_BOX, 'wordmark'), PANEL_BOX, 'panel')
+save(stamp(horseshoe, PANEL_BOX, lockup, LOCKUP_AT, LOCKUP_W, 'lockup'), OUT_HORSESHOE)

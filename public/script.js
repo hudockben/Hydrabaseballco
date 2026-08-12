@@ -266,11 +266,12 @@
     var TAU = Math.PI * 2;
 
     /* Where a mark can go, in flat decal units, with the box it is fitted into
-       and the photo that has that spot cleared. Each photo clears only the spot
-       being printed on, so the ball keeps one mark of its own either way: the
-       Hydra wordmark when a logo goes on the panel, the A1492 model between the
-       seams when a logo takes the horseshoe. Both spots were measured off the
-       photo and mapped through the projection below. */
+       and the photo that has that spot cleared. The ball keeps the Hydra name
+       either way: printed in the horseshoe as it ships, or moved down onto the
+       panel as the HYDRA / A1492 lockup when a team takes the horseshoe — which
+       is retouched into the photo by tools/make-ball-blank.py, not drawn here.
+       Both spots were measured off the photo and mapped through the projection
+       below. */
     var PLACEMENTS = {
       panel: {
         x: 0.05, y: 0.174, fitW: 0.8, fitH: 0.4,
@@ -422,7 +423,8 @@
        has been retouched out simply yields no ink. */
     var PRINT_BOXES = [
       [312, 630, 112, 262],   /* the Hydra wordmark, up in the horseshoe */
-      [308, 618, 404, 558],   /* the model mark, between the seams */
+      [308, 618, 404, 558],   /* between the seams: the model mark, or the
+                                 HYDRA / A1492 lockup that replaces it */
       [302, 602, 643, 740]    /* the specs line along the bottom */
     ];
     var PRINT_R = 16;             /* half the kernel — wider than any stroke */
@@ -1012,7 +1014,7 @@
         var next = this.getAttribute('data-spot') || 'panel';
         setPlacement(next);
         say(next === 'horseshoe'
-          ? 'Printed on the horseshoe — the Hydra mark makes way for yours.'
+          ? 'Printed on the horseshoe — the Hydra name moves down to the panel.'
           : 'Printed on the panel between the seams.');
       });
     }

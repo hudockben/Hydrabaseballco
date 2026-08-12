@@ -27,16 +27,24 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 |------|----------------|-------|
 | `ball.jpg` | "The Hydra Difference" panel | The A1492 Pro Series product photo, cropped square-ish (`cover`). |
 | `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
-| `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — the A1492 model stays printed between the seams. Fetched only when someone picks that placement. |
+| `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
+| `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
+| `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
-tools/make-ball-blank.py` from the repo root). Re-run it after replacing
-`ball.jpg` — and if the new shot frames the ball differently, re-measure the
-ball circle, the two print spots and `PRINT_BOXES` in `public/script.js`. That
-last one is where the customizer looks for the printing already on the ball —
-the wordmark, the model mark and the specs line — so it can restamp it in the
-Pantone ink a team picks. A box that no longer sits over its printing simply
-leaves that printing black.
-| `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
+tools/make-ball-blank.py` from the repo root), and the lockup it prints comes
+from `tools/make-panel-lockup.py` — run that first if the logo or the artwork
+has changed, then re-run the blanks. `make-panel-lockup.py` builds the lockup
+out of artwork already in the repo rather than a font: the wordmark off
+`public/logo.png`, the model mark lifted off `ball.jpg` itself and flattened
+back off the sphere. Drop a real vector export in as `panel-lockup.png` instead
+and `make-ball-blank.py` will print that.
+
+Re-run both after replacing `ball.jpg` — and if the new shot frames the ball
+differently, re-measure the ball circle, the two print spots and `PRINT_BOXES`
+in `public/script.js`. That last one is where the customizer looks for the
+printing already on the ball — the wordmark, the model mark or lockup, and the
+specs line — so it can restamp it in the Pantone ink a team picks. A box that no
+longer sits over its printing simply leaves that printing black.
 
 If a file is missing, an on-brand gradient fallback renders in its place.
