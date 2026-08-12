@@ -77,7 +77,9 @@ const IconUpload = (
 );
 
 /* Stamp inks offered on a custom run, in the order they appear under the ball.
-   The hex is the sRGB a Pantone Solid Coated swatch is published at — close
+   A run is stamped in one of these and nothing else — there is no full-colour
+   press — so the first entry is what a ball is shown in until a team picks its
+   own. The hex is the sRGB a Pantone Solid Coated swatch is published at, close
    enough to judge a mockup by, with the real ink matched to the book on press.
    public/script.js reads the colour and the name straight off these chips, so
    the palette is edited here and nowhere else. */
@@ -296,9 +298,10 @@ export default function HomePage() {
             <span className="customizer__rule" aria-hidden="true"></span>
             <p className="customizer__lead">
               Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
-              ball, photographed, with your logo on the open panel or up in the horseshoe. Pick a
-              Pantone ink and the whole ball restamps in it, your mark and ours alike. It all
-              happens right here in your browser &mdash; your artwork never leaves this page.
+              ball, photographed, with your logo on the open panel or up in the horseshoe. Every run
+              is stamped in a single Pantone ink, so picking one restamps the whole ball &mdash;
+              your mark and ours alike. It all happens right here in your browser &mdash; your
+              artwork never leaves this page.
             </p>
           </div>
 
@@ -425,33 +428,27 @@ export default function HomePage() {
                   </span>
                   <div className="pantone" role="group" aria-labelledby="inkLabel">
                     {/* One stamp run is one ink, so a colour here restamps the whole
-                        ball — your mark, our wordmark, the model line and the specs. */}
-                    <button
-                      type="button"
-                      className="pantone__chip pantone__chip--full is-active"
-                      data-ink="full"
-                      data-name="Full color"
-                      aria-pressed="true"
-                      aria-label="Full color — print the artwork as supplied"
-                      title="Full color — print the artwork as supplied"
-                    ></button>
-                    {PANTONE_INKS.map((swatch) => (
+                        ball — your mark, our wordmark, the model line and the specs.
+                        The first chip is the ink a ball starts out in; script.js
+                        reads that from the palette rather than naming a default. */}
+                    {PANTONE_INKS.map((swatch, i) => (
                       <button
                         key={swatch.id}
                         type="button"
-                        className="pantone__chip"
+                        className={i === 0 ? 'pantone__chip is-active' : 'pantone__chip'}
                         data-ink={swatch.id}
                         data-hex={swatch.hex}
                         data-name={swatch.name}
-                        aria-pressed="false"
+                        aria-pressed={i === 0 ? 'true' : 'false'}
                         aria-label={swatch.name}
                         title={swatch.name}
                         style={{ background: swatch.hex }}
                       ></button>
                     ))}
                   </div>
+                  {/* Kept in step by setInk() the moment another chip is picked. */}
                   <p className="pantone__readout" id="inkReadout">
-                    Full color &mdash; your artwork prints as supplied.
+                    {PANTONE_INKS[0].name} &mdash; one ink, every mark on the ball.
                   </p>
                 </div>
 

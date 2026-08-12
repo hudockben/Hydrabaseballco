@@ -593,11 +593,6 @@ ul { list-style: none; }
   cursor: pointer;
   transition: transform .16s ease, border-color .16s ease;
 }
-/* Full colour keeps the artwork's own inks, so its chip carries them all. */
-.pantone__chip--full {
-  background: linear-gradient(135deg, #c8102e, #ffb81c 34%, #009639 58%, #005eb8 80%, #582c83);
-  background: conic-gradient(from 210deg, #c8102e, #ffb81c, #009639, #005eb8, #582c83, #c8102e);
-}
 .pantone__chip:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.75); }
 .pantone__chip:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
 /* A ring rather than a fill: the chip has to keep showing its own colour. */

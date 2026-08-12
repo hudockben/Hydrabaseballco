@@ -300,19 +300,18 @@
 
     /* The Pantone palette is authored in the markup (app/page.tsx) and read off
        the chips here, so the colour on a chip and the colour it stamps with
-       cannot drift apart. `full` is the one entry with no colour of its own —
-       the artwork keeps the inks it arrived with. */
-    var INK = { full: null }, INK_LABEL = { full: 'full colour' };
+       cannot drift apart. Every run is one ink — the press has no full-colour
+       option — so the first chip is what a ball starts out stamped in. */
+    var INK = {}, INK_LABEL = {}, DEFAULT_INK = '';
     (function () {
       for (var i = 0; i < swatchEls.length; i++) {
         var id = swatchEls[i].getAttribute('data-ink');
-        if (!id) { continue; }
-        INK_LABEL[id] = swatchEls[i].getAttribute('data-name') || id;
         var hex = /^#?([0-9a-f]{6})$/i.exec(swatchEls[i].getAttribute('data-hex') || '');
-        if (hex) {
-          var v = parseInt(hex[1], 16);
-          INK[id] = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
-        }
+        if (!id || !hex) { continue; }
+        var v = parseInt(hex[1], 16);
+        INK[id] = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+        INK_LABEL[id] = swatchEls[i].getAttribute('data-name') || id;
+        if (!DEFAULT_INK) { DEFAULT_INK = id; }
       }
     })();
     function inkFor(id) {
@@ -327,7 +326,7 @@
     var logoImg = null, logoSrcW = 0, logoSrcH = 0, logoName = '';
     var logoData = null, logoW = 0, logoH = 0;
     var posX = PLACEMENTS.panel.x, posY = PLACEMENTS.panel.y, widthU = 0.55;
-    var ink = 'full', knockout = false;
+    var ink = DEFAULT_INK, knockout = false;
 
     function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
@@ -867,7 +866,7 @@
 
     /* ---- Loading a file ------------------------------------------------ */
     function setInk(next) {
-      if (!Object.prototype.hasOwnProperty.call(INK, next)) { next = 'full'; }
+      if (!Object.prototype.hasOwnProperty.call(INK, next)) { next = DEFAULT_INK; }
       ink = next;
       for (var i = 0; i < swatchEls.length; i++) {
         var on = swatchEls[i].getAttribute('data-ink') === next;
@@ -879,10 +878,8 @@
       for (var key in photos) {
         if (Object.prototype.hasOwnProperty.call(photos, key)) { paintPrint(photos[key]); }
       }
-      if (readout) {
-        readout.textContent = inkFor(next)
-          ? INK_LABEL[next] + ' — one ink, every mark on the ball.'
-          : 'Full color — your artwork prints as supplied.';
+      if (readout && INK_LABEL[next]) {
+        readout.textContent = INK_LABEL[next] + ' — one ink, every mark on the ball.';
       }
     }
 
@@ -929,7 +926,8 @@
              so a wide wordmark and a tall crest both land somewhere sensible
              before the size slider is ever touched. */
           fitToPlacement();
-          setInk('full');
+          /* The ink is the team's, not the file's — swapping artwork keeps the
+             colour that was picked for the run. */
 
           prepareLogo();
           /* prepareLogo has already explained why if it bailed — don't follow
@@ -1021,7 +1019,7 @@
 
     for (var si = 0; si < swatchEls.length; si++) {
       swatchEls[si].addEventListener('click', function () {
-        setInk(this.getAttribute('data-ink') || 'full');
+        setInk(this.getAttribute('data-ink') || DEFAULT_INK);
         prepareLogo();
         queueDraw();
       });
@@ -1153,7 +1151,7 @@
         knockout = false;
         if (knockBox) { knockBox.checked = false; }
         if (sizeInput) { sizeInput.value = '55'; }
-        setInk('full');
+        setInk(DEFAULT_INK);
         if (fileInput) { fileInput.value = ''; }
         if (controls) { controls.hidden = true; }
         var field = document.getElementById('ordersLogo');
