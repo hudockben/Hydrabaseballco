@@ -32,7 +32,11 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
 tools/make-ball-blank.py` from the repo root). Re-run it after replacing
 `ball.jpg` — and if the new shot frames the ball differently, re-measure the
-ball circle and the two print spots in `public/script.js`.
+ball circle, the two print spots and `PRINT_BOXES` in `public/script.js`. That
+last one is where the customizer looks for the printing already on the ball —
+the wordmark, the model mark and the specs line — so it can restamp it in the
+Pantone ink a team picks. A box that no longer sits over its printing simply
+leaves that printing black.
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
 
 If a file is missing, an on-brand gradient fallback renders in its place.

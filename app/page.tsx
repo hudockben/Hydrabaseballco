@@ -76,6 +76,38 @@ const IconUpload = (
   </svg>
 );
 
+/* Stamp inks offered on a custom run, in the order they appear under the ball.
+   The hex is the sRGB a Pantone Solid Coated swatch is published at — close
+   enough to judge a mockup by, with the real ink matched to the book on press.
+   public/script.js reads the colour and the name straight off these chips, so
+   the palette is edited here and nowhere else. */
+const PANTONE_INKS: { id: string; name: string; hex: string }[] = [
+  { id: 'black-c', name: 'PANTONE Black C', hex: '#2D2926' },
+  { id: 'cool-gray-11-c', name: 'PANTONE Cool Gray 11 C', hex: '#53565A' },
+  { id: '877-c', name: 'PANTONE 877 C (Silver)', hex: '#8A8D8F' },
+  { id: '872-c', name: 'PANTONE 872 C (Gold)', hex: '#85714D' },
+  { id: '186-c', name: 'PANTONE 186 C', hex: '#C8102E' },
+  { id: '200-c', name: 'PANTONE 200 C', hex: '#BA0C2F' },
+  { id: '7427-c', name: 'PANTONE 7427 C', hex: '#971B2F' },
+  { id: '202-c', name: 'PANTONE 202 C', hex: '#862633' },
+  { id: '021-c', name: 'PANTONE Orange 021 C', hex: '#FE5000' },
+  { id: '1665-c', name: 'PANTONE 1665 C', hex: '#DC4405' },
+  { id: '1235-c', name: 'PANTONE 1235 C', hex: '#FFB81C' },
+  { id: '109-c', name: 'PANTONE 109 C', hex: '#FFD100' },
+  { id: '355-c', name: 'PANTONE 355 C', hex: '#009639' },
+  { id: '348-c', name: 'PANTONE 348 C', hex: '#00843D' },
+  { id: '341-c', name: 'PANTONE 341 C', hex: '#007A53' },
+  { id: '350-c', name: 'PANTONE 350 C', hex: '#2C5234' },
+  { id: '297-c', name: 'PANTONE 297 C', hex: '#71C5E8' },
+  { id: '300-c', name: 'PANTONE 300 C', hex: '#005EB8' },
+  { id: '287-c', name: 'PANTONE 287 C', hex: '#003087' },
+  { id: '289-c', name: 'PANTONE 289 C', hex: '#0C2340' },
+  { id: '282-c', name: 'PANTONE 282 C', hex: '#041E42' },
+  { id: '268-c', name: 'PANTONE 268 C', hex: '#582C83' },
+  { id: '2685-c', name: 'PANTONE 2685 C', hex: '#330072' },
+  { id: '476-c', name: 'PANTONE 476 C', hex: '#4E3629' },
+];
+
 /* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
   return (
@@ -264,7 +296,8 @@ export default function HomePage() {
             <span className="customizer__rule" aria-hidden="true"></span>
             <p className="customizer__lead">
               Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
-              ball, photographed, with your logo on the open panel or up in the horseshoe. It all
+              ball, photographed, with your logo on the open panel or up in the horseshoe. Pick a
+              Pantone ink and the whole ball restamps in it, your mark and ours alike. It all
               happens right here in your browser &mdash; your artwork never leaves this page.
             </p>
           </div>
@@ -388,19 +421,38 @@ export default function HomePage() {
 
                 <div className="control">
                   <span className="control__label" id="inkLabel">
-                    Stamp color
+                    Pantone ink
                   </span>
-                  <div className="swatches" role="group" aria-labelledby="inkLabel">
-                    <button type="button" className="swatch is-active" data-ink="full" aria-pressed="true">
-                      Full color
-                    </button>
-                    <button type="button" className="swatch" data-ink="black" aria-pressed="false">
-                      Black
-                    </button>
-                    <button type="button" className="swatch" data-ink="red" aria-pressed="false">
-                      Hydra Red
-                    </button>
+                  <div className="pantone" role="group" aria-labelledby="inkLabel">
+                    {/* One stamp run is one ink, so a colour here restamps the whole
+                        ball — your mark, our wordmark, the model line and the specs. */}
+                    <button
+                      type="button"
+                      className="pantone__chip pantone__chip--full is-active"
+                      data-ink="full"
+                      data-name="Full color"
+                      aria-pressed="true"
+                      aria-label="Full color — print the artwork as supplied"
+                      title="Full color — print the artwork as supplied"
+                    ></button>
+                    {PANTONE_INKS.map((swatch) => (
+                      <button
+                        key={swatch.id}
+                        type="button"
+                        className="pantone__chip"
+                        data-ink={swatch.id}
+                        data-hex={swatch.hex}
+                        data-name={swatch.name}
+                        aria-pressed="false"
+                        aria-label={swatch.name}
+                        title={swatch.name}
+                        style={{ background: swatch.hex }}
+                      ></button>
+                    ))}
                   </div>
+                  <p className="pantone__readout" id="inkReadout">
+                    Full color &mdash; your artwork prints as supplied.
+                  </p>
                 </div>
 
                 <label className="control__check">

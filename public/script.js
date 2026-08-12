@@ -293,12 +293,32 @@
     var downloadBtn = document.getElementById('logoDownload');
     var attachBtn = document.getElementById('logoAttach');
     var resetBtn = document.getElementById('logoReset');
-    var swatchEls = document.querySelectorAll('.swatch[data-ink]');
+    var swatchEls = document.querySelectorAll('[data-ink]');
     var spotEls = document.querySelectorAll('.swatch[data-spot]');
     var nudgeEls = document.querySelectorAll('[data-nudge]');
+    var readout = document.getElementById('inkReadout');
 
-    var INK = { full: null, black: [20, 20, 24], red: [200, 32, 47] };
-    var INK_LABEL = { full: 'full colour', black: 'black stamp', red: 'red stamp' };
+    /* The Pantone palette is authored in the markup (app/page.tsx) and read off
+       the chips here, so the colour on a chip and the colour it stamps with
+       cannot drift apart. `full` is the one entry with no colour of its own —
+       the artwork keeps the inks it arrived with. */
+    var INK = { full: null }, INK_LABEL = { full: 'full colour' };
+    (function () {
+      for (var i = 0; i < swatchEls.length; i++) {
+        var id = swatchEls[i].getAttribute('data-ink');
+        if (!id) { continue; }
+        INK_LABEL[id] = swatchEls[i].getAttribute('data-name') || id;
+        var hex = /^#?([0-9a-f]{6})$/i.exec(swatchEls[i].getAttribute('data-hex') || '');
+        if (hex) {
+          var v = parseInt(hex[1], 16);
+          INK[id] = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+        }
+      }
+    })();
+    function inkFor(id) {
+      return Object.prototype.hasOwnProperty.call(INK, id) ? INK[id] : null;
+    }
+
     var MAX_BYTES = 12 * 1024 * 1024;
     var DEFAULT_HINT = 'Upload a logo to get started.';
 
@@ -380,6 +400,173 @@
       leather = m;
     }
 
+    /* ---- The printing already on the ball ------------------------------
+       A stamp run is one ink: the mark a team sends up, the Hydra wordmark,
+       the model line and the specs along the bottom all come off the same
+       press in the same colour. So picking an ink has to restamp the printing
+       in the photograph too — and unlike the uploaded artwork, that printing
+       arrives baked into the pixels.
+
+       It is lifted the way tools/make-ball-blank.py lifts a whole panel: a
+       grayscale closing fills anything darker and thinner than its kernel, so
+       closing - photo is the printing and nothing else. What that yields, per
+       photo, is two layers — the leather the ink is sitting on, and the ink as
+       a shape. Draw the first over the photo and the printing lifts off; fill
+       the second with the chosen colour and multiply it back down and the
+       printing returns in that ink, with the grain and the shading of the
+       leather still reading through it, exactly as an uploaded mark does.
+
+       Only the three spots that carry printing are searched. Elsewhere the
+       lacing holes and the shadow between the stitches run just as dark as a
+       glyph, and recolouring those would be plainly wrong. Boxes are in canvas
+       pixels, measured off the photo like the placements above; a spot that
+       has been retouched out simply yields no ink. */
+    var PRINT_BOXES = [
+      [312, 630, 112, 262],   /* the Hydra wordmark, up in the horseshoe */
+      [308, 618, 404, 558],   /* the model mark, between the seams */
+      [302, 602, 643, 740]    /* the specs line along the bottom */
+    ];
+    var PRINT_R = 16;             /* half the kernel — wider than any stroke */
+    var PRINT_LO = 20;            /* below this the leather's own grain */
+    var PRINT_HI = 42;            /* above it, ink */
+    var PRINT_FLOOR = 0.95;       /* the printing reflects ~5% of its leather */
+    var STAIN_R = 6, STAIN_MAX = 8;  /* how close to thread or grass is too close */
+    var LIMB2 = R * R * 0.9409;   /* (0.97R)^2 — inside the limb, off the edge */
+
+    /* Grayscale dilation (grow) or erosion of a bw x bh patch, separable: once
+       along the rows, once down the columns. That is what makes a 33px kernel
+       a handful of passes over a small box instead of a search per pixel. */
+    function morph(src, bw, bh, r, grow) {
+      var tmp = new Float32Array(bw * bh), out = new Float32Array(bw * bh);
+      var x, y, j, lo, hi, v, s, row;
+      for (y = 0; y < bh; y++) {
+        row = y * bw;
+        for (x = 0; x < bw; x++) {
+          lo = x > r ? x - r : 0;
+          hi = x + r < bw ? x + r : bw - 1;
+          v = src[row + lo];
+          for (j = lo + 1; j <= hi; j++) {
+            s = src[row + j];
+            if (grow ? s > v : s < v) { v = s; }
+          }
+          tmp[row + x] = v;
+        }
+      }
+      for (x = 0; x < bw; x++) {
+        for (y = 0; y < bh; y++) {
+          lo = y > r ? y - r : 0;
+          hi = y + r < bh ? y + r : bh - 1;
+          v = tmp[lo * bw + x];
+          for (j = lo + 1; j <= hi; j++) {
+            s = tmp[j * bw + x];
+            if (grow ? s > v : s < v) { v = s; }
+          }
+          out[y * bw + x] = v;
+        }
+      }
+      return out;
+    }
+
+    /* Build a photo's two printing layers. Runs once, when the photo lands. */
+    function buildPrintLayers(entry) {
+      var work = makeLayer(), wc = work.getContext('2d');
+      var bare = makeLayer(), bc = bare.getContext('2d');
+      var mark = makeLayer(), mc = mark.getContext('2d');
+      if (!wc || !bc || !mc) { return; }
+      wc.drawImage(entry.img, 0, 0, W, H);
+
+      for (var b = 0; b < PRINT_BOXES.length; b++) {
+        var box = PRINT_BOXES[b];
+        var x0 = box[0], y0 = box[2], bw = box[1] - box[0], bh = box[3] - box[2];
+        var patch;
+        try {
+          patch = wc.getImageData(x0, y0, bw, bh);
+        } catch (err) {
+          return; /* same-origin, so this shouldn't happen — but don't die on it */
+        }
+        var px = patch.data, n = bw * bh, i, o;
+        var lum = new Float32Array(n), stain = new Float32Array(n);
+        for (i = 0, o = 0; i < n; i++, o += 4) {
+          lum[i] = 0.2126 * px[o] + 0.7152 * px[o + 1] + 0.0722 * px[o + 2];
+          /* How far from white leather this pixel's colour is, on the two
+             sides that matter: green for the grass, red for the seam thread.
+             Print is neutral, so it scores about nothing either way. */
+          var other = px[o] > px[o + 2] ? px[o] : px[o + 2];
+          var greenish = px[o + 1] - other, reddish = px[o] - px[o + 1] - 20;
+          stain[i] = greenish > reddish ? greenish : reddish;
+        }
+        var paper = morph(morph(lum, bw, bh, PRINT_R, true), bw, bh, PRINT_R, false);
+        /* Judged over a neighbourhood rather than pixel by pixel: the shadow
+           between two stitches is as neutral as ink, and a dark pixel's own
+           colour is too far gone in the JPEG to be worth asking. Growing the
+           stain instead keeps the thread, the grass and the shadows they cast
+           out of it, and leaves glyph interiors alone. */
+        var near = morph(stain, bw, bh, STAIN_R, true);
+
+        /* Coverage is how much of the leather's own light the ink is holding
+           back, faded in over the grain so only glyphs are picked up. The
+           leather's colour is carried as a ratio against its luminance: it is
+           one hide, so the tint the clean pixels agree on is the tint under
+           the printing too. */
+        var cover = new Float32Array(n);
+        var sumR = 0, sumG = 0, sumB = 0, sumL = 0;
+        for (i = 0, o = 0; i < n; i++, o += 4) {
+          var lit = paper[i];
+          var dx = x0 + (i % bw) + 0.5 - CX, dy = y0 + ((i / bw) | 0) + 0.5 - CY;
+          /* Lit leather, well inside the limb, clear of thread and grass. */
+          var onLeather = lit >= 60 && near[i] <= STAIN_MAX && dx * dx + dy * dy < LIMB2;
+          var t = 0;
+          if (onLeather) {
+            var d = lit - lum[i];
+            t = (d - PRINT_LO) / (PRINT_HI - PRINT_LO);
+            t = t < 0 ? 0 : (t > 1 ? 1 : t);
+            var solid = d / (lit * PRINT_FLOOR);
+            t *= solid > 1 ? 1 : solid;
+          }
+          cover[i] = t;
+          if (onLeather && t < 0.02) {
+            sumR += px[o]; sumG += px[o + 1]; sumB += px[o + 2]; sumL += lum[i];
+          }
+        }
+        if (!sumL) { continue; }
+        var kr = sumR / sumL, kg = sumG / sumL, kb = sumB / sumL;
+
+        var bareImg = bc.createImageData(bw, bh), bd = bareImg.data;
+        var markImg = mc.createImageData(bw, bh), md = markImg.data;
+        for (i = 0, o = 0; i < n; i++, o += 4) {
+          var a = cover[i];
+          if (a <= 0) { continue; }
+          bd[o] = paper[i] * kr;
+          bd[o + 1] = paper[i] * kg;
+          bd[o + 2] = paper[i] * kb;
+          bd[o + 3] = a * 255;
+          md[o] = 255; md[o + 1] = 255; md[o + 2] = 255;
+          md[o + 3] = a * 255;
+        }
+        bc.putImageData(bareImg, x0, y0);
+        mc.putImageData(markImg, x0, y0);
+      }
+
+      entry.bare = bare;
+      entry.mark = mark;
+      paintPrint(entry);
+    }
+
+    /* Colour a photo's printing. `source-in` keeps the shape's coverage and
+       swaps only what fills it, so changing swatch is a repaint of two dozen
+       glyphs rather than a rebuild of the mask behind them. */
+    function paintPrint(entry) {
+      var rgb = inkFor(ink);
+      if (!entry || !entry.mark || !rgb) { return; }
+      var c = entry.mark.getContext('2d');
+      if (!c) { return; }
+      c.save();
+      c.globalCompositeOperation = 'source-in';
+      c.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+      c.fillRect(0, 0, W, H);
+      c.restore();
+    }
+
     /* Only the photo for the spot in use is fetched; the second one arrives
        the first time somebody picks the horseshoe. The grass runs across both
        identically, so the leather mask is built once from whichever lands. */
@@ -391,6 +578,7 @@
       img.onload = function () {
         entry.ready = true;
         if (!leather) { buildLeatherMask(img); }
+        buildPrintLayers(entry);
         compose();
       };
       img.onerror = function () {
@@ -508,7 +696,8 @@
         return;
       }
       if (knockout) { knockBackdrop(img); }
-      if (INK[ink]) { inkify(img, INK[ink]); }
+      var rgb = inkFor(ink);
+      if (rgb) { inkify(img, rgb); }
       logoData = img;
     }
 
@@ -627,6 +816,16 @@
       if (!entry || !entry.ready) { entry = photos.panel; }
       var ready = Boolean(entry && entry.ready);
       if (ready) { ctx.drawImage(entry.img, 0, 0, W, H); }
+      /* The ball's own printing, lifted off its leather and stamped back down
+         in the chosen ink — the same multiply the uploaded mark gets, so both
+         sit in the leather the same way. */
+      if (ready && entry.bare && inkFor(ink)) {
+        ctx.save();
+        ctx.drawImage(entry.bare, 0, 0);
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(entry.mark, 0, 0);
+        ctx.restore();
+      }
       if (logoData && ready) {
         ctx.save();
         ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU); ctx.clip();
@@ -668,11 +867,22 @@
 
     /* ---- Loading a file ------------------------------------------------ */
     function setInk(next) {
+      if (!Object.prototype.hasOwnProperty.call(INK, next)) { next = 'full'; }
       ink = next;
       for (var i = 0; i < swatchEls.length; i++) {
         var on = swatchEls[i].getAttribute('data-ink') === next;
         swatchEls[i].classList.toggle('is-active', on);
         swatchEls[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      /* Restamp the photos already decoded; one that lands later is coloured
+         as its layers are built. */
+      for (var key in photos) {
+        if (Object.prototype.hasOwnProperty.call(photos, key)) { paintPrint(photos[key]); }
+      }
+      if (readout) {
+        readout.textContent = inkFor(next)
+          ? INK_LABEL[next] + ' — one ink, every mark on the ball.'
+          : 'Full color — your artwork prints as supplied.';
       }
     }
 

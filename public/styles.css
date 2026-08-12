@@ -579,6 +579,43 @@ ul { list-style: none; }
 .swatch:hover { color: #fff; border-color: rgba(255, 255, 255, 0.5); }
 .swatch.is-active { color: #fff; background: var(--red); border-color: var(--red); }
 
+/* Pantone palette — the ink the whole ball stamps in. The chip is the colour
+   itself; its name is the title/aria-label and shows in the readout under the
+   grid, which keeps two dozen inks to one glanceable block. */
+.pantone { display: flex; flex-wrap: wrap; gap: 8px; }
+.pantone__chip {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease;
+}
+/* Full colour keeps the artwork's own inks, so its chip carries them all. */
+.pantone__chip--full {
+  background: linear-gradient(135deg, #c8102e, #ffb81c 34%, #009639 58%, #005eb8 80%, #582c83);
+  background: conic-gradient(from 210deg, #c8102e, #ffb81c, #009639, #005eb8, #582c83, #c8102e);
+}
+.pantone__chip:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.75); }
+.pantone__chip:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+/* A ring rather than a fill: the chip has to keep showing its own colour. */
+.pantone__chip.is-active {
+  border-color: #fff;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.pantone__readout {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  color: var(--muted-inv);
+  min-height: 1.4em;
+}
+
 /* Arrow pad: nudge the mark around the spot, or drop it back in the middle.
    The size slider grows a logo from its own centre, so a big mark can creep
    onto a seam - this is how you walk it back without a steady mouse hand. */
@@ -900,4 +937,6 @@ ul { list-style: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .btn { transition: none; }
   .swatch, .dropzone { transition: none; }
+  .pantone__chip { transition: none; }
+  .pantone__chip:hover { transform: none; }
 }
