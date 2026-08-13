@@ -330,10 +330,11 @@ ul { list-style: none; }
   position: relative;
   min-height: 540px;
   background-color: #2f4624;
-  /* A tray of A1492s; radial gradient is the fallback if the file is absent.
-     The single-ball product shot leads the Balls section further up. */
+  /* A tray of A1492s with the game ball in among them; radial gradient is the
+     fallback if the file is absent. The single-ball product shot leads the
+     Balls section further up. */
   background-image:
-    url('/images/hero-6.jpg'),
+    url('/images/tray-plus.jpg'),
     radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;

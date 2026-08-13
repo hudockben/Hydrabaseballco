@@ -319,7 +319,7 @@ export default function HomePage() {
         <div
           className="difference__media"
           role="img"
-          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf"
+          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf, an A1492+ game ball among them"
         ></div>
 
         <div className="difference__panel">
