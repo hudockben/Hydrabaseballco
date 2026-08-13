@@ -249,11 +249,6 @@ export default function HomePage() {
             <span className="eyebrow eyebrow--red">The Ball</span>
             <h2 className="section-title balls__title">A1492 Pro Series</h2>
             <span className="balls__rule" aria-hidden="true"></span>
-            <p className="balls__lead">
-              One ball, built to be the one you reach for all season. Full-grain leather over a red
-              cushioned cork center, compression tested to hold up from the first bullpen of the
-              spring to the last inning of the year.
-            </p>
           </div>
 
           <div className="balls__grid">

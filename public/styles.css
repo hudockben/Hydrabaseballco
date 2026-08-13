@@ -274,8 +274,7 @@ ul { list-style: none; }
 .balls { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
 .balls__head { max-width: 660px; margin: 0 auto clamp(36px, 5vw, 56px); text-align: center; }
 .balls__title { color: var(--text); }
-.balls__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
-.balls__lead { color: var(--muted); font-size: 1.06rem; line-height: 1.7; max-width: 58ch; margin: 0 auto; }
+.balls__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 0; }
 .balls__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
