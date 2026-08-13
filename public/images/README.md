@@ -33,6 +33,7 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
 | `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
 | `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
+| `tray-plus.jpg` | _Currently unused_ | `hero-6.jpg` with the front-centre ball swapped for the A1492+, and the phone screenshot's black bands cropped off. Built by `tools/make-tray-plus.py`. Drop it in for `hero-6.jpg` in `.difference__media` to put the game ball in that panel. |
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
@@ -42,7 +43,12 @@ has changed, then re-run the blanks. `tools/make-ball-plus.py` is independent of
 those two: it fits a circle to the ball in `ball-plus-src.jpg`, lifts the disc
 whole — nothing occludes it, the hand is behind — corrects the indoor light to
 daylight off the leather in both photos, and lays it into `ball.jpg` at that
-ball's own place and size. `make-panel-lockup.py` builds the lockup
+ball's own place and size. `tools/make-tray-plus.py` imports that fit and drops
+the same disc into `hero-6.jpg`, over the front-centre ball — nothing overlaps
+that one, so the contacts and shadows around it already fit a ball that size.
+It carries the tray's own light across rather than colour-correcting: blur both
+discs past where printing survives, and their ratio is the key light, the
+shading and the vignette. `make-panel-lockup.py` builds the lockup
 out of artwork already in the repo rather than a font: the wordmark off
 `public/logo.png`, the model mark lifted off `ball.jpg` itself and flattened
 back off the sphere. Drop a real vector export in as `panel-lockup.png` instead

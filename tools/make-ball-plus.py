@@ -111,34 +111,46 @@ def sample(img, sx, sy):
             img[j + 1, i] * (1 - tx) * ty + img[j + 1, i + 1] * tx * ty)
 
 
-hand = np.asarray(ImageOps.exif_transpose(Image.open(HAND)).convert('RGB')).astype(np.float32)
-plate = np.asarray(Image.open(PLATE).convert('RGB')).astype(np.float32)
-hh, hw, _ = hand.shape
-H, W, _ = plate.shape
+def game_ball():
+    """The game ball's photo, upright, and the circle its limb sits on.
 
-cx, cy, r, n = limb(silhouette(hand))
-print('limb  cx %.1f  cy %.1f  r %.1f  from %d outline points' % (cx, cy, r, n))
+    make-tray-plus.py lifts the same disc to drop into the tray shot, so the
+    fit lives here rather than being measured twice.
+    """
+    img = np.asarray(ImageOps.exif_transpose(Image.open(HAND)).convert('RGB')).astype(np.float32)
+    cx, cy, r, n = limb(silhouette(img))
+    print('limb  cx %.1f  cy %.1f  r %.1f  from %d outline points' % (cx, cy, r, n))
+    return img, (cx, cy, r)
 
-hyy, hxx = np.mgrid[0:hh, 0:hw]
-src = leather(hand, np.hypot(hxx - cx, hyy - cy), r)
-yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-rad = np.hypot(xx - BALL_CX, yy - BALL_CY)
-dst = leather(plate, rad, BALL_R)
-gain = dst / src
-print('leather  indoors %s  ->  field %s   gain %s'
-      % (np.round(src, 1), np.round(dst, 1), np.round(gain, 3)))
 
-# Read the hand photo so its limb lands on the plate ball's, plus the pad.
-out_r = BALL_R + PAD
-k = r / out_r
-ball = sample(hand,
-              np.clip(cx + (xx - BALL_CX) * k, 0, hw - 1.001),
-              np.clip(cy + (yy - BALL_CY) * k, 0, hh - 1.001)) * gain
-ball = np.where(ball > KNEE, KNEE + (255 - KNEE) * np.tanh((ball - KNEE) / (255 - KNEE)), ball)
+# Guarded so make-tray-plus.py can import the routines above without building
+# this file as a side effect.
+if __name__ == '__main__':
+    hand, (cx, cy, r) = game_ball()
+    plate = np.asarray(Image.open(PLATE).convert('RGB')).astype(np.float32)
+    hh, hw, _ = hand.shape
+    H, W, _ = plate.shape
 
-alpha = np.clip((out_r - 1.5 - rad) / 3.0, 0, 1)[..., None]
-out = (plate * (1 - alpha) + ball * alpha)[TOP_CROP:]
-print('ball %.0fpx across, %.1f%% of the frame' % (2 * out_r, 100 * alpha.mean()))
+    hyy, hxx = np.mgrid[0:hh, 0:hw]
+    src = leather(hand, np.hypot(hxx - cx, hyy - cy), r)
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    rad = np.hypot(xx - BALL_CX, yy - BALL_CY)
+    dst = leather(plate, rad, BALL_R)
+    gain = dst / src
+    print('leather  indoors %s  ->  field %s   gain %s'
+          % (np.round(src, 1), np.round(dst, 1), np.round(gain, 3)))
 
-Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).save(OUT, quality=94, subsampling=0)
-print('wrote %-34s %dx%d' % (OUT, out.shape[1], out.shape[0]))
+    # Read the hand photo so its limb lands on the plate ball's, plus the pad.
+    out_r = BALL_R + PAD
+    k = r / out_r
+    ball = sample(hand,
+                  np.clip(cx + (xx - BALL_CX) * k, 0, hw - 1.001),
+                  np.clip(cy + (yy - BALL_CY) * k, 0, hh - 1.001)) * gain
+    ball = np.where(ball > KNEE, KNEE + (255 - KNEE) * np.tanh((ball - KNEE) / (255 - KNEE)), ball)
+
+    alpha = np.clip((out_r - 1.5 - rad) / 3.0, 0, 1)[..., None]
+    out = (plate * (1 - alpha) + ball * alpha)[TOP_CROP:]
+    print('ball %.0fpx across, %.1f%% of the frame' % (2 * out_r, 100 * alpha.mean()))
+
+    Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).save(OUT, quality=94, subsampling=0)
+    print('wrote %-34s %dx%d' % (OUT, out.shape[1], out.shape[0]))
