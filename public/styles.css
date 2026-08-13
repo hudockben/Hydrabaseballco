@@ -369,6 +369,55 @@ ul { list-style: none; }
 }
 .feature p { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
+/* Three balls under the features: two team runs and the game ball itself.
+   Each shot is a background layered over a gradient, so a run whose photo has
+   not landed yet shows the gradient rather than a broken frame — the same
+   fallback .difference__media relies on. */
+.proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+  padding-top: 34px;
+  border-top: 1px solid var(--line);
+}
+.proof__item { display: flex; flex-direction: column; gap: 10px; }
+.proof__shot {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background-color: #2f4624;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  box-shadow: var(--shadow);
+}
+.proof__shot--indiana {
+  background-image:
+    url('/images/custom-indiana.jpg'),
+    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+}
+.proof__shot--icml {
+  background-image:
+    url('/images/custom-icml.jpg'),
+    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+}
+.proof__shot--stock {
+  background-image:
+    url('/images/ball-plus.jpg'),
+    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+}
+.proof__cap {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* ---------- Leather grades ---------- */
 .grades {
   margin-top: 40px;
@@ -910,6 +959,10 @@ ul { list-style: none; }
 @media (max-width: 560px) {
   .hero { min-height: 80vh; }
   .feature-grid { grid-template-columns: 1fr; gap: 24px; }
+  /* The shots stay three across — they read as a lineup, and at this width a
+     stacked column would push the customizer well off the screen. */
+  .proof { gap: 10px; margin-top: 32px; padding-top: 28px; }
+  .proof__cap { font-size: 0.6rem; letter-spacing: 0.08em; }
   .grades__list { grid-template-columns: 1fr; gap: 20px; }
   .orders__form { grid-template-columns: 1fr; }
   .orders__form input[name="team"] { grid-column: auto; }

@@ -25,7 +25,10 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 
 | File | Where it shows | Notes |
 |------|----------------|-------|
-| `ball.jpg` | "The Hydra Difference" panel | The A1492 Pro Series product photo, cropped square-ish (`cover`). |
+| `ball.jpg` | Source photo for everything below | The A1492 Pro Series product shot. No longer served to the browser itself — the tools measure and retouch it. |
+| `ball-plus.jpg` | "The Ball" section, and the third shot in "The Hydra Difference" | The same photo stamped `A1492+`, which is the game ball the section leads with. Built by `tools/make-ball-plus.py`. |
+| `custom-indiana.jpg` | "The Hydra Difference" | _Not committed yet._ A run stamped for Indiana Baseball. Until it lands, the gradient fallback shows in its place. |
+| `custom-icml.jpg` | "The Hydra Difference" | _Not committed yet._ A run stamped for the Indiana County Men's League, the league mark in the horseshoe. Same fallback. |
 | `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
 | `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
 | `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
@@ -34,7 +37,10 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
 tools/make-ball-blank.py` from the repo root), and the lockup it prints comes
 from `tools/make-panel-lockup.py` — run that first if the logo or the artwork
-has changed, then re-run the blanks. `make-panel-lockup.py` builds the lockup
+has changed, then re-run the blanks. `tools/make-ball-plus.py` builds
+`ball-plus.jpg` off the same photo and the same clear/stamp pair, lifting the
+`A1492` letterforms out of the photograph and setting a plus after them rather
+than redrawing the mark from a font. `make-panel-lockup.py` builds the lockup
 out of artwork already in the repo rather than a font: the wordmark off
 `public/logo.png`, the model mark lifted off `ball.jpg` itself and flattened
 back off the sphere. Drop a real vector export in as `panel-lockup.png` instead

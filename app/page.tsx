@@ -254,10 +254,10 @@ export default function HomePage() {
           <div className="balls__grid">
             <figure className="balls__photo">
               <img
-                src="/images/ball.jpg"
-                alt="Hydra A1492 Pro Series baseball resting on the grass"
+                src="/images/ball-plus.jpg"
+                alt="Hydra A1492+ Pro Series game ball resting on the grass"
                 width={1100}
-                height={1117}
+                height={1100}
                 loading="lazy"
               />
             </figure>
@@ -366,6 +366,36 @@ export default function HomePage() {
               </li>
             </ul>
 
+            {/* Three balls off the line: two team runs and the game ball they
+                are printed on. Backgrounds rather than <img> so a run whose
+                photo has not landed yet falls back to the on-brand gradient
+                instead of a broken frame, the way .difference__media does. */}
+            <ul className="proof">
+              <li className="proof__item">
+                <span
+                  className="proof__shot proof__shot--indiana"
+                  role="img"
+                  aria-label="An A1492 stamped for Indiana Baseball in a single red ink"
+                ></span>
+                <span className="proof__cap">Indiana Baseball</span>
+              </li>
+              <li className="proof__item">
+                <span
+                  className="proof__shot proof__shot--icml"
+                  role="img"
+                  aria-label="An A1492 stamped for the Indiana County Men's League, the league mark in the horseshoe"
+                ></span>
+                <span className="proof__cap">Indiana County Men&rsquo;s League</span>
+              </li>
+              <li className="proof__item">
+                <span
+                  className="proof__shot proof__shot--stock"
+                  role="img"
+                  aria-label="The stock Hydra A1492+ Pro Series game ball on the grass"
+                ></span>
+                <span className="proof__cap">A1492+ Game Ball</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
