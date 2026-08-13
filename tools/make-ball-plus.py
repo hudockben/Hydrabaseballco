@@ -1,220 +1,144 @@
-"""Build the A1492+ product shot from the A1492 one.
+"""Put the A1492+ on the field the A1492 was photographed on.
 
-Reads public/images/ball.jpg (the A1492 Pro Series shot) and writes
+Reads
 
-  public/images/ball-plus.jpg   the same ball, stamped A1492+
+  public/images/ball-plus-src.jpg   the game ball, shot indoors over the boxes
+  public/images/ball.jpg            the A1492 product shot, for its field
 
-The game ball carries a "+" after the model number; the practice ball does
-not. Both are otherwise the same ball, photographed on the same field, so the
-plus is printed onto the photo the site already ships rather than shot again.
+and writes
 
-The mark is not redrawn from a font. It is lifted off the photograph the way
-make-panel-lockup.py lifts it -- black top-hat for the ink, then flattened off
-the sphere -- so the letterforms stay the ones that were printed. Only the plus
-is new: an upright cross built to the numerals' own stroke width and cap
-height, then sheared to the lean measured off their stems.
+  public/images/ball-plus.jpg       the game ball, on that field
 
-Adding a glyph makes the mark wider, so the model line slides left by half the
-plus's advance and A1492+ sits centred in the panel the way A1492 did. The
-PRO SERIES line underneath is untouched. Then the panel is cleared and the
-whole thing printed back, both by make-ball-blank.py's own routines, so the
-ink lands at the density the printing it replaced was measured at.
+The two balls differ only by the "+" after the model number, and the only
+photograph of a plus is a phone shot taken in a dim room over a stack of
+shipping cartons. The ball in it is whole: the hand cups it from behind and
+nothing crosses the limb, so the disc lifts out entire, with its printing and
+its stitching, and needs no reconstruction. Dropping it onto the A1492's field
+at that ball's own place and size brings the grass, the depth of field and the
+contact shadow along with it, since none of those are inside the disc.
+
+The limb is found rather than measured. Threshold for something bright and
+neutral (the leather; skin and cardboard are warm), keep the largest blob, and
+fit a circle to the top three quarters of its outline — the shaded underside
+falls below the threshold, so the outline there is the threshold's edge and not
+the ball's. The fit is then re-run a few times without whatever points sit far
+off it.
+
+Indoors the leather reads warm and dim. A per-channel gain, measured off the
+plain leather in both photographs, carries it to daylight; the highlights are
+rolled off with a tanh rather than clipped, which would flatten the top of the
+sphere. The ball is laid in a few pixels large so its own limb covers the
+softer, out-of-focus one it replaces instead of leaving a rim of it showing.
 
 Run from the repo root:  python3 tools/make-ball-plus.py
 """
-import importlib.util
-import pathlib
-
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
+from scipy import ndimage as ndi
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-SRC = 'public/images/ball.jpg'
+HAND = 'public/images/ball-plus-src.jpg'
+PLATE = 'public/images/ball.jpg'
 OUT = 'public/images/ball-plus.jpg'
 
-# The A1492 mark does not fill the leather between the seams, so the plus goes
-# on beside it rather than the line being shrunk to make room. Both the box the
-# printing is cleared from and stamped back into, and the flat frame the panel
-# is read onto, are widened past make-ball-blank.py's PANEL_BOX to hold it.
-PLUS_BOX = (355, 790, 515, 695)
-# fx across, fy down, in radii, at PX pixels per radius — the frame of
-# make-panel-lockup.py's unproject(), opened up to cover PLUS_BOX.
-FX0, FX1, FY0, FY1, PX = -0.55, 0.72, -0.12, 0.47, 1400.0
+# The ball in the plate (the same fit make-ball-blank.py measures), and the
+# black band along its top edge, cropped after compositing.
+BALL_CX, BALL_CY, BALL_R = 545.5, 536.8, 394.5
+TOP_CROP = 17
 
-# The plus, in multiples of the model line's cap height and stroke. Sized off
-# the photo of the real ball: a raised cross about half the digits' height, cut
-# a little finer than their stems.
-PLUS_H = 0.47
-PLUS_STROKE = 0.72
-PLUS_GAP = 0.10                       # space between the 2 and the plus
-PLUS_MID = 0.51                       # its centre, above the digits' baseline
+# The plate's ball is a touch soft at the limb, so the new one goes in this
+# many pixels larger to cover it.
+PAD = 5.0
+# Leather against a warm, dim room: bright enough, neutral enough, not orange.
+LIT = 85
+NEUTRAL = 0.26
+WARM = 48
+# Highlights above this roll off instead of clipping, once the gain is on.
+KNEE = 225.0
 
 
-def load(name):
-    """Import a sibling tool by filename (they are scripts, not modules)."""
-    spec = importlib.util.spec_from_file_location(
-        name.replace('-', '_'), ROOT / 'tools' / (name + '.py'))
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+def silhouette(img):
+    """Mask of the ball: the largest bright, neutral, un-warm blob."""
+    lum = img.mean(2)
+    mx, mn = img.max(2), img.min(2)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    m = (lum > LIT) & (sat < NEUTRAL) & ((img[..., 0] - img[..., 2]) < WARM)
+
+    # Close over the printing and the seam holes, then drop everything the
+    # room contributes that happens to be pale.
+    m = ndi.binary_fill_holes(ndi.binary_closing(m, np.ones((25, 25))))
+    for step in (np.ones((41, 41)), None):
+        if step is not None:
+            m = ndi.binary_opening(m, step)
+        lab, n = ndi.label(m)
+        if n == 0:
+            raise SystemExit('no ball found in ' + HAND)
+        m = lab == 1 + int(np.argmax(ndi.sum(m, lab, range(1, n + 1))))
+    return m
 
 
-def bands(mask):
-    """Row ranges of the rows of type in a flattened panel, top down."""
-    on = (mask > 0.5).any(1)
-    out, start = [], None
-    for y, v in enumerate(on):
-        if v and start is None:
-            start = y
-        elif not v and start is not None:
-            out.append((start, y)); start = None
-    if start is not None:
-        out.append((start, len(on)))
-    return out
+def limb(mask):
+    """Least-squares circle through the silhouette's true outline."""
+    edge = mask & ~ndi.binary_erosion(mask, np.ones((3, 3)))
+    ys, xs = np.nonzero(edge)
+    # The underside is shaded past the threshold, so its outline is not a limb.
+    keep = ys < ys.min() + 0.72 * (ys.max() - ys.min())
+    xs, ys = xs[keep].astype(np.float64), ys[keep].astype(np.float64)
+
+    for _ in range(4):
+        basis = np.stack([xs, ys, np.ones_like(xs)], 1)
+        sol, *_ = np.linalg.lstsq(basis, xs ** 2 + ys ** 2, rcond=None)
+        cx, cy = sol[0] / 2, sol[1] / 2
+        r = np.sqrt(sol[2] + cx * cx + cy * cy)
+        off = np.abs(np.hypot(xs - cx, ys - cy) - r)
+        near = off < max(3 * off.std(), 4)
+        xs, ys = xs[near], ys[near]
+    return cx, cy, r, len(xs)
 
 
-def stroke_width(band):
-    """Median horizontal ink run — the stroke the glyphs are drawn with."""
-    runs = []
-    for row in band > 0.5:
-        edges = np.diff(np.concatenate(([0], row.view(np.int8), [0])))
-        runs.extend(np.flatnonzero(edges < 0) - np.flatnonzero(edges > 0))
-    return float(np.median(runs))
+def leather(img, rad, r):
+    """Mean colour of the plain leather — bright, off the seams and the print."""
+    core = rad < r * 0.85
+    m = core & (img.mean(2) > np.percentile(img.mean(2)[core], 55))
+    m &= (img[..., 0] - img[..., 1] < 30) & (np.abs(img[..., 1] - img[..., 2]) < 30)
+    return np.array([img[..., c][m].mean() for c in range(3)])
 
 
-def lean(band):
-    """The italic's slope, measured off the stem of the narrowest glyph.
-
-    Same measurement deslant() makes in make-panel-lockup.py, but the slope is
-    what is wanted here rather than the sheared artwork.
-    """
-    on = (band > 0.5).any(0)
-    runs, start = [], None
-    for x, v in enumerate(on):
-        if v and start is None:
-            start = x
-        elif not v and start is not None:
-            runs.append((start, x - 1)); start = None
-    if start is not None:
-        runs.append((start, len(on) - 1))
-    x0, x1 = min(runs, key=lambda r: r[1] - r[0])
-
-    top = int(band.shape[0] * 0.45)
-    ys, cs = [], []
-    for y in range(top, band.shape[0]):
-        m = np.flatnonzero(band[y, x0:x1 + 1] > 0.5)
-        if m.size > 3:
-            ys.append(y); cs.append(m.mean() + x0)
-    return float(np.polyfit(np.array(ys, float), np.array(cs, float), 1)[0])
+def sample(img, sx, sy):
+    """Bilinear read of `img` at the given coordinates."""
+    i, j = sx.astype(int), sy.astype(int)
+    tx, ty = (sx - i)[..., None], (sy - j)[..., None]
+    return (img[j, i] * (1 - tx) * (1 - ty) + img[j, i + 1] * tx * (1 - ty) +
+            img[j + 1, i] * (1 - tx) * ty + img[j + 1, i + 1] * tx * ty)
 
 
-def shear(art, slope):
-    """Lean upright artwork by `slope`, the inverse of deslant()'s shear."""
-    h, w = art.shape
-    mid = h / 2.0
-    pad = int(abs(slope) * h) + 2
-    out = np.zeros((h, w + 2 * pad), np.float32)
-    src = np.arange(w + 2 * pad, dtype=np.float32) - pad
-    for y in range(h):
-        u = src - slope * (y - mid)
-        i = np.floor(u).astype(int)
-        t = u - i
-        ok = (i >= 0) & (i < w - 1)
-        out[y, ok] = art[y, i[ok]] * (1 - t[ok]) + art[y, i[ok] + 1] * t[ok]
-    return out
+hand = np.asarray(ImageOps.exif_transpose(Image.open(HAND)).convert('RGB')).astype(np.float32)
+plate = np.asarray(Image.open(PLATE).convert('RGB')).astype(np.float32)
+hh, hw, _ = hand.shape
+H, W, _ = plate.shape
 
+cx, cy, r, n = limb(silhouette(hand))
+print('limb  cx %.1f  cy %.1f  r %.1f  from %d outline points' % (cx, cy, r, n))
 
-def paste(sheet, art, y, x):
-    """Lay `art` into `sheet` at (y, x), keeping whichever ink is heavier."""
-    h, w = art.shape
-    y0, x0 = max(y, 0), max(x, 0)
-    y1, x1 = min(y + h, sheet.shape[0]), min(x + w, sheet.shape[1])
-    if y0 >= y1 or x0 >= x1:
-        raise SystemExit('artwork falls outside the frame — widen FX0..FY1')
-    if (y1 - y0, x1 - x0) != (h, w):
-        raise SystemExit('artwork is clipped by the frame — widen FX0..FY1')
-    target = sheet[y0:y1, x0:x1]
-    np.maximum(target, art, out=target)
+hyy, hxx = np.mgrid[0:hh, 0:hw]
+src = leather(hand, np.hypot(hxx - cx, hyy - cy), r)
+yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+rad = np.hypot(xx - BALL_CX, yy - BALL_CY)
+dst = leather(plate, rad, BALL_R)
+gain = dst / src
+print('leather  indoors %s  ->  field %s   gain %s'
+      % (np.round(src, 1), np.round(dst, 1), np.round(gain, 3)))
 
+# Read the hand photo so its limb lands on the plate ball's, plus the pad.
+out_r = BALL_R + PAD
+k = r / out_r
+ball = sample(hand,
+              np.clip(cx + (xx - BALL_CX) * k, 0, hw - 1.001),
+              np.clip(cy + (yy - BALL_CY) * k, 0, hh - 1.001)) * gain
+ball = np.where(ball > KNEE, KNEE + (255 - KNEE) * np.tanh((ball - KNEE) / (255 - KNEE)), ball)
 
-def cross(size, stroke):
-    """An upright plus, `size` square, drawn with `stroke`-wide arms.
+alpha = np.clip((out_r - 1.5 - rad) / 3.0, 0, 1)[..., None]
+out = (plate * (1 - alpha) + ball * alpha)[TOP_CROP:]
+print('ball %.0fpx across, %.1f%% of the frame' % (2 * out_r, 100 * alpha.mean()))
 
-    Antialiased by coverage rather than a hard mask, so it takes the same soft
-    edge the photographed glyphs around it carry.
-    """
-    n = int(round(size))
-    x = np.arange(n) + 0.5 - n / 2.0
-    dx, dy = np.abs(x)[None, :], np.abs(x)[:, None]
-    half = stroke / 2.0
-    # Distance outside each arm, softened over a pixel: the union of a
-    # horizontal bar and a vertical one.
-    bar_h = np.clip(half + 0.5 - dy, 0, 1) * np.clip(size / 2 + 0.5 - dx, 0, 1)
-    bar_v = np.clip(half + 0.5 - dx, 0, 1) * np.clip(size / 2 + 0.5 - dy, 0, 1)
-    return np.maximum(bar_h, bar_v).astype(np.float32)
-
-
-blank = load('make-ball-blank')
-
-photo = np.asarray(Image.open(ROOT / SRC).convert('RGB')).astype(np.float32)
-px0, px1, py0, py1 = PLUS_BOX
-region = photo[py0:py1, px0:px1]
-
-# Ink coverage of the panel, soft-edged, exactly as make-panel-lockup.py reads
-# it: these glyphs are becoming artwork again, so they keep their printed edge.
-lum = 0.299 * region[..., 0] + 0.587 * region[..., 1] + 0.114 * region[..., 2]
-closed = blank.morph(blank.morph(lum, 20, True), 20, False)
-depth = closed - lum
-cov = np.clip(depth / np.maximum(closed * 0.95, 1), 0, 1) * np.clip((depth - 18) / 20.0, 0, 1)
-cov[(region[..., 0] - region[..., 1]) > 22] = 0      # red seam thread is not ink
-
-# Flatten the panel off the sphere onto the artwork frame.
-w = int((FX1 - FX0) * PX)
-h = int((FY1 - FY0) * PX)
-fx = FX0 + (np.arange(w) + 0.5) / PX
-fy = FY0 + (np.arange(h) + 0.5) / PX
-FY, FX = np.meshgrid(fy, fx, indexing='ij')
-r = np.hypot(FX, FY)
-k = np.where(r < 1e-6, 1.0, np.sin(np.clip(r, None, np.pi / 2)) / np.maximum(r, 1e-6))
-sx = np.clip(blank.BALL_CX + FX * k * blank.BALL_R - px0, 0, cov.shape[1] - 1.001)
-sy = np.clip(blank.BALL_CY + FY * k * blank.BALL_R - py0, 0, cov.shape[0] - 1.001)
-i, j = sx.astype(int), sy.astype(int)
-tx, ty = sx - i, sy - j
-flat = (cov[j, i] * (1 - tx) * (1 - ty) + cov[j, i + 1] * tx * (1 - ty) +
-        cov[j + 1, i] * (1 - tx) * ty + cov[j + 1, i + 1] * tx * ty).astype(np.float32)
-
-# The model line is the first row of type; PRO SERIES is the second.
-rows = bands(flat)
-r0, r1 = rows[0]
-band = flat[r0:r1]
-cols = np.flatnonzero((band > 0.5).any(0))
-c0, c1 = int(cols[0]), int(cols[-1]) + 1
-cap = r1 - r0
-print('model line %dx%d at rows %d-%d, cols %d-%d' % (c1 - c0, cap, r0, r1, c0, c1))
-
-stroke = stroke_width(band)
-slope = lean(band)
-print('  stroke %.1fpx, leaning %.1f deg' % (stroke, np.degrees(np.arctan(-slope))))
-
-# Build the plus, cut a little finer than the numerals and leaned to match.
-plus = shear(cross(PLUS_H * cap, PLUS_STROKE * stroke), slope)
-pcols = np.flatnonzero((plus > 0.01).any(0))
-plus = plus[:, pcols[0]:pcols[-1] + 1]
-gap = int(round(PLUS_GAP * cap))
-advance = plus.shape[1] + gap
-shift = advance // 2
-print('  plus %dx%d, advance %dpx — model line slides %dpx left'
-      % (plus.shape[1], plus.shape[0], advance, shift))
-
-# Slide the model line left by half the advance so A1492+ sits centred where
-# A1492 did, then set the plus after the 2. PRO SERIES underneath stays put.
-art = flat.copy()
-art[r0:r1] = 0
-paste(art, band[:, c0:c1], r0, c0 - shift)
-paste(art, plus, int(round(r1 - PLUS_MID * cap - plus.shape[0] / 2.0)), c1 - shift + gap)
-
-# Clear the panel and print the new mark back, at the density of the old one.
-centre = ((FX0 + FX1) / 2.0, (FY0 + FY1) / 2.0)
-out = blank.stamp(blank.clear(photo, PLUS_BOX, 'panel'),
-                  PLUS_BOX, art, centre, FX1 - FX0, 'A1492+')
-blank.save(out, str(ROOT / OUT))
+Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).save(OUT, quality=94, subsampling=0)
+print('wrote %-34s %dx%d' % (OUT, out.shape[1], out.shape[0]))

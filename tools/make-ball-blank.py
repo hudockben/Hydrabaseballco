@@ -184,18 +184,15 @@ def save(photo, path):
     print('wrote %-42s %dx%d' % (path, cropped.shape[1], cropped.shape[0]))
 
 
-# Guarded so the routines above can be imported — make-ball-plus.py prints the
-# game ball's mark with the same clear/stamp pair — without rebuilding these.
-if __name__ == '__main__':
-    photo = np.asarray(Image.open(SRC).convert('RGB')).astype(np.float32)
-    lockup = np.asarray(Image.open(LOCKUP).convert('RGBA')).astype(np.float32)[..., 3] / 255.0
+photo = np.asarray(Image.open(SRC).convert('RGB')).astype(np.float32)
+lockup = np.asarray(Image.open(LOCKUP).convert('RGBA')).astype(np.float32)[..., 3] / 255.0
 
-    # A logo on the panel leaves the Hydra wordmark where it is printed, up in
-    # the horseshoe, so that version only clears the panel.
-    save(clear(photo, PANEL_BOX, 'panel'), OUT_PANEL)
+# A logo on the panel leaves the Hydra wordmark where it is printed, up in the
+# horseshoe, so that version only clears the panel.
+save(clear(photo, PANEL_BOX, 'panel'), OUT_PANEL)
 
-    # A logo in the horseshoe takes the wordmark's place, so the Hydra name
-    # moves down to the panel: clear both spots, then print the lockup over the
-    # model mark that was there.
-    horseshoe = clear(clear(photo, WORDMARK_BOX, 'wordmark'), PANEL_BOX, 'panel')
-    save(stamp(horseshoe, PANEL_BOX, lockup, LOCKUP_AT, LOCKUP_W, 'lockup'), OUT_HORSESHOE)
+# A logo in the horseshoe takes the wordmark's place, so the Hydra name moves
+# down to the panel: clear both spots, then print the lockup over the model
+# mark that was there.
+horseshoe = clear(clear(photo, WORDMARK_BOX, 'wordmark'), PANEL_BOX, 'panel')
+save(stamp(horseshoe, PANEL_BOX, lockup, LOCKUP_AT, LOCKUP_W, 'lockup'), OUT_HORSESHOE)
