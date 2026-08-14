@@ -22,9 +22,11 @@ export interface Product {
 }
 
 export interface OrderEconomics {
-  revenue: number;
+  sales: number; // quantity × unit price
+  shippingCharged: number; // shipping billed to the customer
+  revenue: number; // sales + shippingCharged — everything the customer paid
   cogs: number;
-  shipping: number;
+  shipping: number; // shipping the business pays the carrier
   other: number;
   profit: number;
   marginPct: number | null; // null when revenue is 0
@@ -77,27 +79,39 @@ export function priceForQty(tiers: PriceTier[], qty: number): number | null {
   return price;
 }
 
-/** Full economics of one order line. `other` is any extra per-order cost. */
+/**
+ * Full economics of one order line. `other` is any extra per-order cost.
+ *
+ * `shipping` is what the business pays to ship; `shippingCharged` is what the
+ * customer was billed for it. Both are counted: billed shipping is revenue like
+ * any other money the customer handed over, and leaving it out understates
+ * margin on every order that doesn't bake shipping into the unit price.
+ */
 export function orderEconomics(args: {
   quantity: number;
   unitPrice: number;
   unitCost: number;
   shipping: number;
+  shippingCharged?: number;
   other?: number;
 }): OrderEconomics {
-  const revenue = round2(args.quantity * args.unitPrice);
+  const sales = round2(args.quantity * args.unitPrice);
+  const shippingCharged = round2(args.shippingCharged || 0);
+  const revenue = round2(sales + shippingCharged);
   const cogs = round2(args.quantity * args.unitCost);
   const shipping = round2(args.shipping || 0);
   const other = round2(args.other || 0);
   const profit = round2(revenue - cogs - shipping - other);
   const marginPct = revenue > 0 ? (profit / revenue) * 100 : null;
-  return { revenue, cogs, shipping, other, profit, marginPct };
+  return { sales, shippingCharged, revenue, cogs, shipping, other, profit, marginPct };
 }
 
 /** Sum a list of order economics into a single roll-up. */
 export function sumEconomics(parts: OrderEconomics[]): OrderEconomics {
   const acc = parts.reduce(
     (a, p) => ({
+      sales: a.sales + p.sales,
+      shippingCharged: a.shippingCharged + p.shippingCharged,
       revenue: a.revenue + p.revenue,
       cogs: a.cogs + p.cogs,
       shipping: a.shipping + p.shipping,
@@ -105,8 +119,11 @@ export function sumEconomics(parts: OrderEconomics[]): OrderEconomics {
       profit: a.profit + p.profit,
       marginPct: null,
     }),
-    { revenue: 0, cogs: 0, shipping: 0, other: 0, profit: 0, marginPct: null as number | null },
+    { sales: 0, shippingCharged: 0, revenue: 0, cogs: 0, shipping: 0, other: 0, profit: 0,
+      marginPct: null as number | null },
   );
+  acc.sales = round2(acc.sales);
+  acc.shippingCharged = round2(acc.shippingCharged);
   acc.revenue = round2(acc.revenue);
   acc.cogs = round2(acc.cogs);
   acc.shipping = round2(acc.shipping);

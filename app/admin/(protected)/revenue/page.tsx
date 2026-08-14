@@ -9,7 +9,8 @@ const n = (v: string): number => {
 };
 
 interface Econ {
-  revenue: number; cogs: number; shipping: number; other: number; profit: number; marginPct: number | null;
+  sales: number; shippingCharged: number; revenue: number;
+  cogs: number; shipping: number; other: number; profit: number; marginPct: number | null;
 }
 interface Order {
   id: number;
@@ -21,6 +22,7 @@ interface Order {
   unitPrice: number;
   unitCost: number;
   shippingCost: number;
+  shippingCharged: number;
   otherCost: number;
   status: string;
   orderedAt: string;
@@ -47,6 +49,7 @@ interface Draft {
   unitPrice: string;
   unitCost: string;
   shipping: string;
+  shipCharged: string;
   other: string;
   status: string;
   orderedAt: string;
@@ -74,6 +77,7 @@ const draftFrom = (o: Order): Draft => ({
   unitPrice: String(o.unitPrice),
   unitCost: String(o.unitCost),
   shipping: String(o.shippingCost),
+  shipCharged: String(o.shippingCharged),
   other: String(o.otherCost),
   status: o.status,
   orderedAt: o.orderedAt,
@@ -99,6 +103,7 @@ export default function RevenuePage() {
   const [unitPrice, setUnitPrice] = useState('');
   const [unitCost, setUnitCost] = useState('');
   const [shipping, setShipping] = useState('');
+  const [shipCharged, setShipCharged] = useState('');
   const [other, setOther] = useState('');
   const [status, setStatus] = useState('confirmed');
   const [orderedAt, setOrderedAt] = useState(today());
@@ -162,6 +167,7 @@ export default function RevenuePage() {
     unitPrice: n(unitPrice),
     unitCost: n(unitCost),
     shipping: n(shipping),
+    shippingCharged: n(shipCharged),
     other: n(other),
   });
 
@@ -173,13 +179,18 @@ export default function RevenuePage() {
         unitPrice: n(edit.unitPrice),
         unitCost: n(edit.unitCost),
         shipping: n(edit.shipping),
+        shippingCharged: n(edit.shipCharged),
         other: n(edit.other),
       })
     : null;
 
+  // Shipping billed minus shipping paid: positive means it pays for itself.
+  const shipNet = summary ? round2(summary.shippingCharged - summary.shipping) : 0;
+
   function resetForm() {
     setProspectId(''); setProductId(''); setQuantity('100'); setUnitPrice(''); setUnitCost('');
-    setShipping(''); setOther(''); setStatus('confirmed'); setOrderedAt(today()); setNotes('');
+    setShipping(''); setShipCharged(''); setOther(''); setStatus('confirmed');
+    setOrderedAt(today()); setNotes('');
     setPriceTouched(false); setShipTouched(false); setCostTouched(false);
   }
 
@@ -202,6 +213,7 @@ export default function RevenuePage() {
           unitPrice: n(unitPrice),
           unitCost: n(unitCost),
           shippingCost: n(shipping),
+          shippingCharged: n(shipCharged),
           otherCost: n(other),
           status,
           orderedAt,
@@ -287,6 +299,7 @@ export default function RevenuePage() {
           unitPrice: n(edit.unitPrice),
           unitCost: n(edit.unitCost),
           shippingCost: n(edit.shipping),
+          shippingCharged: n(edit.shipCharged),
           otherCost: n(edit.other),
           status: edit.status,
           orderedAt: edit.orderedAt,
@@ -343,21 +356,36 @@ export default function RevenuePage() {
             <div className="stat"><span className={`stat-n ${summary.profit < 0 ? 'neg' : 'pos'}`}>{usd(summary.profit)}</span><span className="stat-l">Profit</span></div>
             <div className="stat"><span className="stat-n">{pct(summary.marginPct)}</span><span className="stat-l">Margin</span></div>
             <div className="stat"><span className="stat-n">{usd(summary.cogs)}</span><span className="stat-l">COGS</span></div>
-            <div className="stat"><span className="stat-n">{usd(summary.shipping)}</span><span className="stat-l">Shipping</span></div>
+            <div className="stat"><span className="stat-n">{usd(summary.shipping)}</span><span className="stat-l">Shipping cost</span></div>
+            <div className="stat"><span className="stat-n">{usd(summary.shippingCharged)}</span><span className="stat-l">Shipping charged</span></div>
             <div className="stat"><span className="stat-n">{usd(summary.other)}</span><span className="stat-l">Other costs</span></div>
             <div className="stat"><span className="stat-n">{summary.unitsSold.toLocaleString()}</span><span className="stat-l">Units sold</span></div>
             <div className="stat"><span className="stat-n">{summary.orderCount}</span><span className="stat-l">Orders</span></div>
           </div>
 
-          {/* Spell the profit out. Every cost that moves it is on this line, so
+          {/* Spell the profit out. Every amount that moves it is on this line, so
               the number can be checked by eye instead of taken on faith. */}
           <p className="fin-reconcile">
-            <span>{usd(summary.revenue)} revenue</span>
+            <span>{usd(summary.sales)} sales</span>
+            <span>+ {usd(summary.shippingCharged)} shipping charged</span>
             <span>− {usd(summary.cogs)} COGS</span>
-            <span>− {usd(summary.shipping)} shipping</span>
+            <span>− {usd(summary.shipping)} shipping cost</span>
             <span>− {usd(summary.other)} other</span>
             <span className="eq">= <strong className={summary.profit < 0 ? 'neg' : 'pos'}>{usd(summary.profit)}</strong> profit</span>
           </p>
+
+          {/* Shipping is the one line that can quietly run at a loss. */}
+          {(summary.shippingCharged > 0 || summary.shipping > 0) && (
+            <p className="fin-note">
+              {shipNet === 0 ? (
+                'Shipping breaks even — customers were billed exactly what it cost.'
+              ) : shipNet > 0 ? (
+                <>Shipping earns <strong className="pos">{usd(shipNet)}</strong> more than it costs.</>
+              ) : (
+                <>Shipping costs you <strong className="neg">{usd(-shipNet)}</strong> beyond what customers were billed.</>
+              )}
+            </p>
+          )}
         </>
       )}
 
@@ -386,9 +414,12 @@ export default function RevenuePage() {
             <label className="fld">Unit cost (COGS)
               <input type="number" step="0.01" min="0" value={unitCost}
                 onChange={(e) => { setUnitCost(e.target.value); setCostTouched(true); }} placeholder="2.50" /></label>
-            <label className="fld">Shipping (total)
+            <label className="fld">Shipping cost (you pay)
               <input type="number" step="0.01" min="0" value={shipping}
                 onChange={(e) => { setShipping(e.target.value); setShipTouched(true); }} placeholder="0" /></label>
+            <label className="fld">Shipping charged (customer pays)
+              <input type="number" step="0.01" min="0" value={shipCharged}
+                onChange={(e) => setShipCharged(e.target.value)} placeholder="0" /></label>
             <label className="fld">Other cost
               <input type="number" step="0.01" min="0" value={other} onChange={(e) => setOther(e.target.value)} placeholder="0" /></label>
             <label className="fld">Status
@@ -403,9 +434,11 @@ export default function RevenuePage() {
           </div>
 
           <div className="order-econ">
+            <div><span>Sales</span><strong>{usd(econ.sales)}</strong></div>
+            <div><span>Ship charged</span><strong>{usd(econ.shippingCharged)}</strong></div>
             <div><span>Revenue</span><strong>{usd(econ.revenue)}</strong></div>
             <div><span>COGS</span><strong>{usd(econ.cogs)}</strong></div>
-            <div><span>Shipping</span><strong>{usd(econ.shipping)}</strong></div>
+            <div><span>Ship cost</span><strong>{usd(econ.shipping)}</strong></div>
             <div><span>Other</span><strong>{usd(econ.other)}</strong></div>
             <div><span>Profit</span><strong className={econ.profit < 0 ? 'neg' : 'pos'}>{usd(econ.profit)}</strong></div>
             <div><span>Margin</span><strong>{pct(econ.marginPct)}</strong></div>
@@ -486,9 +519,12 @@ export default function RevenuePage() {
               <label className="fld">Unit cost (COGS)
                 <input type="number" step="0.01" min="0" value={edit.unitCost}
                   onChange={(e) => setEdit({ ...edit, unitCost: e.target.value })} /></label>
-              <label className="fld">Shipping (total)
+              <label className="fld">Shipping cost (you pay)
                 <input type="number" step="0.01" min="0" value={edit.shipping}
                   onChange={(e) => setEdit({ ...edit, shipping: e.target.value })} /></label>
+              <label className="fld">Shipping charged (customer pays)
+                <input type="number" step="0.01" min="0" value={edit.shipCharged}
+                  onChange={(e) => setEdit({ ...edit, shipCharged: e.target.value })} /></label>
               <label className="fld">Other cost
                 <input type="number" step="0.01" min="0" value={edit.other}
                   onChange={(e) => setEdit({ ...edit, other: e.target.value })} /></label>
@@ -507,9 +543,11 @@ export default function RevenuePage() {
 
             {editEcon && (
               <div className="order-econ">
+                <div><span>Sales</span><strong>{usd(editEcon.sales)}</strong></div>
+                <div><span>Ship charged</span><strong>{usd(editEcon.shippingCharged)}</strong></div>
                 <div><span>Revenue</span><strong>{usd(editEcon.revenue)}</strong></div>
                 <div><span>COGS</span><strong>{usd(editEcon.cogs)}</strong></div>
-                <div><span>Shipping</span><strong>{usd(editEcon.shipping)}</strong></div>
+                <div><span>Ship cost</span><strong>{usd(editEcon.shipping)}</strong></div>
                 <div><span>Other</span><strong>{usd(editEcon.other)}</strong></div>
                 <div><span>Profit</span><strong className={editEcon.profit < 0 ? 'neg' : 'pos'}>{usd(editEcon.profit)}</strong></div>
                 <div><span>Margin</span><strong>{pct(editEcon.marginPct)}</strong></div>
@@ -532,9 +570,11 @@ export default function RevenuePage() {
         ) : (
           <div className="table-wrap">
             <table className="data-table compact orders-table">
+              {/* Sales is left out on purpose — it is Qty × Unit $, and the row
+                  still reconciles: Revenue − COGS − Ship cost − Other = Profit. */}
               <thead><tr><th>Date</th><th>Customer</th><th>Product</th><th>Qty</th><th>Unit $</th>
-                <th>Revenue</th><th>COGS</th><th>Ship</th><th>Other</th><th>Profit</th><th>Margin</th>
-                <th>Status</th><th className="row-actions"></th></tr></thead>
+                <th>Ship charged</th><th>Revenue</th><th>COGS</th><th>Ship cost</th><th>Other</th>
+                <th>Profit</th><th>Margin</th><th>Status</th><th className="row-actions"></th></tr></thead>
               <tbody>
                 {orders.map((o) => (
                   <tr key={o.id} className={edit?.id === o.id ? 'row-editing' : undefined}>
@@ -543,6 +583,7 @@ export default function RevenuePage() {
                     <td className="muted">{o.productName || '—'}</td>
                     <td>{o.quantity.toLocaleString()}</td>
                     <td>{usd(o.unitPrice)}</td>
+                    <td className="muted">{usd(o.econ.shippingCharged)}</td>
                     <td>{usd(o.econ.revenue)}</td>
                     <td className="muted">{usd(o.econ.cogs)}</td>
                     <td className="muted">{usd(o.econ.shipping)}</td>

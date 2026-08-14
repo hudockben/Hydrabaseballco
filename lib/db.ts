@@ -99,6 +99,7 @@ export function ensureSchema(): Promise<void> {
         unit_price    numeric(12, 2) not null default 0,
         unit_cost     numeric(12, 2) not null default 0,
         shipping_cost numeric(12, 2) not null default 0,
+        shipping_charged numeric(12, 2) not null default 0,
         other_cost    numeric(12, 2) not null default 0,
         status        text not null default 'confirmed'
                       check (status in ('quote', 'confirmed', 'fulfilled', 'paid')),
@@ -149,6 +150,10 @@ export function ensureSchema(): Promise<void> {
       await optional(() => sql`alter table customers add column if not exists tier_override text`);
       await optional(() => sql`alter table customers add column if not exists last_contacted timestamptz`);
       await optional(() => sql`alter table customers add column if not exists enriched_at timestamptz`);
+
+      // Orders that predate shipping being billable to the customer.
+      await optional(() => sql`alter table orders add column if not exists
+        shipping_charged numeric(12, 2) not null default 0`);
 
       // Older `prospects` tables (Coach column + High School type).
       await optional(() => sql`alter table prospects add column if not exists contact_name text`);

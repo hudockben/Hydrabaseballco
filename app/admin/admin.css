@@ -816,6 +816,17 @@
 .fin-reconcile .eq {
   color: var(--text);
 }
+.fin-note {
+  margin: -14px 0 22px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.fin-note strong.pos {
+  color: var(--green);
+}
+.fin-note strong.neg {
+  color: var(--red);
+}
 .fin-reconcile strong {
   font-size: 1rem;
 }

@@ -12,7 +12,7 @@ async function getFinance() {
     const sql = await db();
     const rows = (await sql`
       select
-        coalesce(sum(quantity * unit_price), 0) as revenue,
+        coalesce(sum(quantity * unit_price + shipping_charged), 0) as revenue,
         coalesce(sum(quantity * unit_cost), 0)  as cogs,
         coalesce(sum(shipping_cost), 0)          as shipping,
         coalesce(sum(other_cost), 0)             as other,

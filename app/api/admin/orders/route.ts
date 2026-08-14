@@ -24,6 +24,7 @@ interface OrderOut {
   unitPrice: number;
   unitCost: number;
   shippingCost: number;
+  shippingCharged: number;
   otherCost: number;
   status: string;
   orderedAt: string;
@@ -36,6 +37,7 @@ function mapOrder(r: Row): OrderOut {
   const unitPrice = num(r.unit_price);
   const unitCost = num(r.unit_cost);
   const shippingCost = num(r.shipping_cost);
+  const shippingCharged = num(r.shipping_charged);
   const otherCost = num(r.other_cost);
   return {
     id: Number(r.id),
@@ -47,11 +49,14 @@ function mapOrder(r: Row): OrderOut {
     unitPrice,
     unitCost,
     shippingCost,
+    shippingCharged,
     otherCost,
     status: String(r.status ?? 'confirmed'),
     orderedAt: r.ordered_at instanceof Date ? r.ordered_at.toISOString().slice(0, 10) : String(r.ordered_at),
     notes: (r.notes as string) ?? null,
-    econ: orderEconomics({ quantity, unitPrice, unitCost, shipping: shippingCost, other: otherCost }),
+    econ: orderEconomics({
+      quantity, unitPrice, unitCost, shipping: shippingCost, shippingCharged, other: otherCost,
+    }),
   };
 }
 
@@ -154,10 +159,11 @@ export async function POST(req: NextRequest) {
     const rows = (await sql`
       insert into orders
         (prospect_id, product_id, customer_name, quantity, unit_price, unit_cost,
-         shipping_cost, other_cost, status, ordered_at, notes)
+         shipping_cost, shipping_charged, other_cost, status, ordered_at, notes)
       values
         (${prospectId}, ${productId}, ${customerName}, ${quantity}, ${num(body.unitPrice)},
-         ${unitCost ?? 0}, ${num(body.shippingCost)}, ${num(body.otherCost)}, ${status},
+         ${unitCost ?? 0}, ${num(body.shippingCost)}, ${num(body.shippingCharged)},
+         ${num(body.otherCost)}, ${status},
          coalesce(${body.orderedAt ? String(body.orderedAt) : null}::date, current_date),
          ${body.notes ? String(body.notes) : null})
       returning id`) as Row[];
@@ -206,6 +212,7 @@ export async function PATCH(req: NextRequest) {
         unit_price    = case when ${sent('unitPrice')}::boolean   then ${money(body.unitPrice)}::numeric   else o.unit_price end,
         unit_cost     = case when ${sent('unitCost')}::boolean    then ${money(body.unitCost)}::numeric    else o.unit_cost end,
         shipping_cost = case when ${sent('shippingCost')}::boolean then ${money(body.shippingCost)}::numeric else o.shipping_cost end,
+        shipping_charged = case when ${sent('shippingCharged')}::boolean then ${money(body.shippingCharged)}::numeric else o.shipping_charged end,
         other_cost    = case when ${sent('otherCost')}::boolean   then ${money(body.otherCost)}::numeric   else o.other_cost end,
         customer_name = case when ${sent('customerName')}::boolean then ${textOrNull(body.customerName)}::text else o.customer_name end,
         notes         = case when ${sent('notes')}::boolean       then ${textOrNull(body.notes)}::text     else o.notes end,
