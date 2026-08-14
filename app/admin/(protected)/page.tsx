@@ -21,7 +21,8 @@ async function getFinance() {
     const r = rows[0];
     const revenue = round2(Number(r.revenue));
     const profit = round2(revenue - Number(r.cogs) - Number(r.shipping) - Number(r.other));
-    const marginPct = revenue > 0 ? round2((profit / revenue) * 100) : null;
+    // Unrounded — `pct()` does the only rounding, at one decimal.
+    const marginPct = revenue > 0 ? (profit / revenue) * 100 : null;
     return { revenue, profit, marginPct, orders: r.orders };
   } catch {
     return null;

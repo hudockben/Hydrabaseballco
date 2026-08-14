@@ -33,6 +33,12 @@ export interface OrderEconomics {
 /** Round to whole cents. Keeps display + sums free of float dust. */
 export const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
 
+// Percentages below are returned unrounded on purpose. `pct()` renders them to
+// one decimal, so rounding to two here would round twice and overstate the
+// result: 14.0465% -> round2 -> 14.05 -> toFixed(1) -> "14.1%" when the honest
+// answer is 14.0%. Money still rounds to cents; percentages round once, at the
+// point of display.
+
 /**
  * Unit price needed to hit a target gross margin, given the all-in unit cost.
  * margin is a percentage (0–100). Returns null for an impossible target (>=100%).
@@ -46,13 +52,13 @@ export function priceForMargin(landedUnitCost: number, marginPct: number): numbe
 /** Gross margin % for a given price and all-in unit cost. Null if price <= 0. */
 export function marginFromPrice(unitPrice: number, landedUnitCost: number): number | null {
   if (!(unitPrice > 0)) return null;
-  return round2(((unitPrice - landedUnitCost) / unitPrice) * 100);
+  return ((unitPrice - landedUnitCost) / unitPrice) * 100;
 }
 
 /** Markup % (profit over cost) for a given price and cost. Null if cost <= 0. */
 export function markupFromPrice(unitPrice: number, landedUnitCost: number): number | null {
   if (!(landedUnitCost > 0)) return null;
-  return round2(((unitPrice - landedUnitCost) / landedUnitCost) * 100);
+  return ((unitPrice - landedUnitCost) / landedUnitCost) * 100;
 }
 
 /**
@@ -84,7 +90,7 @@ export function orderEconomics(args: {
   const shipping = round2(args.shipping || 0);
   const other = round2(args.other || 0);
   const profit = round2(revenue - cogs - shipping - other);
-  const marginPct = revenue > 0 ? round2((profit / revenue) * 100) : null;
+  const marginPct = revenue > 0 ? (profit / revenue) * 100 : null;
   return { revenue, cogs, shipping, other, profit, marginPct };
 }
 
@@ -106,7 +112,7 @@ export function sumEconomics(parts: OrderEconomics[]): OrderEconomics {
   acc.shipping = round2(acc.shipping);
   acc.other = round2(acc.other);
   acc.profit = round2(acc.profit);
-  acc.marginPct = acc.revenue > 0 ? round2((acc.profit / acc.revenue) * 100) : null;
+  acc.marginPct = acc.revenue > 0 ? (acc.profit / acc.revenue) * 100 : null;
   return acc;
 }
 

@@ -780,6 +780,113 @@
   font-size: 1.15rem;
   color: var(--text);
 }
+.order-econ strong.pos {
+  color: var(--green);
+}
+.order-econ strong.neg {
+  color: var(--red);
+}
+
+/* Which statuses feed the totals */
+.count-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.count-bar select {
+  width: auto;
+  min-width: 240px;
+}
+.count-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Profit spelled out as an equation under the stat tiles */
+.fin-reconcile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.fin-reconcile .eq {
+  color: var(--text);
+}
+.fin-reconcile strong {
+  font-size: 1rem;
+}
+.fin-reconcile strong.pos {
+  color: var(--green);
+}
+.fin-reconcile strong.neg {
+  color: var(--red);
+}
+
+/* The orders table carries every cost line, so it is wide enough to scroll.
+   Pin the actions to the right edge — Edit must stay reachable without
+   scrolling to the end of the row. */
+/* Thirteen columns of finance detail: trim the gutters so the whole row fits
+   on a normal desktop, and let it scroll below that. */
+.orders-table th,
+.orders-table td {
+  padding: 8px 7px;
+}
+.orders-table .status {
+  padding: 4px 6px;
+  font-size: 0.82rem;
+}
+.orders-table .row-actions {
+  gap: 6px;
+}
+.orders-table td.row-actions,
+.orders-table th.row-actions {
+  position: sticky;
+  right: 0;
+  /* The table uses border-collapse, which leaves sticky cells painting below
+     their siblings in Chrome unless they are given a stacking order. */
+  z-index: 2;
+  background: var(--ink-2);
+  box-shadow: inset 1px 0 0 var(--line);
+}
+.orders-table tbody tr:hover td.row-actions {
+  background: #212129;
+}
+
+/* Order editor — sits above the orders table while a row is being edited */
+.order-edit {
+  background: var(--ink);
+  border: 1px solid rgba(200, 150, 106, 0.4);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.order-edit-head {
+  color: var(--bronze);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.order-edit .order-econ {
+  background: var(--ink-2);
+}
+.order-edit .prod-form-actions {
+  justify-content: flex-end;
+}
+.order-edit .prod-form-actions .mini-btn {
+  margin-right: auto;
+}
+.orders-table tr.row-editing > td {
+  background: rgba(200, 150, 106, 0.08);
+}
+.orders-table tr.row-editing > td.row-actions {
+  background: #2a2420;
+}
 
 .fin-split {
   display: grid;

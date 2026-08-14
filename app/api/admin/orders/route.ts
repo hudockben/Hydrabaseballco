@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orderEconomics, sumEconomics, type OrderEconomics } from '@/lib/finance';
+import { orderEconomics, round2, sumEconomics, type OrderEconomics } from '@/lib/finance';
 
 export const dynamic = 'force-dynamic';
 
 type Row = Record<string, unknown>;
+
+const STATUSES = ['quote', 'confirmed', 'fulfilled', 'paid'];
 
 const num = (v: unknown, d = 0): number => {
   const n = Number(v);
@@ -53,8 +55,22 @@ function mapOrder(r: Row): OrderOut {
   };
 }
 
-export async function GET() {
+/**
+ * Which statuses roll into the headline totals. A quote is not money in the
+ * door, so counting one as booked revenue overstates the business — but which
+ * line is "real" depends on how you run the books, hence the choice.
+ */
+const COUNTING: Record<string, string[] | null> = {
+  all: null, // every order, quotes included
+  booked: ['confirmed', 'fulfilled', 'paid'],
+  paid: ['paid'],
+};
+
+export async function GET(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const param = new URL(req.url).searchParams.get('counting') ?? 'all';
+  const counting = Object.prototype.hasOwnProperty.call(COUNTING, param) ? param : 'all';
+  const countedStatuses = COUNTING[counting];
   try {
     const sql = await db();
     const rows = (await sql`
@@ -66,13 +82,15 @@ export async function GET() {
       limit 2000`) as Row[];
     const orders = rows.map(mapOrder);
 
-    const totals = sumEconomics(orders.map((o) => o.econ));
-    const unitsSold = orders.reduce((s, o) => s + o.quantity, 0);
+    // The table always lists every order; only the roll-ups respect `counting`.
+    const counted = countedStatuses ? orders.filter((o) => countedStatuses.includes(o.status)) : orders;
+    const totals = sumEconomics(counted.map((o) => o.econ));
+    const unitsSold = counted.reduce((s, o) => s + o.quantity, 0);
 
     // Break down by product and by month for quick read-outs.
     const byProductMap = new Map<string, { name: string; econ: OrderEconomics[]; units: number }>();
     const byMonthMap = new Map<string, OrderEconomics[]>();
-    for (const o of orders) {
+    for (const o of counted) {
       const pk = o.productName ?? '— unassigned —';
       const pg = byProductMap.get(pk) ?? { name: pk, econ: [], units: 0 };
       pg.econ.push(o.econ);
@@ -93,7 +111,15 @@ export async function GET() {
 
     return NextResponse.json({
       orders,
-      summary: { ...totals, unitsSold, orderCount: orders.length, byProduct, byMonth },
+      summary: {
+        ...totals,
+        unitsSold,
+        orderCount: counted.length,
+        counting,
+        excludedCount: orders.length - counted.length,
+        byProduct,
+        byMonth,
+      },
     });
   } catch (err) {
     console.error('orders GET error', err);
@@ -106,7 +132,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const quantity = Math.max(0, Math.floor(num(body.quantity)));
   if (!quantity) return NextResponse.json({ error: 'Enter a quantity.' }, { status: 400 });
-  const status = ['quote', 'confirmed', 'fulfilled', 'paid'].includes(body.status) ? body.status : 'confirmed';
+  const status = STATUSES.includes(body.status) ? body.status : 'confirmed';
   try {
     const sql = await db();
     const prospectId = body.prospectId ? Number(body.prospectId) : null;
@@ -147,21 +173,52 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+
+  // Every field is optional and independent: the status dropdown patches
+  // `status` alone, the edit form sends the whole order. Each column is written
+  // only when its key is present, so an omitted field keeps its stored value
+  // while an explicit `null` clears a nullable one — a distinction `coalesce`
+  // can't make, which is why the writes below are `case when <sent> then …`.
+  const sent = (k: string) => Object.prototype.hasOwnProperty.call(body, k);
+  const money = (v: unknown) => Math.max(0, round2(num(v)));
+  const idOrNull = (v: unknown) => (v == null || v === '' ? null : Number(v) || null);
+  const textOrNull = (v: unknown) => {
+    const s = v == null ? '' : String(v).trim();
+    return s ? s : null;
+  };
+
+  if (sent('status') && !STATUSES.includes(body.status)) {
+    return NextResponse.json({ error: 'Unknown status.' }, { status: 400 });
+  }
+  const quantity = sent('quantity') ? Math.max(0, Math.floor(num(body.quantity))) : 0;
+  if (sent('quantity') && !quantity) return NextResponse.json({ error: 'Enter a quantity.' }, { status: 400 });
+  const orderedAt = sent('orderedAt') ? String(body.orderedAt ?? '') : '';
+  if (sent('orderedAt') && !/^\d{4}-\d{2}-\d{2}$/.test(orderedAt)) {
+    return NextResponse.json({ error: 'Enter the date as YYYY-MM-DD.' }, { status: 400 });
+  }
+
   try {
     const sql = await db();
-    const status = ['quote', 'confirmed', 'fulfilled', 'paid'].includes(body.status) ? body.status : null;
-    await sql`
-      update orders set
-        status = coalesce(${status}, status),
-        quantity = coalesce(${body.quantity != null ? Math.floor(num(body.quantity)) : null}, quantity),
-        unit_price = coalesce(${body.unitPrice != null ? num(body.unitPrice) : null}, unit_price),
-        unit_cost = coalesce(${body.unitCost != null ? num(body.unitCost) : null}, unit_cost),
-        shipping_cost = coalesce(${body.shippingCost != null ? num(body.shippingCost) : null}, shipping_cost),
-        other_cost = coalesce(${body.otherCost != null ? num(body.otherCost) : null}, other_cost),
-        notes = coalesce(${body.notes != null ? String(body.notes) : null}, notes),
-        updated_at = now()
-      where id = ${id}`;
-    return NextResponse.json({ ok: true });
+    const rows = (await sql`
+      update orders o set
+        status        = case when ${sent('status')}::boolean      then ${body.status ?? null}::text        else o.status end,
+        quantity      = case when ${sent('quantity')}::boolean    then ${quantity}::int                    else o.quantity end,
+        unit_price    = case when ${sent('unitPrice')}::boolean   then ${money(body.unitPrice)}::numeric   else o.unit_price end,
+        unit_cost     = case when ${sent('unitCost')}::boolean    then ${money(body.unitCost)}::numeric    else o.unit_cost end,
+        shipping_cost = case when ${sent('shippingCost')}::boolean then ${money(body.shippingCost)}::numeric else o.shipping_cost end,
+        other_cost    = case when ${sent('otherCost')}::boolean   then ${money(body.otherCost)}::numeric   else o.other_cost end,
+        customer_name = case when ${sent('customerName')}::boolean then ${textOrNull(body.customerName)}::text else o.customer_name end,
+        notes         = case when ${sent('notes')}::boolean       then ${textOrNull(body.notes)}::text     else o.notes end,
+        product_id    = case when ${sent('productId')}::boolean   then ${idOrNull(body.productId)}::bigint else o.product_id end,
+        prospect_id   = case when ${sent('prospectId')}::boolean  then ${idOrNull(body.prospectId)}::bigint else o.prospect_id end,
+        ordered_at    = case when ${sent('orderedAt')}::boolean   then ${orderedAt || null}::date          else o.ordered_at end,
+        updated_at    = now()
+      where o.id = ${id}
+      returning o.*,
+        (select name from products where id = o.product_id)  as product_name,
+        (select name from prospects where id = o.prospect_id) as prospect_name`) as Row[];
+    if (!rows.length) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+    return NextResponse.json({ ok: true, order: mapOrder(rows[0]) });
   } catch (err) {
     console.error('orders PATCH error', err);
     return NextResponse.json({ error: 'Update failed.' }, { status: 500 });
