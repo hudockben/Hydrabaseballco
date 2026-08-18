@@ -1,6 +1,6 @@
 # Crew photos
 
-Headshots for the **Our Crew** section on the landing page. Drop a file in
+Headshots for the **Front Office** section on the landing page. Drop a file in
 here and point the person's `photo` at it in the `TEAM` list at the top of
 `app/page.tsx` — that list is the only place the roster is edited.
 

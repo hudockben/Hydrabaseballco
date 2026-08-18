@@ -34,7 +34,7 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
 | `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
 | `tray-plus.jpg` | _Currently unused_ | `hero-6.jpg` with the front-centre ball swapped for the A1492+, and the phone screenshot's black bands cropped off. Built by `tools/make-tray-plus.py`. Drop it in for `hero-6.jpg` in `.difference__media` to put the game ball in that panel. |
-| `team/*.jpg` | "Our Crew" | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). See `team/README.md` — the roster itself lives in the `TEAM` list in `app/page.tsx`. |
+| `team/*.jpg` | "Front Office" | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). See `team/README.md` — the roster itself lives in the `TEAM` list in `app/page.tsx`. |
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3

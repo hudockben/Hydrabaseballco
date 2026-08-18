@@ -132,6 +132,12 @@ ul { list-style: none; }
   background: #fff;
   border-bottom: 1px solid var(--line);
 }
+/* The one row on the site that runs wider than the 1200px content column:
+   eight links, the logo and the button don't fit in it, and the alternative
+   was shrinking the nav type for everyone. 80px of extra width at the widest
+   screens sets the logo and the button just outside the column the sections
+   below line up on. */
+.site-header .container { max-width: 1280px; }
 .site-header__inner {
   display: flex;
   align-items: center;
@@ -146,11 +152,13 @@ ul { list-style: none; }
      that stands in for it, and the header is what breaks if the stand-in
      doesn't fit. Measured in the stand-in, the eight labels at this gap plus
      the logo, the two 24px gaps around the nav and the header button come to
-     1137px of the 1144px a full-width container gives — 7px of slack, which
-     is what sets both this gap and the breakpoint below. A ninth link, or a
-     label much longer than these, needs the gap, the header button or the
-     container to give; that's why this one reads "Crew" and not "Our Team". */
-  gap: 22px;
+     1189px — which the 1200px content column can't hold, hence the wider
+     header container above, and which sets the breakpoint below at 1250px.
+     In Saira the same row measures 907px, so what's tuned here is the state
+     a first-time visitor sees for a moment, not the finished one. A ninth
+     link, or a label longer than "Front Office", needs this gap, the header
+     button or that container to give again. */
+  gap: 18px;
   margin-left: auto;
 }
 .site-nav a {
@@ -482,19 +490,19 @@ ul { list-style: none; }
 }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
-/* ---------- Our Crew ---------- */
+/* ---------- Front Office ---------- */
 /* Sits between the cream Hydra Difference panel and the dark customizer, so
    the roster runs on white and the rhythm cream → white → dark holds. */
-.crew { background: var(--paper); padding: clamp(60px, 8vw, 104px) 0; }
-.crew__head { max-width: 640px; margin: 0 auto; text-align: center; }
-.crew__title { color: var(--text); }
-.crew__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
-.crew__lead { color: var(--muted); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
+.office { background: var(--paper); padding: clamp(60px, 8vw, 104px) 0; }
+.office__head { max-width: 640px; margin: 0 auto; text-align: center; }
+.office__title { color: var(--text); }
+.office__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.office__lead { color: var(--muted); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
 
 /* Cards keep a headshot's width rather than stretching to fill the row, so a
    roster of two reads as two people and not as two billboards; the track
    centres whatever the count is and reflows as the roster grows. */
-.crew__grid {
+.office__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 250px));
   justify-content: center;
@@ -569,7 +577,7 @@ ul { list-style: none; }
 .member__email:hover { color: var(--red); border-color: var(--red); }
 /* Until the roster lands, the tab still leads somewhere — the same
    "Coming Soon" note the apparel section runs on. */
-.crew__empty {
+.office__empty {
   margin: clamp(30px, 4vw, 44px) auto 0;
   text-align: center;
   font-family: var(--display);
@@ -1010,11 +1018,11 @@ ul { list-style: none; }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ---------- Responsive ---------- */
-/* The eight-link row needs the full-width container (1144px of content) to
-   hold everything, so it hands over to the menu button as soon as the
-   container starts shrinking — below 1200px the row would be squeezing the
-   logo rather than merely tightening up. */
-@media (max-width: 1200px) {
+/* The eight-link row needs 1189px of content to hold everything in the
+   stand-in font (see .site-nav), which is 1245px of viewport once the
+   container's padding is counted — so it hands over to the menu button just
+   below that rather than squeezing the logo out of the row. */
+@media (max-width: 1250px) {
   .site-nav {
     position: fixed;
     inset: var(--header-h) 0 auto 0;
@@ -1071,10 +1079,10 @@ ul { list-style: none; }
   .proof { gap: 10px; margin-top: 32px; padding-top: 28px; }
   .proof__cap { font-size: 0.6rem; letter-spacing: 0.08em; }
   .grades__list { grid-template-columns: 1fr; gap: 20px; }
-  /* Two crew cards across rather than one — a roster stacked single-file
+  /* Two cards across rather than one — a roster stacked single-file
      turns into a very long scroll, and the headshots read as a lineup the
      way the shots above them do. */
-  .crew__grid { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 20px; }
+  .office__grid { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 20px; }
   .member__name { font-size: 1.08rem; }
   .member__bio { font-size: 0.88rem; }
   .member__initials { font-size: 2.1rem; }

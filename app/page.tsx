@@ -111,7 +111,7 @@ const PANTONE_INKS: { id: string; name: string; hex: string }[] = [
   { id: '476-c', name: 'PANTONE 476 C', hex: '#4E3629' },
 ];
 
-/* The people behind the ball, in the order they show under "Our Crew". A card
+/* The people behind the ball, in the order they show under "Front Office". A card
    needs a name and a role and nothing else — every other field is simply left
    off the card when it isn't set, so someone can go up with a name and a title
    the day they start and gain a photo and a bio later.
@@ -183,7 +183,7 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
-            <a href="#crew">Crew</a>
+            <a href="#front-office">Front Office</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
@@ -447,21 +447,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Our Crew ===== */}
-      <section className="crew" id="crew">
+      {/* ===== Front Office ===== */}
+      <section className="office" id="front-office">
         <div className="container">
-          <div className="crew__head reveal">
-            <span className="eyebrow eyebrow--red">Our Crew</span>
-            <h2 className="section-title crew__title">The People Behind The Ball</h2>
-            <span className="crew__rule" aria-hidden="true"></span>
-            <p className="crew__lead">
+          <div className="office__head reveal">
+            <span className="eyebrow eyebrow--red">Front Office</span>
+            <h2 className="section-title office__title">The People Behind The Ball</h2>
+            <span className="office__rule" aria-hidden="true"></span>
+            <p className="office__lead">
               Hydra is run by players. When you order a run, these are the people you&rsquo;re
               dealing with &mdash; no call center, no middlemen.
             </p>
           </div>
 
           {TEAM.length > 0 ? (
-            <ul className="crew__grid reveal">
+            <ul className="office__grid reveal">
               {TEAM.map((member) => (
                 <li className="member" key={member.id}>
                   {/* The shot rides in on a custom property so the gradient
@@ -492,7 +492,7 @@ export default function HomePage() {
               ))}
             </ul>
           ) : (
-            <p className="crew__empty reveal">Roster coming soon&hellip;</p>
+            <p className="office__empty reveal">Roster coming soon&hellip;</p>
           )}
         </div>
       </section>
@@ -848,7 +848,7 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
-            <a href="#crew">Crew</a>
+            <a href="#front-office">Front Office</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
