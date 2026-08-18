@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import Script from 'next/script';
 
 /* ---- Inline icons (stroke = currentColor) ---- */
@@ -110,6 +111,51 @@ const PANTONE_INKS: { id: string; name: string; hex: string }[] = [
   { id: '476-c', name: 'PANTONE 476 C', hex: '#4E3629' },
 ];
 
+/* The people behind the ball, in the order they show under "Our Crew". A card
+   needs a name and a role and nothing else — every other field is simply left
+   off the card when it isn't set, so someone can go up with a name and a title
+   the day they start and gain a photo and a bio later.
+
+   `photo` is a file under public/images/team/ (see that folder's README). The
+   card layers the shot over an on-brand gradient the same way the ball shots
+   do, so a photo that hasn't landed yet shows the gradient rather than a
+   broken frame; with no `photo` at all the card shows the person's initials on
+   that gradient instead. Roster edits happen here and nowhere else. */
+type TeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  /** One short line under the role — where they played, where they're from. */
+  meta?: string;
+  bio?: string;
+  /** Path under /images/team/, e.g. '/images/team/ben-hudock.jpg'. */
+  photo?: string;
+  email?: string;
+};
+
+const TEAM: TeamMember[] = [
+  // The shape a person takes — drop the real roster in here and the grid
+  // renders it; until then the section shows its "coming soon" line.
+  // {
+  //   id: 'ben-hudock',
+  //   name: 'Ben Hudock',
+  //   role: 'Founder',
+  //   meta: 'Indiana, PA',
+  //   bio: 'Played four years of college ball and started Hydra to put a better ball in players’ hands.',
+  //   photo: '/images/team/ben-hudock.jpg',
+  //   email: 'ben@hydrabaseballco.com',
+  // },
+];
+
+/* Initials for a card with no photo yet: first and last, so "Ben Hudock" is BH
+   and a single name is just its first letter. */
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (parts[0][0] + last).toUpperCase();
+}
+
 /* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
   return (
@@ -137,6 +183,7 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
+            <a href="#crew">Crew</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
@@ -397,6 +444,56 @@ export default function HomePage() {
               </li>
             </ul>
           </div>
+        </div>
+      </section>
+
+      {/* ===== Our Crew ===== */}
+      <section className="crew" id="crew">
+        <div className="container">
+          <div className="crew__head reveal">
+            <span className="eyebrow eyebrow--red">Our Crew</span>
+            <h2 className="section-title crew__title">The People Behind The Ball</h2>
+            <span className="crew__rule" aria-hidden="true"></span>
+            <p className="crew__lead">
+              Hydra is run by players. When you order a run, these are the people you&rsquo;re
+              dealing with &mdash; no call center, no middlemen.
+            </p>
+          </div>
+
+          {TEAM.length > 0 ? (
+            <ul className="crew__grid reveal">
+              {TEAM.map((member) => (
+                <li className="member" key={member.id}>
+                  {/* The shot rides in on a custom property so the gradient
+                      underneath it stays in the stylesheet — a photo that 404s
+                      falls back to it instead of leaving a hole. */}
+                  <span
+                    className="member__shot"
+                    role="img"
+                    aria-label={`${member.name}, ${member.role}`}
+                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
+                  >
+                    {member.photo ? null : (
+                      <span className="member__initials" aria-hidden="true">
+                        {initials(member.name)}
+                      </span>
+                    )}
+                  </span>
+                  <h3 className="member__name">{member.name}</h3>
+                  <p className="member__role">{member.role}</p>
+                  {member.meta ? <p className="member__meta">{member.meta}</p> : null}
+                  {member.bio ? <p className="member__bio">{member.bio}</p> : null}
+                  {member.email ? (
+                    <a className="member__email" href={`mailto:${member.email}`}>
+                      {member.email}
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="crew__empty reveal">Roster coming soon&hellip;</p>
+          )}
         </div>
       </section>
 
@@ -751,6 +848,7 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
+            <a href="#crew">Crew</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
