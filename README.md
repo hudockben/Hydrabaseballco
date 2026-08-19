@@ -12,7 +12,7 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 - **Public landing page** (`/`) — the marketing site, "By Players For Players."
   Ordered so the product leads: hero → **the ball** (A1492 Pro Series lineup and
   specs) → **customize** (drop a team logo onto a real ball photo) → the Hydra
-  difference → **front office** → mission → team orders. The front-office roster — name,
+  difference → apparel → **front office** → team orders. The front-office roster — name,
   role, bio, headshot — is the `TEAM` list at the top of `app/page.tsx`, and
   headshots go in `public/images/team/`; someone with no photo yet shows their
   initials. Photos drop into `public/images/`

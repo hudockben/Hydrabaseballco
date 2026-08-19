@@ -497,10 +497,10 @@ ul { list-style: none; }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
 /* ---------- Front Office ---------- */
-/* Last section before the footer, in the tab's own order: the dark apparel
-   band above it and the cream footer below, so the roster runs on white
-   between them and the headshots keep the most contrast on the page. */
-.office { background: var(--paper); padding: clamp(60px, 8vw, 104px) 0; }
+/* Between the dark apparel band and the white Team Orders form, at the end of
+   the page where the tabs point. Cream rather than white: the form below it
+   already runs on white, and two white sections in a row read as one. */
+.office { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
 .office__head { max-width: 640px; margin: 0 auto; text-align: center; }
 .office__title { color: var(--text); }
 .office__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }

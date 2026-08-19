@@ -232,8 +232,8 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
-            <a href="#team-orders">Team Orders</a>
             <a href="#front-office">Front Office</a>
+            <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
 
@@ -683,6 +683,79 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Apparel (Coming Soon) ===== */}
+      <section className="apparel" id="apparel">
+        <div className="container apparel__inner reveal">
+          <span className="eyebrow eyebrow--red">Apparel</span>
+          <h2 className="section-title apparel__title">Coming Soon&hellip;</h2>
+          <span className="apparel__rule" aria-hidden="true"></span>
+          <p className="apparel__text">
+            Hydra gear for players &mdash; on the field and off. Our apparel line is on deck.
+          </p>
+        </div>
+      </section>
+
+      {/* ===== Front Office ===== */}
+      <section className="office" id="front-office">
+        <div className="container">
+          <div className="office__head reveal">
+            <span className="eyebrow eyebrow--red">Front Office</span>
+            <h2 className="section-title office__title">The People Behind The Ball</h2>
+            <span className="office__rule" aria-hidden="true"></span>
+            <p className="office__lead">
+              Hydra is run by players. When you order a run, these are the people you&rsquo;re
+              dealing with &mdash; no call center, no middlemen.
+            </p>
+          </div>
+
+          {TEAM.length > 0 ? (
+            /* One person is a founder's card, not a lone column in a grid —
+               the modifier lays that first card out sideways and drops off on
+               its own the moment a second person lands. */
+            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
+              {TEAM.map((member) => (
+                <li className="member" key={member.id}>
+                  {/* The shot rides in on a custom property so the gradient
+                      underneath it stays in the stylesheet — a photo that 404s
+                      falls back to it instead of leaving a hole. */}
+                  <span
+                    className="member__shot"
+                    role="img"
+                    aria-label={`${member.name}, ${member.role}`}
+                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
+                  >
+                    {member.photo ? null : (
+                      <span className="member__initials" aria-hidden="true">
+                        {initials(member.name)}
+                      </span>
+                    )}
+                  </span>
+                  <div className="member__body">
+                    <h3 className="member__name">{member.name}</h3>
+                    <p className="member__role">{member.role}</p>
+                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
+                      (line) => (
+                        <p className="member__meta" key={line}>
+                          {line}
+                        </p>
+                      ),
+                    )}
+                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
+                    {member.email ? (
+                      <a className="member__email" href={`mailto:${member.email}`}>
+                        {member.email}
+                      </a>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="office__empty reveal">Roster coming soon&hellip;</p>
+          )}
+        </div>
+      </section>
+
       {/* ===== Team Orders / Inquiry ===== */}
       <section className="orders" id="team-orders">
         <div className="container orders__inner reveal">
@@ -817,79 +890,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Apparel (Coming Soon) ===== */}
-      <section className="apparel" id="apparel">
-        <div className="container apparel__inner reveal">
-          <span className="eyebrow eyebrow--red">Apparel</span>
-          <h2 className="section-title apparel__title">Coming Soon&hellip;</h2>
-          <span className="apparel__rule" aria-hidden="true"></span>
-          <p className="apparel__text">
-            Hydra gear for players &mdash; on the field and off. Our apparel line is on deck.
-          </p>
-        </div>
-      </section>
-
-      {/* ===== Front Office ===== */}
-      <section className="office" id="front-office">
-        <div className="container">
-          <div className="office__head reveal">
-            <span className="eyebrow eyebrow--red">Front Office</span>
-            <h2 className="section-title office__title">The People Behind The Ball</h2>
-            <span className="office__rule" aria-hidden="true"></span>
-            <p className="office__lead">
-              Hydra is run by players. When you order a run, these are the people you&rsquo;re
-              dealing with &mdash; no call center, no middlemen.
-            </p>
-          </div>
-
-          {TEAM.length > 0 ? (
-            /* One person is a founder's card, not a lone column in a grid —
-               the modifier lays that first card out sideways and drops off on
-               its own the moment a second person lands. */
-            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
-              {TEAM.map((member) => (
-                <li className="member" key={member.id}>
-                  {/* The shot rides in on a custom property so the gradient
-                      underneath it stays in the stylesheet — a photo that 404s
-                      falls back to it instead of leaving a hole. */}
-                  <span
-                    className="member__shot"
-                    role="img"
-                    aria-label={`${member.name}, ${member.role}`}
-                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
-                  >
-                    {member.photo ? null : (
-                      <span className="member__initials" aria-hidden="true">
-                        {initials(member.name)}
-                      </span>
-                    )}
-                  </span>
-                  <div className="member__body">
-                    <h3 className="member__name">{member.name}</h3>
-                    <p className="member__role">{member.role}</p>
-                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
-                      (line) => (
-                        <p className="member__meta" key={line}>
-                          {line}
-                        </p>
-                      ),
-                    )}
-                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
-                    {member.email ? (
-                      <a className="member__email" href={`mailto:${member.email}`}>
-                        {member.email}
-                      </a>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="office__empty reveal">Roster coming soon&hellip;</p>
-          )}
-        </div>
-      </section>
-
       {/* ===== Footer ===== */}
       <footer className="footer" id="contact">
         <div className="container footer__grid">
@@ -908,8 +908,8 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
-            <a href="#team-orders">Team Orders</a>
             <a href="#front-office">Front Office</a>
+            <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
 
