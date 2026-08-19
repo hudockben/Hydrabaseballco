@@ -150,13 +150,13 @@ const TEAM: TeamMember[] = [
   {
     id: 'ben-hudock',
     name: 'Ben Hudock',
-    role: 'Co-Owner · President of Technology & Accounting · Software Engineer',
+    role: 'Co-Owner · President of Technology & Accounting',
     meta: ['4 years of Division II baseball', '12 years of elite-level coaching'],
     bio:
       'Two Class 4A state titles in Pennsylvania, and he still coaches today — high school ' +
-      'and travel ball with programs in Indiana, PA, and Flood City Baseball. Ben runs ' +
-      'Hydra’s technology, accounting, and operations: a software engineer’s toolkit and a ' +
-      'coach’s read on what programs actually need, pointed at the systems behind the ball.',
+      'ball, and travel with Flood City Baseball and Indiana, PA. Ben runs Hydra’s ' +
+      'technology, accounting, and operations: a software engineer’s toolkit and a coach’s ' +
+      'read on what programs actually need, pointed at the systems behind the ball.',
     photo: '/images/team/ben-hudock.jpg',
   },
 ];
