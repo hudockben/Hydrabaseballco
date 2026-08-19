@@ -147,6 +147,18 @@ const TEAM: TeamMember[] = [
       'coaches, and programs — better baseball products, priced for the people who live it.',
     photo: '/images/team/brandon-miller.jpg',
   },
+  {
+    id: 'ben-hudock',
+    name: 'Ben Hudock',
+    role: 'Co-Owner · President of Technology & Accounting · Software Engineer',
+    meta: ['4 years of Division II baseball', '12 years of elite-level coaching'],
+    bio:
+      'Two Class 4A state titles in Pennsylvania, and he still coaches today — high school ' +
+      'and travel ball with programs in Indiana, PA, and Flood City Baseball. Ben runs ' +
+      'Hydra’s technology, accounting, and operations: a software engineer’s toolkit and a ' +
+      'coach’s read on what programs actually need, pointed at the systems behind the ball.',
+    photo: '/images/team/ben-hudock.jpg',
+  },
 ];
 
 /* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
