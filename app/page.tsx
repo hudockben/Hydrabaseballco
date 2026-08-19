@@ -173,11 +173,11 @@ const TEAM: TeamMember[] = [
     id: 'noel-miller',
     name: 'Noel Miller',
     role: 'Social Media Manager · Product Development',
-    meta: ['MBA in Psychology', 'Brand strategy & creative development'],
+    meta: ['Master in Organizational Leadership', 'Brand strategy & creative development'],
     bio:
       'Noel runs Hydra’s social presence and helps drive what comes next — new baseballs, ' +
-      'merchandise, product concepts. Psychology and brand strategy behind all of it: how ' +
-      'Hydra looks, how it feels, and how it reaches the next generation of players.',
+      'merchandise, product concepts. Brand strategy and creative development behind all of ' +
+      'it: how Hydra looks, how it feels, and how it reaches the next generation of players.',
     photo: '/images/team/noel-miller.jpg',
   },
   {
