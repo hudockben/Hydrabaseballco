@@ -158,6 +158,17 @@ const TEAM: TeamMember[] = [
       'actually need, pointed at the systems behind the ball.',
     photo: '/images/team/ben-hudock.jpg',
   },
+  {
+    id: 'ari-heinemann',
+    name: 'Ari Heinemann',
+    role: 'Director of Finance',
+    meta: ['MBA in Finance', 'Financial strategy & investment planning'],
+    bio:
+      'Ari runs Hydra’s day-to-day finances — budgeting, forecasting, cash flow — and ' +
+      'shapes the investment strategy behind its growth: the work that lets a young ' +
+      'company scale at a pace it can carry.',
+    photo: '/images/team/ari-heinemann.jpg',
+  },
 ];
 
 /* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
