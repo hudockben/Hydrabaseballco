@@ -61,6 +61,11 @@ PEOPLE = [
     # above the disc — fine, since he's cut out of it either way — and stops
     # short of the bottom, where the disc cut his shirt off.
     {'id': 'ari-heinemann', 'src': 'ari-heinemann.png', 'crop': (217, 40, 985, 1000)},
+    # Another screenshot. Shot from further back than the rest, so the frame
+    # comes in tighter than the widest 4:5 to put her head at the same size.
+    {'id': 'noel-miller', 'src': 'noel-miller.png', 'crop': (194, 8, 992, 1006), 'debanded': True},
+    # Shot against a ballpark wall; the widest 4:5 the frame holds.
+    {'id': 'paul-laudati', 'src': 'paul-laudati.jpeg', 'crop': (218, 0, 917, 874)},
 ]
 
 

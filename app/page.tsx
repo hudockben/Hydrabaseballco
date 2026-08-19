@@ -169,6 +169,29 @@ const TEAM: TeamMember[] = [
       'company scale at a pace it can carry.',
     photo: '/images/team/ari-heinemann.jpg',
   },
+  {
+    id: 'noel-miller',
+    name: 'Noel Miller',
+    role: 'Social Media Manager · Product Development',
+    meta: ['MBA in Psychology', 'Brand strategy & creative development'],
+    bio:
+      'Noel runs Hydra’s social presence and helps drive what comes next — new baseballs, ' +
+      'merchandise, product concepts. Psychology and brand strategy behind all of it: how ' +
+      'Hydra looks, how it feels, and how it reaches the next generation of players.',
+    photo: '/images/team/noel-miller.jpg',
+  },
+  {
+    id: 'paul-laudati',
+    name: 'Paul Laudati',
+    role: 'West Coast Territory Leader',
+    meta: ['Baseball operations · Data & analytics', 'Program logistics'],
+    bio:
+      'Paul opens the West Coast for Hydra. He works in data and analytics with the ' +
+      'Milwaukee Brewers, and spent four years in baseball operations at St. John’s — where ' +
+      'the cost, the inventory, and the durability of a program’s baseballs were his to ' +
+      'manage, which is the read Hydra wants on what a program needs from its supplier.',
+    photo: '/images/team/paul-laudati.jpg',
+  },
 ];
 
 /* Initials for a card with no photo yet: first and last, so "Brandon Miller" is

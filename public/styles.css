@@ -500,16 +500,19 @@ ul { list-style: none; }
 .office__lead { color: var(--muted); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
 
 /* Cards keep a headshot's width rather than stretching to fill the row, so a
-   roster of two reads as two people and not as two billboards; the track
-   centres whatever the count is and reflows as the roster grows. */
+   roster of two reads as two people and not as two billboards. Wrapped flex
+   rather than a grid track: a roster that doesn't divide evenly by the row —
+   five people across four columns — centres the short last row instead of
+   hanging it off the left edge. */
 .office__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 250px));
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: clamp(26px, 3.4vw, 44px);
-  margin-top: clamp(38px, 5vw, 58px);
+  margin: clamp(38px, 5vw, 58px) auto 0;
+  max-width: 880px;
 }
-.member { display: flex; flex-direction: column; }
+.member { flex: 0 1 250px; max-width: 250px; display: flex; flex-direction: column; }
 /* The photo is a background layered over the gradient rather than an <img>:
    --shot carries the file in from the card, and a shot that hasn't landed
    yet leaves the gradient showing instead of a broken frame — the same
@@ -583,11 +586,11 @@ ul { list-style: none; }
    modifier comes off in app/page.tsx as soon as there's a second person, so
    the grid above takes back over. */
 .office__grid--solo {
-  grid-template-columns: minmax(0, 1fr);
   max-width: 380px;
   margin-left: auto;
   margin-right: auto;
 }
+.office__grid--solo .member { flex: 1 1 100%; max-width: none; }
 @media (min-width: 760px) {
   .office__grid--solo { max-width: 880px; }
   .office__grid--solo .member {
@@ -1109,12 +1112,12 @@ ul { list-style: none; }
      twenty characters wide — these cards carry a paragraph each, so the
      scroll is the cheaper cost. */
   .office__grid {
-    grid-template-columns: minmax(0, 1fr);
     max-width: 380px;
     margin-left: auto;
     margin-right: auto;
     gap: 40px;
   }
+  .member { flex: 1 1 100%; max-width: none; }
   .member__initials { font-size: 2.4rem; }
   .orders__form { grid-template-columns: 1fr; }
   .orders__form input[name="team"] { grid-column: auto; }
