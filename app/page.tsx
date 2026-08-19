@@ -153,10 +153,9 @@ const TEAM: TeamMember[] = [
     role: 'Co-Owner · President of Technology & Accounting',
     meta: ['4 years of Division II baseball', '12 years of elite-level coaching'],
     bio:
-      'Two Class 4A state titles in Pennsylvania, and he still coaches today — high school ' +
-      'ball, and travel with Flood City Baseball and Indiana, PA. Ben runs Hydra’s ' +
-      'technology, accounting, and operations: a software engineer’s toolkit and a coach’s ' +
-      'read on what programs actually need, pointed at the systems behind the ball.',
+      'Two Class 4A state titles in Pennsylvania. Ben runs Hydra’s technology, accounting, ' +
+      'and operations: a software engineer’s toolkit and a coach’s read on what programs ' +
+      'actually need, pointed at the systems behind the ball.',
     photo: '/images/team/ben-hudock.jpg',
   },
 ];
