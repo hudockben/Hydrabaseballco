@@ -543,6 +543,7 @@ ul { list-style: none; }
   letter-spacing: 0.04em;
   color: rgba(244, 241, 234, 0.66);
 }
+.member__body { margin-top: 18px; }
 .member__name {
   font-family: var(--display);
   font-weight: 800;
@@ -550,7 +551,6 @@ ul { list-style: none; }
   letter-spacing: 0.02em;
   font-size: 1.22rem;
   line-height: 1.1;
-  margin-top: 18px;
 }
 .member__role {
   font-family: var(--display);
@@ -561,7 +561,10 @@ ul { list-style: none; }
   color: var(--red);
   margin-top: 8px;
 }
-.member__meta { font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+/* Credential lines stack right under the role, tight enough to read as one
+   block rather than as separate paragraphs. */
+.member__meta { font-size: 0.82rem; line-height: 1.35; color: var(--muted); margin-top: 6px; }
+.member__meta + .member__meta { margin-top: 2px; }
 .member__bio { font-size: 0.93rem; line-height: 1.5; color: var(--muted); margin-top: 12px; }
 .member__email {
   align-self: flex-start;
@@ -575,6 +578,29 @@ ul { list-style: none; }
   transition: color .18s ease, border-color .18s ease;
 }
 .member__email:hover { color: var(--red); border-color: var(--red); }
+/* A roster of one would otherwise be a single narrow column under a
+   full-width heading. Sideways, it reads as the founder's card — and the
+   modifier comes off in app/page.tsx as soon as there's a second person, so
+   the grid above takes back over. */
+.office__grid--solo {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 760px) {
+  .office__grid--solo { max-width: 880px; }
+  .office__grid--solo .member {
+    display: grid;
+    grid-template-columns: minmax(0, 270px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 4.5vw, 52px);
+  }
+  .office__grid--solo .member__body { margin-top: 0; }
+  .office__grid--solo .member__name { font-size: 1.55rem; }
+  .office__grid--solo .member__bio { font-size: 1rem; max-width: 46ch; }
+}
+
 /* Until the roster lands, the tab still leads somewhere — the same
    "Coming Soon" note the apparel section runs on. */
 .office__empty {

@@ -125,30 +125,32 @@ type TeamMember = {
   id: string;
   name: string;
   role: string;
-  /** One short line under the role — where they played, where they're from. */
-  meta?: string;
+  /** Short credential lines under the role — playing and coaching years,
+      where they're from. One string, or a few for a stacked list. */
+  meta?: string | string[];
   bio?: string;
-  /** Path under /images/team/, e.g. '/images/team/ben-hudock.jpg'. */
+  /** Path under /images/team/, e.g. '/images/team/brandon-miller.jpg'. */
   photo?: string;
   email?: string;
 };
 
 const TEAM: TeamMember[] = [
-  // The shape a person takes — drop the real roster in here and the grid
-  // renders it; until then the section shows its "coming soon" line.
-  // {
-  //   id: 'ben-hudock',
-  //   name: 'Ben Hudock',
-  //   role: 'Founder',
-  //   meta: 'Indiana, PA',
-  //   bio: 'Played four years of college ball and started Hydra to put a better ball in players’ hands.',
-  //   photo: '/images/team/ben-hudock.jpg',
-  //   email: 'ben@hydrabaseballco.com',
-  // },
+  {
+    id: 'brandon-miller',
+    name: 'Brandon Miller',
+    role: 'Founder & CEO',
+    meta: ['5 years of Division I baseball', '10 years of elite-level coaching'],
+    bio:
+      'A Big East title with St. John’s in 2018, then a graduate year at the College of ' +
+      'Charleston. Brandon pairs a lifetime in the game with a background in finance and ' +
+      'sales leadership, and built Hydra around what he has seen the game ask of players, ' +
+      'coaches, and programs — better baseball products, priced for the people who live it.',
+    photo: '/images/team/brandon-miller.jpg',
+  },
 ];
 
-/* Initials for a card with no photo yet: first and last, so "Ben Hudock" is BH
-   and a single name is just its first letter. */
+/* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
+   BM and a single name is just its first letter. */
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '';
@@ -461,7 +463,10 @@ export default function HomePage() {
           </div>
 
           {TEAM.length > 0 ? (
-            <ul className="office__grid reveal">
+            /* One person is a founder's card, not a lone column in a grid —
+               the modifier lays that first card out sideways and drops off on
+               its own the moment a second person lands. */
+            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
               {TEAM.map((member) => (
                 <li className="member" key={member.id}>
                   {/* The shot rides in on a custom property so the gradient
@@ -479,15 +484,23 @@ export default function HomePage() {
                       </span>
                     )}
                   </span>
-                  <h3 className="member__name">{member.name}</h3>
-                  <p className="member__role">{member.role}</p>
-                  {member.meta ? <p className="member__meta">{member.meta}</p> : null}
-                  {member.bio ? <p className="member__bio">{member.bio}</p> : null}
-                  {member.email ? (
-                    <a className="member__email" href={`mailto:${member.email}`}>
-                      {member.email}
-                    </a>
-                  ) : null}
+                  <div className="member__body">
+                    <h3 className="member__name">{member.name}</h3>
+                    <p className="member__role">{member.role}</p>
+                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
+                      (line) => (
+                        <p className="member__meta" key={line}>
+                          {line}
+                        </p>
+                      ),
+                    )}
+                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
+                    {member.email ? (
+                      <a className="member__email" href={`mailto:${member.email}`}>
+                        {member.email}
+                      </a>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
