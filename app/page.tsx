@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import Script from 'next/script';
 
 /* ---- Inline icons (stroke = currentColor) ---- */
@@ -68,6 +69,94 @@ const IconMail = (
     <path d="M4.4 7.6l7.6 5 7.6-5" />
   </svg>
 );
+const IconUpload = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 15.4V3.8" />
+    <path d="M8 7.8l4-4 4 4" />
+    <path d="M4.6 14.2v4a2 2 0 0 0 2 2h10.8a2 2 0 0 0 2-2v-4" />
+  </svg>
+);
+
+/* Stamp inks offered on a custom run, in the order they appear under the ball.
+   A run is stamped in one of these and nothing else — there is no full-colour
+   press — so the first entry is what a ball is shown in until a team picks its
+   own. The hex is the sRGB a Pantone Solid Coated swatch is published at, close
+   enough to judge a mockup by, with the real ink matched to the book on press.
+   public/script.js reads the colour and the name straight off these chips, so
+   the palette is edited here and nowhere else. */
+const PANTONE_INKS: { id: string; name: string; hex: string }[] = [
+  { id: 'black-c', name: 'PANTONE Black C', hex: '#2D2926' },
+  { id: 'cool-gray-11-c', name: 'PANTONE Cool Gray 11 C', hex: '#53565A' },
+  { id: '877-c', name: 'PANTONE 877 C (Silver)', hex: '#8A8D8F' },
+  { id: '872-c', name: 'PANTONE 872 C (Gold)', hex: '#85714D' },
+  { id: '186-c', name: 'PANTONE 186 C', hex: '#C8102E' },
+  { id: '200-c', name: 'PANTONE 200 C', hex: '#BA0C2F' },
+  { id: '7427-c', name: 'PANTONE 7427 C', hex: '#971B2F' },
+  { id: '202-c', name: 'PANTONE 202 C', hex: '#862633' },
+  { id: '021-c', name: 'PANTONE Orange 021 C', hex: '#FE5000' },
+  { id: '1665-c', name: 'PANTONE 1665 C', hex: '#DC4405' },
+  { id: '1235-c', name: 'PANTONE 1235 C', hex: '#FFB81C' },
+  { id: '109-c', name: 'PANTONE 109 C', hex: '#FFD100' },
+  { id: '355-c', name: 'PANTONE 355 C', hex: '#009639' },
+  { id: '348-c', name: 'PANTONE 348 C', hex: '#00843D' },
+  { id: '341-c', name: 'PANTONE 341 C', hex: '#007A53' },
+  { id: '350-c', name: 'PANTONE 350 C', hex: '#2C5234' },
+  { id: '297-c', name: 'PANTONE 297 C', hex: '#71C5E8' },
+  { id: '300-c', name: 'PANTONE 300 C', hex: '#005EB8' },
+  { id: '287-c', name: 'PANTONE 287 C', hex: '#003087' },
+  { id: '289-c', name: 'PANTONE 289 C', hex: '#0C2340' },
+  { id: '282-c', name: 'PANTONE 282 C', hex: '#041E42' },
+  { id: '268-c', name: 'PANTONE 268 C', hex: '#582C83' },
+  { id: '2685-c', name: 'PANTONE 2685 C', hex: '#330072' },
+  { id: '476-c', name: 'PANTONE 476 C', hex: '#4E3629' },
+];
+
+/* The people behind the ball, in the order they show under "Front Office". A card
+   needs a name and a role and nothing else — every other field is simply left
+   off the card when it isn't set, so someone can go up with a name and a title
+   the day they start and gain a photo and a bio later.
+
+   `photo` is a file under public/images/team/ (see that folder's README). The
+   card layers the shot over an on-brand gradient the same way the ball shots
+   do, so a photo that hasn't landed yet shows the gradient rather than a
+   broken frame; with no `photo` at all the card shows the person's initials on
+   that gradient instead. Roster edits happen here and nowhere else. */
+type TeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  /** Short credential lines under the role — playing and coaching years,
+      where they're from. One string, or a few for a stacked list. */
+  meta?: string | string[];
+  bio?: string;
+  /** Path under /images/team/, e.g. '/images/team/brandon-miller.jpg'. */
+  photo?: string;
+  email?: string;
+};
+
+const TEAM: TeamMember[] = [
+  {
+    id: 'brandon-miller',
+    name: 'Brandon Miller',
+    role: 'Founder & CEO',
+    meta: ['5 years of Division I baseball', '10 years of elite-level coaching'],
+    bio:
+      'A Big East title with St. John’s in 2018, then a graduate year at the College of ' +
+      'Charleston. Brandon pairs a lifetime in the game with a background in finance and ' +
+      'sales leadership, and built Hydra around what he has seen the game ask of players, ' +
+      'coaches, and programs — better baseball products, priced for the people who live it.',
+    photo: '/images/team/brandon-miller.jpg',
+  },
+];
+
+/* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
+   BM and a single name is just its first letter. */
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (parts[0][0] + last).toUpperCase();
+}
 
 /* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
@@ -93,9 +182,11 @@ export default function HomePage() {
           <Brand />
 
           <nav className="site-nav" id="siteNav" aria-label="Primary">
-            <a href="#about">About</a>
-            <a href="#mission">Mission</a>
+            <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#about">About</a>
+            <a href="#front-office">Front Office</a>
+            <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
@@ -119,7 +210,7 @@ export default function HomePage() {
           {/* Slide 1 paints immediately; the remaining slides (photos and the
               video) are added by the slideshow only once their media loads —
               anything that fails to load is skipped gracefully. */}
-          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-2.jpg')" }}></div>
+          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-6.jpg')" }}></div>
           <div className="hero__slide hero__slide--video">
             <video
               className="hero__video"
@@ -136,9 +227,9 @@ export default function HomePage() {
               <source src="/videos/hero.webm" type="video/webm" />
             </video>
           </div>
+          <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-5.jpg"></div>
-          <div className="hero__slide" data-src="/images/hero-6.jpg"></div>
         </div>
         <div className="hero__dots" id="heroDots"></div>
         <div className="container hero__inner">
@@ -150,17 +241,123 @@ export default function HomePage() {
               For Players
             </h1>
             <p className="hero__lead">
-              High quality baseballs. Built for competition.
-              <br />
-              Trusted by players at every level.
+              We&rsquo;re former players who know what it takes between the lines &mdash; and what
+              players truly want and need. Hydra is our way of giving back to the game that gave us
+              everything, putting quality gear in the hands of the players who live it every day.
             </p>
             <div className="hero__cta">
-              <a href="#team-orders" className="btn btn--light">
+              <a href="#balls" className="btn btn--light">
+                See The Ball
+              </a>
+              <a href="#team-orders" className="btn btn--outline">
                 Team Orders
               </a>
-              <a href="#about" className="btn btn--outline">
-                Learn More
-              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Trust bar ===== */}
+      <section className="trustbar">
+        <div className="container trustbar__grid">
+          <div className="trust">
+            <span className="trust__icon">{IconShield}</span>
+            <div className="trust__text">
+              <strong>Competition Ready</strong>
+              <span>Built for game day</span>
+            </div>
+          </div>
+          <div className="trust">
+            <span className="trust__icon">{IconStar}</span>
+            <div className="trust__text">
+              <strong>Player Trusted</strong>
+              <span>Performance you can feel</span>
+            </div>
+          </div>
+          <div className="trust">
+            <span className="trust__icon">{IconTrophy}</span>
+            <div className="trust__text">
+              <strong>Team Focused</strong>
+              <span>Built for programs</span>
+            </div>
+          </div>
+          <div className="trust">
+            <span className="trust__icon">{IconHeadset}</span>
+            <div className="trust__text">
+              <strong>Dedicated Support</strong>
+              <span>We&rsquo;re here for you</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== The Ball ===== */}
+      <section className="balls" id="balls">
+        <div className="container balls__inner reveal">
+          <div className="balls__head">
+            <span className="eyebrow eyebrow--red">The Ball</span>
+            <h2 className="section-title balls__title">A1492 Pro Series</h2>
+            <span className="balls__rule" aria-hidden="true"></span>
+          </div>
+
+          <div className="balls__grid">
+            <figure className="balls__photo">
+              <img
+                src="/images/ball-plus.jpg"
+                alt="Hydra A1492+ Pro Series game ball resting on the grass"
+                width={1100}
+                height={1100}
+                loading="lazy"
+              />
+            </figure>
+
+            <div className="balls__models">
+              <ul className="grades__list balls__list">
+                <li className="grade">
+                  <span className="grade__badge">A1492+</span>
+                  <div>
+                    <h3 className="grade__name">Premium Leather Game Ball</h3>
+                    <p className="grade__desc">
+                      The game-day ball, marked with a &ldquo;+&rdquo; on the leather.
+                    </p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain">A1492</span>
+                  <div>
+                    <h3 className="grade__name">Premium Leather Everyday Practice Ball</h3>
+                    <p className="grade__desc">Built for everyday practice and play.</p>
+                  </div>
+                </li>
+              </ul>
+
+              <ul className="specs">
+                <li className="spec">
+                  <span className="spec__k">Size</span>
+                  <span className="spec__v">9 in. &middot; 5 oz.</span>
+                </li>
+                <li className="spec">
+                  <span className="spec__k">Cover</span>
+                  <span className="spec__v">Full-grain leather</span>
+                </li>
+                <li className="spec">
+                  <span className="spec__k">Center</span>
+                  <span className="spec__v">Red cushioned cork</span>
+                </li>
+                <li className="spec">
+                  <span className="spec__k">Build</span>
+                  <span className="spec__v">DuraCore&trade; construction</span>
+                </li>
+              </ul>
+
+              <div className="balls__cta">
+                <a href="#team-orders" className="btn btn--dark">
+                  Team Orders
+                </a>
+                <a href="#customize" className="btn btn--outline-ink">
+                  Put Your Logo On It
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -170,9 +367,8 @@ export default function HomePage() {
       <section className="difference" id="about">
         <div
           className="difference__media"
-          id="balls"
           role="img"
-          aria-label="Hydra A1492 Pro Series baseball resting on the grass"
+          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf, an A1492+ game ball among them"
         ></div>
 
         <div className="difference__panel">
@@ -219,80 +415,285 @@ export default function HomePage() {
               </li>
             </ul>
 
-            <div className="grades">
-              <h3 className="grades__title">Available Leather Grades</h3>
-              <ul className="grades__list">
-                <li className="grade">
-                  <span className="grade__badge" aria-hidden="true">+</span>
-                  <div>
-                    <h4 className="grade__name">B Grade Leather</h4>
-                    <p className="grade__desc">
-                      Our higher grade, marked with a &ldquo;+&rdquo; on the ball.
-                    </p>
-                  </div>
-                </li>
-                <li className="grade">
-                  <span className="grade__badge grade__badge--plain" aria-hidden="true">C</span>
-                  <div>
-                    <h4 className="grade__name">C Grade Leather</h4>
-                    <p className="grade__desc">
-                      Dependable leather built for everyday practice and play.
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </div>
+            {/* Three balls off the line: two team runs and the game ball they
+                are printed on. Backgrounds rather than <img> so a run whose
+                photo has not landed yet falls back to the on-brand gradient
+                instead of a broken frame, the way .difference__media does. */}
+            <ul className="proof">
+              <li className="proof__item">
+                <span
+                  className="proof__shot proof__shot--indiana"
+                  role="img"
+                  aria-label="An A1492 stamped for Indiana Baseball in a single red ink"
+                ></span>
+                <span className="proof__cap">Indiana Baseball</span>
+              </li>
+              <li className="proof__item">
+                <span
+                  className="proof__shot proof__shot--icml"
+                  role="img"
+                  aria-label="An A1492 stamped for the Indiana County Men's League, the league mark in the horseshoe"
+                ></span>
+                <span className="proof__cap">Indiana County Men&rsquo;s League</span>
+              </li>
+              <li className="proof__item">
+                <span
+                  className="proof__shot proof__shot--stock"
+                  role="img"
+                  aria-label="The stock Hydra A1492+ Pro Series game ball on the grass"
+                ></span>
+                <span className="proof__cap">A1492+ Game Ball</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* ===== Our Mission ===== */}
-      <section className="mission" id="mission">
-        <div className="container mission__inner reveal">
-          <span className="eyebrow eyebrow--red">Our Mission</span>
-          <h2 className="section-title mission__title">
-            Giving Back
-            <br />
-            To The Game
-          </h2>
-          <span className="mission__rule" aria-hidden="true"></span>
-          <p className="mission__text">
-            We&rsquo;re former players who know what it takes between the lines &mdash; and what
-            players truly want and need. Hydra is our way of giving back to the game that gave us
-            everything, putting quality gear in the hands of the players who live it every day.
-          </p>
+      {/* ===== Front Office ===== */}
+      <section className="office" id="front-office">
+        <div className="container">
+          <div className="office__head reveal">
+            <span className="eyebrow eyebrow--red">Front Office</span>
+            <h2 className="section-title office__title">The People Behind The Ball</h2>
+            <span className="office__rule" aria-hidden="true"></span>
+            <p className="office__lead">
+              Hydra is run by players. When you order a run, these are the people you&rsquo;re
+              dealing with &mdash; no call center, no middlemen.
+            </p>
+          </div>
+
+          {TEAM.length > 0 ? (
+            /* One person is a founder's card, not a lone column in a grid —
+               the modifier lays that first card out sideways and drops off on
+               its own the moment a second person lands. */
+            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
+              {TEAM.map((member) => (
+                <li className="member" key={member.id}>
+                  {/* The shot rides in on a custom property so the gradient
+                      underneath it stays in the stylesheet — a photo that 404s
+                      falls back to it instead of leaving a hole. */}
+                  <span
+                    className="member__shot"
+                    role="img"
+                    aria-label={`${member.name}, ${member.role}`}
+                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
+                  >
+                    {member.photo ? null : (
+                      <span className="member__initials" aria-hidden="true">
+                        {initials(member.name)}
+                      </span>
+                    )}
+                  </span>
+                  <div className="member__body">
+                    <h3 className="member__name">{member.name}</h3>
+                    <p className="member__role">{member.role}</p>
+                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
+                      (line) => (
+                        <p className="member__meta" key={line}>
+                          {line}
+                        </p>
+                      ),
+                    )}
+                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
+                    {member.email ? (
+                      <a className="member__email" href={`mailto:${member.email}`}>
+                        {member.email}
+                      </a>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="office__empty reveal">Roster coming soon&hellip;</p>
+          )}
         </div>
       </section>
 
-      {/* ===== Trust bar ===== */}
-      <section className="trustbar">
-        <div className="container trustbar__grid">
-          <div className="trust">
-            <span className="trust__icon">{IconShield}</span>
-            <div className="trust__text">
-              <strong>Competition Ready</strong>
-              <span>Built for game day</span>
-            </div>
+      {/* ===== Custom ball preview ===== */}
+      <section className="customizer" id="customize">
+        <div className="container customizer__inner reveal">
+          <div className="customizer__head">
+            <span className="eyebrow eyebrow--red">Custom Balls</span>
+            <h2 className="section-title customizer__title">
+              Your Logo.
+              <br />
+              Our Leather.
+            </h2>
+            <span className="customizer__rule" aria-hidden="true"></span>
+            <p className="customizer__lead">
+              Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
+              ball, photographed, with your logo on the open panel or up in the horseshoe. Every run
+              is stamped in a single Pantone ink, so picking one restamps the whole ball &mdash;
+              your mark and ours alike. It all happens right here in your browser &mdash; your
+              artwork never leaves this page.
+            </p>
           </div>
-          <div className="trust">
-            <span className="trust__icon">{IconStar}</span>
-            <div className="trust__text">
-              <strong>Player Trusted</strong>
-              <span>Performance you can feel</span>
+
+          <div className="customizer__grid">
+            <div className="customizer__stage">
+              {/* script.js draws the A1492 photo here — the same shot as the Ball
+                  section with its printed panel retouched out — and wraps an
+                  uploaded logo onto the leather. Dimensions match that photo. */}
+              <canvas
+                id="ballStage"
+                className="customizer__canvas"
+                width={900}
+                height={900}
+                role="img"
+                aria-label="Preview of your logo on a Hydra A1492 baseball"
+              ></canvas>
+              <p className="customizer__hint" id="ballHint">
+                Upload a logo to get started.
+              </p>
             </div>
-          </div>
-          <div className="trust">
-            <span className="trust__icon">{IconTrophy}</span>
-            <div className="trust__text">
-              <strong>Team Focused</strong>
-              <span>Built for programs</span>
-            </div>
-          </div>
-          <div className="trust">
-            <span className="trust__icon">{IconHeadset}</span>
-            <div className="trust__text">
-              <strong>Dedicated Support</strong>
-              <span>We&rsquo;re here for you</span>
+
+            <div className="customizer__panel">
+              <div className="dropzone" id="logoDrop">
+                <input
+                  type="file"
+                  id="logoInput"
+                  className="dropzone__input"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"
+                />
+                <label htmlFor="logoInput" className="dropzone__label">
+                  <span className="dropzone__icon">{IconUpload}</span>
+                  <strong>Upload your logo</strong>
+                  <span className="dropzone__meta">
+                    PNG, JPG, SVG or WebP &mdash; up to 12&nbsp;MB.
+                    <br />A PNG with a transparent background looks best.
+                  </span>
+                </label>
+              </div>
+
+              <p className="customizer__status" id="logoStatus" role="status" aria-live="polite"></p>
+
+              {/* Revealed by script.js once a logo is loaded */}
+              <div className="controls" id="logoControls" hidden>
+                <div className="control">
+                  <span className="control__label" id="spotLabel">
+                    Print location
+                  </span>
+                  <div className="swatches" role="group" aria-labelledby="spotLabel">
+                    <button type="button" className="swatch is-active" data-spot="panel" aria-pressed="true">
+                      Panel
+                    </button>
+                    <button type="button" className="swatch" data-spot="horseshoe" aria-pressed="false">
+                      Horseshoe
+                    </button>
+                  </div>
+                </div>
+
+                <div className="control">
+                  <label className="control__label" htmlFor="logoSize">
+                    Size
+                  </label>
+                  <input
+                    type="range"
+                    id="logoSize"
+                    className="control__range"
+                    min="15"
+                    max="130"
+                    defaultValue="55"
+                    step="1"
+                  />
+                </div>
+
+                <div className="control">
+                  <span className="control__label" id="nudgeLabel">
+                    Position
+                  </span>
+                  <div className="nudge" role="group" aria-labelledby="nudgeLabel">
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__up"
+                      data-nudge="up"
+                      aria-label="Move the logo up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__left"
+                      data-nudge="left"
+                      aria-label="Move the logo left"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__centre"
+                      data-nudge="center"
+                      title="Put the logo back in the middle of the spot"
+                    >
+                      Center
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__right"
+                      data-nudge="right"
+                      aria-label="Move the logo right"
+                    >
+                      →
+                    </button>
+                    <button
+                      type="button"
+                      className="nudge__btn nudge__down"
+                      data-nudge="down"
+                      aria-label="Move the logo down"
+                    >
+                      ↓
+                    </button>
+                  </div>
+                </div>
+
+                <div className="control">
+                  <span className="control__label" id="inkLabel">
+                    Pantone ink
+                  </span>
+                  <div className="pantone" role="group" aria-labelledby="inkLabel">
+                    {/* One stamp run is one ink, so a colour here restamps the whole
+                        ball — your mark, our wordmark, the model line and the specs.
+                        The first chip is the ink a ball starts out in; script.js
+                        reads that from the palette rather than naming a default. */}
+                    {PANTONE_INKS.map((swatch, i) => (
+                      <button
+                        key={swatch.id}
+                        type="button"
+                        className={i === 0 ? 'pantone__chip is-active' : 'pantone__chip'}
+                        data-ink={swatch.id}
+                        data-hex={swatch.hex}
+                        data-name={swatch.name}
+                        aria-pressed={i === 0 ? 'true' : 'false'}
+                        aria-label={swatch.name}
+                        title={swatch.name}
+                        style={{ background: swatch.hex }}
+                      ></button>
+                    ))}
+                  </div>
+                  {/* Kept in step by setInk() the moment another chip is picked. */}
+                  <p className="pantone__readout" id="inkReadout">
+                    {PANTONE_INKS[0].name} &mdash; one ink, every mark on the ball.
+                  </p>
+                </div>
+
+                <label className="control__check">
+                  <input type="checkbox" id="logoKnockout" />
+                  <span>Remove background</span>
+                </label>
+
+                <div className="controls__actions">
+                  <button type="button" className="btn btn--light" id="logoAttach">
+                    Add To My Order
+                  </button>
+                  <button type="button" className="btn btn--outline" id="logoDownload">
+                    Download Mockup
+                  </button>
+                  <button type="button" className="controls__reset" id="logoReset">
+                    Start over
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -404,6 +805,9 @@ export default function HomePage() {
               aria-label="Message"
             ></textarea>
 
+            {/* Set by the custom ball preview when a logo mockup is attached */}
+            <input type="hidden" name="logo" id="ordersLogo" value="" />
+
             {/* Form-to-email service config (read by FormSubmit) */}
             <input type="hidden" name="_subject" value="New Team Order Inquiry — Hydra Baseball Co." />
             <input type="hidden" name="_template" value="table" />
@@ -454,9 +858,11 @@ export default function HomePage() {
 
           <nav className="footer__col" aria-label="Quick links">
             <h4>Quick Links</h4>
-            <a href="#about">About</a>
-            <a href="#mission">Mission</a>
+            <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
+            <a href="#about">About</a>
+            <a href="#front-office">Front Office</a>
+            <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>

@@ -77,7 +77,8 @@ create table if not exists orders (
   quantity      integer not null default 0,
   unit_price    numeric(12, 2) not null default 0, -- price charged per unit
   unit_cost     numeric(12, 2) not null default 0, -- COGS per unit at sale time
-  shipping_cost numeric(12, 2) not null default 0, -- total shipping for the order
+  shipping_cost numeric(12, 2) not null default 0, -- total shipping the business pays
+  shipping_charged numeric(12, 2) not null default 0, -- shipping billed to the customer
   other_cost    numeric(12, 2) not null default 0, -- any extra per-order cost
   status        text not null default 'confirmed'
                 check (status in ('quote', 'confirmed', 'fulfilled', 'paid')),
@@ -104,11 +105,20 @@ create table if not exists customers (
   instagram          text,
   email              text,
   notes              text,
+  -- Reach-out queue: who to contact, and where the conversation stands.
+  coach_name         text,
+  phone              text,
+  website            text,
+  status             text not null default 'new', -- new | contacted | replied | interested | customer | passed
+  tier_override      text,                        -- A/B/C/D set by hand, beats the computed tier
+  last_contacted     timestamptz,
+  enriched_at        timestamptz,                 -- last automatic contact lookup
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
 create index if not exists customers_state_idx  on customers (state);
 create index if not exists customers_school_idx on customers (school);
+create index if not exists customers_status_idx on customers (status);
 
 -- ---------------------------------------------------------------------------
 -- Inventory: physical stock on hand + an audit log of every stock movement.

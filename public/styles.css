@@ -104,10 +104,14 @@ ul { list-style: none; }
 .btn--light:hover { background: var(--cream); border-color: var(--cream); transform: translateY(-2px); }
 .btn--outline { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.55); }
 .btn--outline:hover { border-color: #fff; background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+.btn--outline-ink { background: transparent; color: var(--ink); border-color: rgba(17, 17, 20, 0.28); }
+.btn--outline-ink:hover { border-color: var(--ink); background: rgba(17, 17, 20, 0.05); transform: translateY(-2px); }
 .btn--header { padding: 11px 22px; font-size: 0.82rem; }
 
 /* ---------- Brand logo ---------- */
-.brand { display: inline-flex; align-items: center; }
+/* flex: none so a header row that ever runs long squeezes the nav, which
+   shows, rather than the logo, which flexbox will happily take to zero. */
+.brand { display: inline-flex; align-items: center; flex: none; }
 .brand__logo {
   display: block;
   height: 54px;
@@ -128,6 +132,12 @@ ul { list-style: none; }
   background: #fff;
   border-bottom: 1px solid var(--line);
 }
+/* The one row on the site that runs wider than the 1200px content column:
+   eight links, the logo and the button don't fit in it, and the alternative
+   was shrinking the nav type for everyone. 80px of extra width at the widest
+   screens sets the logo and the button just outside the column the sections
+   below line up on. */
+.site-header .container { max-width: 1280px; }
 .site-header__inner {
   display: flex;
   align-items: center;
@@ -137,7 +147,18 @@ ul { list-style: none; }
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 34px;
+  /* Eight links, and the row has to hold them before the webfont lands as
+     well as after: Saira Condensed is a third narrower than the system sans
+     that stands in for it, and the header is what breaks if the stand-in
+     doesn't fit. Measured in the stand-in, the eight labels at this gap plus
+     the logo, the two 24px gaps around the nav and the header button come to
+     1189px — which the 1200px content column can't hold, hence the wider
+     header container above, and which sets the breakpoint below at 1250px.
+     In Saira the same row measures 907px, so what's tuned here is the state
+     a first-time visitor sees for a moment, not the finished one. A ninth
+     link, or a label longer than "Front Office", needs this gap, the header
+     button or that container to give again. */
+  gap: 18px;
   margin-left: auto;
 }
 .site-nav a {
@@ -150,6 +171,10 @@ ul { list-style: none; }
   transition: color .18s ease;
 }
 .site-nav a:hover { color: var(--red); }
+/* A squeezed row would break a two-word link across lines rather than
+   overflow, which reads as a layout bug; the breakpoints below keep the row
+   wide enough that it never comes to that. */
+.site-nav a { white-space: nowrap; }
 .btn--header { margin-left: 4px; }
 
 .nav-toggle {
@@ -170,7 +195,7 @@ ul { list-style: none; }
   min-height: 88vh;
   display: flex;
   align-items: center;
-  padding: calc(var(--header-h) + 70px) 0 80px;
+  padding: calc(var(--header-h) + 40px) 0 80px;
   color: var(--text-inv);
   background-color: #0b0b0d;
   /* Dark base behind the photo slideshow (also the fallback if images are absent) */
@@ -260,10 +285,61 @@ ul { list-style: none; }
   text-transform: uppercase;
   color: #fff;
 }
-.hero__lead { color: #d6d6dc; font-size: 1.12rem; margin-top: 26px; max-width: 40ch; }
+.hero__lead { color: #d6d6dc; font-size: 1.12rem; margin-top: 26px; max-width: 44ch; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 36px; }
 
 /* ---------- The Hydra Difference ---------- */
+/* ---------- The Ball ---------- */
+.balls { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
+.balls__head { max-width: 660px; margin: 0 auto clamp(36px, 5vw, 56px); text-align: center; }
+.balls__title { color: var(--text); }
+.balls__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 0; }
+.balls__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
+.balls__photo {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #2f4624;
+  box-shadow: var(--shadow);
+}
+/* The source photo carries a black band along its top edge; a square crop
+   sampled low drops it without touching the file the retouch tool measures. */
+.balls__photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 1100x1117 cropped square from the bottom edge = exactly the 17px band. */
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center bottom;
+}
+.balls__models { display: flex; flex-direction: column; gap: 28px; }
+/* One model per row here — the pair reads as a lineup rather than a footnote.
+   Scoped past .grades__list, which sets two columns further down the file. */
+.balls .grades__list { grid-template-columns: 1fr; gap: 20px; }
+.specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 26px;
+}
+.spec { display: flex; flex-direction: column; gap: 3px; }
+.spec__k {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.spec__v { color: var(--text); font-size: 0.98rem; }
+.balls__cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
 .difference {
   display: grid;
   grid-template-columns: 1fr 1.1fr;
@@ -273,9 +349,11 @@ ul { list-style: none; }
   position: relative;
   min-height: 540px;
   background-color: #2f4624;
-  /* A1492 product photo; radial gradient is the fallback if the file is absent */
+  /* A tray of A1492s with the game ball in among them; radial gradient is the
+     fallback if the file is absent. The single-ball product shot leads the
+     Balls section further up. */
   background-image:
-    url('/images/ball.jpg'),
+    url('/images/tray-plus.jpg'),
     radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
@@ -311,6 +389,55 @@ ul { list-style: none; }
 }
 .feature p { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
+/* Three balls under the features: two team runs and the game ball itself.
+   Each shot is a background layered over a gradient, so a run whose photo has
+   not landed yet shows the gradient rather than a broken frame — the same
+   fallback .difference__media relies on. */
+.proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+  padding-top: 34px;
+  border-top: 1px solid var(--line);
+}
+.proof__item { display: flex; flex-direction: column; gap: 10px; }
+.proof__shot {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background-color: #2f4624;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  box-shadow: var(--shadow);
+}
+.proof__shot--indiana {
+  background-image:
+    url('/images/custom-indiana.jpg'),
+    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+}
+.proof__shot--icml {
+  background-image:
+    url('/images/custom-icml.jpg'),
+    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+}
+.proof__shot--stock {
+  background-image:
+    url('/images/ball-plus.jpg'),
+    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+}
+.proof__cap {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* ---------- Leather grades ---------- */
 .grades {
   margin-top: 40px;
@@ -334,21 +461,23 @@ ul { list-style: none; }
 .grade { display: flex; gap: 14px; align-items: flex-start; }
 .grade__badge {
   flex: 0 0 auto;
-  width: 38px; height: 38px;
+  height: 34px;
+  padding: 0 14px;
   display: grid; place-items: center;
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--red);
   color: #fff;
   font-family: var(--display);
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
   line-height: 1;
+  white-space: nowrap;
 }
 .grade__badge--plain {
   background: transparent;
   color: var(--text);
   border: 2px solid var(--line);
-  font-size: 1.05rem;
 }
 .grade__name {
   font-family: var(--display);
@@ -361,12 +490,364 @@ ul { list-style: none; }
 }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
-/* ---------- Our Mission ---------- */
-.mission { background: var(--paper); padding: clamp(64px, 9vw, 110px) 0; text-align: center; }
-.mission__inner { max-width: 720px; margin: 0 auto; }
-.mission__title { color: var(--text); }
-.mission__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
-.mission__text { color: var(--muted); font-size: 1.12rem; line-height: 1.7; max-width: 54ch; margin: 0 auto; }
+/* ---------- Front Office ---------- */
+/* Sits between the cream Hydra Difference panel and the dark customizer, so
+   the roster runs on white and the rhythm cream → white → dark holds. */
+.office { background: var(--paper); padding: clamp(60px, 8vw, 104px) 0; }
+.office__head { max-width: 640px; margin: 0 auto; text-align: center; }
+.office__title { color: var(--text); }
+.office__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.office__lead { color: var(--muted); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
+
+/* Cards keep a headshot's width rather than stretching to fill the row, so a
+   roster of two reads as two people and not as two billboards; the track
+   centres whatever the count is and reflows as the roster grows. */
+.office__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 250px));
+  justify-content: center;
+  gap: clamp(26px, 3.4vw, 44px);
+  margin-top: clamp(38px, 5vw, 58px);
+}
+.member { display: flex; flex-direction: column; }
+/* The photo is a background layered over the gradient rather than an <img>:
+   --shot carries the file in from the card, and a shot that hasn't landed
+   yet leaves the gradient showing instead of a broken frame — the same
+   fallback .proof__shot and .difference__media rely on. */
+.member__shot {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  border-radius: 12px;
+  background-color: #1d1d22;
+  background-image:
+    var(--shot, none),
+    radial-gradient(120% 90% at 50% 22%, #33333c 0%, #22222a 52%, #14141a 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center 22%, center;
+  background-size: cover, cover;
+  box-shadow: var(--shadow);
+  transition: transform .25s ease;
+}
+.member:hover .member__shot { transform: translateY(-4px); }
+.member__initials {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-style: italic;
+  font-size: 2.7rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 241, 234, 0.66);
+}
+.member__body { margin-top: 18px; }
+.member__name {
+  font-family: var(--display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.22rem;
+  line-height: 1.1;
+}
+.member__role {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--red);
+  margin-top: 8px;
+}
+/* Credential lines stack right under the role, tight enough to read as one
+   block rather than as separate paragraphs. */
+.member__meta { font-size: 0.82rem; line-height: 1.35; color: var(--muted); margin-top: 6px; }
+.member__meta + .member__meta { margin-top: 2px; }
+.member__bio { font-size: 0.93rem; line-height: 1.5; color: var(--muted); margin-top: 12px; }
+.member__email {
+  align-self: flex-start;
+  /* A long address has to break rather than run out past the card edge. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--line);
+  transition: color .18s ease, border-color .18s ease;
+}
+.member__email:hover { color: var(--red); border-color: var(--red); }
+/* A roster of one would otherwise be a single narrow column under a
+   full-width heading. Sideways, it reads as the founder's card — and the
+   modifier comes off in app/page.tsx as soon as there's a second person, so
+   the grid above takes back over. */
+.office__grid--solo {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 760px) {
+  .office__grid--solo { max-width: 880px; }
+  .office__grid--solo .member {
+    display: grid;
+    grid-template-columns: minmax(0, 270px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 4.5vw, 52px);
+  }
+  .office__grid--solo .member__body { margin-top: 0; }
+  .office__grid--solo .member__name { font-size: 1.55rem; }
+  .office__grid--solo .member__bio { font-size: 1rem; max-width: 46ch; }
+}
+
+/* Until the roster lands, the tab still leads somewhere — the same
+   "Coming Soon" note the apparel section runs on. */
+.office__empty {
+  margin: clamp(30px, 4vw, 44px) auto 0;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+/* ---------- Custom ball preview ---------- */
+.customizer {
+  background: var(--ink);
+  color: var(--text-inv);
+  padding: clamp(64px, 9vw, 110px) 0 clamp(52px, 7vw, 90px);
+}
+.customizer__head { max-width: 640px; margin: 0 auto; text-align: center; }
+.customizer__title { color: #fff; }
+.customizer__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
+.customizer__lead { color: var(--muted-inv); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
+
+.customizer__grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: clamp(24px, 4vw, 60px);
+  margin-top: clamp(36px, 5vw, 58px);
+  text-align: left;
+}
+
+/* ----- Stage ----- */
+.customizer__stage { display: flex; flex-direction: column; align-items: center; }
+.customizer__canvas {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  /* the pointer drags the logo across the ball, so don't let it pan the page */
+  touch-action: none;
+  border-radius: 10px;
+}
+.customizer__canvas.is-draggable { cursor: grab; }
+.customizer__canvas.is-dragging { cursor: grabbing; }
+.customizer__canvas:focus-visible { outline: 2px solid var(--red); outline-offset: 6px; }
+.customizer__hint {
+  color: var(--muted-inv);
+  font-size: 0.86rem;
+  text-align: center;
+  margin-top: 6px;
+  min-height: 1.4em;
+}
+
+/* ----- Control panel ----- */
+.customizer__panel { max-width: 460px; }
+
+.dropzone {
+  position: relative;
+  border: 2px dashed rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color .2s ease, background .2s ease;
+}
+.dropzone:hover,
+.dropzone.is-over { border-color: var(--red); background: rgba(200, 32, 47, 0.08); }
+.dropzone:focus-within { border-color: var(--red); }
+/* Kept in the layout (not display:none) so it stays keyboard reachable */
+.dropzone__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.dropzone__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 26px;
+  text-align: center;
+  cursor: pointer;
+}
+.dropzone__icon { width: 30px; height: 30px; color: var(--red); }
+.dropzone__icon svg { width: 100%; height: 100%; }
+.dropzone__label strong {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+  color: #fff;
+}
+.dropzone__meta { color: var(--muted-inv); font-size: 0.84rem; line-height: 1.5; }
+
+.customizer__status {
+  min-height: 1.5em;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  color: var(--muted-inv);
+}
+.customizer__status.is-error { color: #ff8f8f; }
+
+.controls { margin-top: 18px; display: flex; flex-direction: column; gap: 20px; }
+.controls[hidden] { display: none; }
+.control { display: flex; flex-direction: column; gap: 10px; }
+.control__label {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  color: var(--muted-inv);
+}
+
+/* Range — styled for both engines; the track is a thin rule, thumb is red */
+.control__range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+.control__range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.control__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--red);
+}
+.control__range::-moz-range-track { height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); }
+.control__range::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--red); }
+.control__range:focus-visible { outline: 2px solid var(--red); outline-offset: 4px; border-radius: 4px; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  padding: 9px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-inv);
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.swatch:hover { color: #fff; border-color: rgba(255, 255, 255, 0.5); }
+.swatch.is-active { color: #fff; background: var(--red); border-color: var(--red); }
+
+/* Pantone palette — the ink the whole ball stamps in. The chip is the colour
+   itself; its name is the title/aria-label and shows in the readout under the
+   grid, which keeps two dozen inks to one glanceable block. */
+.pantone { display: flex; flex-wrap: wrap; gap: 8px; }
+.pantone__chip {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease;
+}
+.pantone__chip:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.75); }
+.pantone__chip:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+/* A ring rather than a fill: the chip has to keep showing its own colour. */
+.pantone__chip.is-active {
+  border-color: #fff;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.pantone__readout {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  color: var(--muted-inv);
+  min-height: 1.4em;
+}
+
+/* Arrow pad: nudge the mark around the spot, or drop it back in the middle.
+   The size slider grows a logo from its own centre, so a big mark can creep
+   onto a seam - this is how you walk it back without a steady mouse hand. */
+.nudge {
+  display: grid;
+  grid-template-columns: 44px 96px 44px;
+  grid-template-rows: repeat(3, 34px);
+  gap: 6px;
+}
+.nudge__btn {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-inv);
+  font-family: var(--display);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.nudge__btn:hover { color: #fff; border-color: var(--red); background: rgba(214, 26, 42, 0.16); }
+.nudge__btn:active { background: var(--red); color: #fff; }
+.nudge__centre {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.nudge__up { grid-area: 1 / 2; }
+.nudge__left { grid-area: 2 / 1; }
+.nudge__centre { grid-area: 2 / 2; }
+.nudge__right { grid-area: 2 / 3; }
+.nudge__down { grid-area: 3 / 2; }
+
+.control__check { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--muted-inv); font-size: 0.92rem; }
+.control__check input { width: 17px; height: 17px; accent-color: var(--red); cursor: pointer; }
+
+.controls__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.controls__actions .btn { padding: 12px 22px; font-size: 0.84rem; }
+.controls__reset {
+  background: none;
+  border: 0;
+  padding: 6px 2px;
+  color: var(--muted-inv);
+  font-family: var(--body);
+  font-size: 0.88rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.controls__reset:hover { color: #fff; }
 
 /* ---------- Quote band ---------- */
 .quote {
@@ -563,7 +1044,11 @@ ul { list-style: none; }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 960px) {
+/* The eight-link row needs 1189px of content to hold everything in the
+   stand-in font (see .site-nav), which is 1245px of viewport once the
+   container's padding is counted — so it hands over to the menu button just
+   below that rather than squeezing the logo out of the row. */
+@media (max-width: 1250px) {
   .site-nav {
     position: fixed;
     inset: var(--header-h) 0 auto 0;
@@ -582,6 +1067,12 @@ ul { list-style: none; }
   .site-nav a { padding: 14px 28px; }
   .btn--header { display: none; }
   .nav-toggle { display: flex; }
+}
+
+@media (max-width: 960px) {
+  .customizer__grid { grid-template-columns: 1fr; }
+  .customizer__panel { max-width: 540px; width: 100%; margin: 0 auto; }
+  .customizer__stage { order: -1; }
 
   /* Hero slideshow spans full width behind the text on smaller screens */
   .hero__media { width: 100%; }
@@ -591,6 +1082,8 @@ ul { list-style: none; }
   .hero__slide { background-position: center 18%; }
   .hero__dots { right: 50%; transform: translateX(50%); }
 
+  .balls__grid { grid-template-columns: 1fr; }
+  .balls__photo { max-width: 520px; margin: 0 auto; }
   .difference { grid-template-columns: 1fr; }
   .difference__media { min-height: 360px; }
   .quote { grid-template-columns: 1fr; }
@@ -607,7 +1100,18 @@ ul { list-style: none; }
 @media (max-width: 560px) {
   .hero { min-height: 80vh; }
   .feature-grid { grid-template-columns: 1fr; gap: 24px; }
+  /* The shots stay three across — they read as a lineup, and at this width a
+     stacked column would push the customizer well off the screen. */
+  .proof { gap: 10px; margin-top: 32px; padding-top: 28px; }
+  .proof__cap { font-size: 0.6rem; letter-spacing: 0.08em; }
   .grades__list { grid-template-columns: 1fr; gap: 20px; }
+  /* Two cards across rather than one — a roster stacked single-file
+     turns into a very long scroll, and the headshots read as a lineup the
+     way the shots above them do. */
+  .office__grid { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 20px; }
+  .member__name { font-size: 1.08rem; }
+  .member__bio { font-size: 0.88rem; }
+  .member__initials { font-size: 2.1rem; }
   .orders__form { grid-template-columns: 1fr; }
   .orders__form input[name="team"] { grid-column: auto; }
   .trustbar__grid { grid-template-columns: 1fr; }
@@ -620,4 +1124,8 @@ ul { list-style: none; }
   .hero__slide { transition: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .btn { transition: none; }
+  .member__shot { transition: none; }
+  .swatch, .dropzone { transition: none; }
+  .pantone__chip { transition: none; }
+  .pantone__chip:hover { transform: none; }
 }

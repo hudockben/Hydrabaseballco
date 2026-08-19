@@ -10,15 +10,28 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 ## What's here
 
 - **Public landing page** (`/`) — the marketing site, "By Players For Players."
-  Photos for the hero, ball, and quote sections drop into `public/images/`
+  Ordered so the product leads: hero → **the ball** (A1492 Pro Series lineup and
+  specs) → **customize** (drop a team logo onto a real ball photo) → the Hydra
+  difference → **front office** → mission → team orders. The front-office roster — name,
+  role, bio, headshot — is the `TEAM` list at the top of `app/page.tsx`, and
+  headshots go in `public/images/team/`; someone with no photo yet shows their
+  initials. Photos drop into `public/images/`
   (see `public/images/README.md`); on-brand gradient fallbacks render until then.
 - **Admin area** (`/admin`, password-protected):
   - **Find Prospects** — search free/public data sources by type + location and
     save leads.
   - **CRM** — pipeline (New → Contacted → Qualified → Won → Lost), notes, CSV export.
-  - **Customer List** — a hand-maintained recruiting sheet (state, school,
-    conference, roster link, division, 1st-degree connection + notes, Instagram,
-    email, notes) with inline editing and CSV export.
+  - **Customer List** — the recruiting sheet, run as a tiered reach-out queue.
+    One search box (`state:pa`, `div:d3`, `has:email`, `missing:contact`,
+    `tier:a`, `status:new`, `-word`, `"exact phrase"`) filters and ranks; every
+    school is scored **Tier A → D** on how likely it is to buy (1st-degree
+    connection, buying signals in the notes, contact info on file, division, and
+    distance from your home state — hover a badge for the exact reasons).
+    **Find missing contacts** crawls each school's roster link / athletics site
+    for the head coach, email, and phone and fills the blanks in. Each card then
+    has a ready-to-send email draft, a status (new → contacted → replied →
+    interested → customer / passed), and inline editing; **Sheet** view keeps the
+    full spreadsheet. CSV export carries the tier, score, and next action.
   - **Inventory** — stock on hand per item (SKU, category, reorder level, unit
     cost/price, supplier, location). Receive / ship adjustments update the count
     and write an auditable movement log; low-stock items are flagged. CSV export.
@@ -70,6 +83,11 @@ If it predates the Inventory tab, run:
 ```bash
 # contents of db/migrations/2026-06-15-add-inventory.sql
 ```
+
+The app also applies the schema itself on the first request (`ensureSchema` in
+`lib/db.ts`), so the Customer List reach-out columns
+(`db/migrations/2026-08-01-add-customer-outreach.sql`) land automatically —
+running that one by hand is optional.
 
 ## Local development
 

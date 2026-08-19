@@ -19,5 +19,8 @@
 *.tsbuildinfo
 next-env.d.ts
 
+# the image tools import each other, so python leaves bytecode in tools/
+__pycache__/
+
 # misc
 .DS_Store

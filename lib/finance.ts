@@ -22,9 +22,11 @@ export interface Product {
 }
 
 export interface OrderEconomics {
-  revenue: number;
+  sales: number; // quantity × unit price
+  shippingCharged: number; // shipping billed to the customer
+  revenue: number; // sales + shippingCharged — everything the customer paid
   cogs: number;
-  shipping: number;
+  shipping: number; // shipping the business pays the carrier
   other: number;
   profit: number;
   marginPct: number | null; // null when revenue is 0
@@ -32,6 +34,12 @@ export interface OrderEconomics {
 
 /** Round to whole cents. Keeps display + sums free of float dust. */
 export const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
+
+// Percentages below are returned unrounded on purpose. `pct()` renders them to
+// one decimal, so rounding to two here would round twice and overstate the
+// result: 14.0465% -> round2 -> 14.05 -> toFixed(1) -> "14.1%" when the honest
+// answer is 14.0%. Money still rounds to cents; percentages round once, at the
+// point of display.
 
 /**
  * Unit price needed to hit a target gross margin, given the all-in unit cost.
@@ -46,13 +54,13 @@ export function priceForMargin(landedUnitCost: number, marginPct: number): numbe
 /** Gross margin % for a given price and all-in unit cost. Null if price <= 0. */
 export function marginFromPrice(unitPrice: number, landedUnitCost: number): number | null {
   if (!(unitPrice > 0)) return null;
-  return round2(((unitPrice - landedUnitCost) / unitPrice) * 100);
+  return ((unitPrice - landedUnitCost) / unitPrice) * 100;
 }
 
 /** Markup % (profit over cost) for a given price and cost. Null if cost <= 0. */
 export function markupFromPrice(unitPrice: number, landedUnitCost: number): number | null {
   if (!(landedUnitCost > 0)) return null;
-  return round2(((unitPrice - landedUnitCost) / landedUnitCost) * 100);
+  return ((unitPrice - landedUnitCost) / landedUnitCost) * 100;
 }
 
 /**
@@ -71,27 +79,39 @@ export function priceForQty(tiers: PriceTier[], qty: number): number | null {
   return price;
 }
 
-/** Full economics of one order line. `other` is any extra per-order cost. */
+/**
+ * Full economics of one order line. `other` is any extra per-order cost.
+ *
+ * `shipping` is what the business pays to ship; `shippingCharged` is what the
+ * customer was billed for it. Both are counted: billed shipping is revenue like
+ * any other money the customer handed over, and leaving it out understates
+ * margin on every order that doesn't bake shipping into the unit price.
+ */
 export function orderEconomics(args: {
   quantity: number;
   unitPrice: number;
   unitCost: number;
   shipping: number;
+  shippingCharged?: number;
   other?: number;
 }): OrderEconomics {
-  const revenue = round2(args.quantity * args.unitPrice);
+  const sales = round2(args.quantity * args.unitPrice);
+  const shippingCharged = round2(args.shippingCharged || 0);
+  const revenue = round2(sales + shippingCharged);
   const cogs = round2(args.quantity * args.unitCost);
   const shipping = round2(args.shipping || 0);
   const other = round2(args.other || 0);
   const profit = round2(revenue - cogs - shipping - other);
-  const marginPct = revenue > 0 ? round2((profit / revenue) * 100) : null;
-  return { revenue, cogs, shipping, other, profit, marginPct };
+  const marginPct = revenue > 0 ? (profit / revenue) * 100 : null;
+  return { sales, shippingCharged, revenue, cogs, shipping, other, profit, marginPct };
 }
 
 /** Sum a list of order economics into a single roll-up. */
 export function sumEconomics(parts: OrderEconomics[]): OrderEconomics {
   const acc = parts.reduce(
     (a, p) => ({
+      sales: a.sales + p.sales,
+      shippingCharged: a.shippingCharged + p.shippingCharged,
       revenue: a.revenue + p.revenue,
       cogs: a.cogs + p.cogs,
       shipping: a.shipping + p.shipping,
@@ -99,14 +119,17 @@ export function sumEconomics(parts: OrderEconomics[]): OrderEconomics {
       profit: a.profit + p.profit,
       marginPct: null,
     }),
-    { revenue: 0, cogs: 0, shipping: 0, other: 0, profit: 0, marginPct: null as number | null },
+    { sales: 0, shippingCharged: 0, revenue: 0, cogs: 0, shipping: 0, other: 0, profit: 0,
+      marginPct: null as number | null },
   );
+  acc.sales = round2(acc.sales);
+  acc.shippingCharged = round2(acc.shippingCharged);
   acc.revenue = round2(acc.revenue);
   acc.cogs = round2(acc.cogs);
   acc.shipping = round2(acc.shipping);
   acc.other = round2(acc.other);
   acc.profit = round2(acc.profit);
-  acc.marginPct = acc.revenue > 0 ? round2((acc.profit / acc.revenue) * 100) : null;
+  acc.marginPct = acc.revenue > 0 ? (acc.profit / acc.revenue) * 100 : null;
   return acc;
 }
 

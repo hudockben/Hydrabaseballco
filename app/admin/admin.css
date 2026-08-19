@@ -780,6 +780,124 @@
   font-size: 1.15rem;
   color: var(--text);
 }
+.order-econ strong.pos {
+  color: var(--green);
+}
+.order-econ strong.neg {
+  color: var(--red);
+}
+
+/* Which statuses feed the totals */
+.count-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.count-bar select {
+  width: auto;
+  min-width: 240px;
+}
+.count-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Profit spelled out as an equation under the stat tiles */
+.fin-reconcile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.fin-reconcile .eq {
+  color: var(--text);
+}
+.fin-note {
+  margin: -14px 0 22px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.fin-note strong.pos {
+  color: var(--green);
+}
+.fin-note strong.neg {
+  color: var(--red);
+}
+.fin-reconcile strong {
+  font-size: 1rem;
+}
+.fin-reconcile strong.pos {
+  color: var(--green);
+}
+.fin-reconcile strong.neg {
+  color: var(--red);
+}
+
+/* The orders table carries every cost line, so it is wide enough to scroll.
+   Pin the actions to the right edge — Edit must stay reachable without
+   scrolling to the end of the row. */
+/* Thirteen columns of finance detail: trim the gutters so the whole row fits
+   on a normal desktop, and let it scroll below that. */
+.orders-table th,
+.orders-table td {
+  padding: 8px 7px;
+}
+.orders-table .status {
+  padding: 4px 6px;
+  font-size: 0.82rem;
+}
+.orders-table .row-actions {
+  gap: 6px;
+}
+.orders-table td.row-actions,
+.orders-table th.row-actions {
+  position: sticky;
+  right: 0;
+  /* The table uses border-collapse, which leaves sticky cells painting below
+     their siblings in Chrome unless they are given a stacking order. */
+  z-index: 2;
+  background: var(--ink-2);
+  box-shadow: inset 1px 0 0 var(--line);
+}
+.orders-table tbody tr:hover td.row-actions {
+  background: #212129;
+}
+
+/* Order editor — sits above the orders table while a row is being edited */
+.order-edit {
+  background: var(--ink);
+  border: 1px solid rgba(200, 150, 106, 0.4);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.order-edit-head {
+  color: var(--bronze);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.order-edit .order-econ {
+  background: var(--ink-2);
+}
+.order-edit .prod-form-actions {
+  justify-content: flex-end;
+}
+.order-edit .prod-form-actions .mini-btn {
+  margin-right: auto;
+}
+.orders-table tr.row-editing > td {
+  background: rgba(200, 150, 106, 0.08);
+}
+.orders-table tr.row-editing > td.row-actions {
+  background: #2a2420;
+}
 
 .fin-split {
   display: grid;
@@ -906,6 +1024,10 @@ td.neg {
 }
 .customer-table td.wide .cl-input {
   width: 160px;
+}
+.cl-input::placeholder {
+  color: var(--muted);
+  opacity: 0.45;
 }
 .cl-input:hover {
   border-color: var(--line);
@@ -1126,7 +1248,448 @@ button.inv-qty:hover {
   cursor: default;
 }
 
+/* ---------- Customer List: search + reach-out queue ---------- */
+.cl-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  max-width: 62ch;
+  margin: 4px 0 0;
+}
+.cl-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cl-toggle button {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  padding: 9px 16px;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+.cl-toggle button.active {
+  background: var(--ink-3);
+  color: var(--text);
+}
+.cl-toggle button:hover:not(.active) {
+  color: var(--bronze-2);
+}
+
+.cl-search {
+  margin: 18px 0 14px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.cl-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cl-search-icon {
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.cl-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 11px 16px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.cl-search-input:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+.cl-search-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+.cl-search-clear {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.cl-search-clear:hover {
+  color: var(--bronze);
+}
+.cl-sort {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.cl-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.cl-chip {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.cl-chip:hover {
+  border-color: var(--bronze);
+  color: var(--bronze-2);
+}
+.cl-chip.on {
+  border-color: var(--bronze);
+  color: #20160c;
+  background: var(--bronze);
+}
+.cl-chip-n {
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+  margin-left: 4px;
+}
+.cl-chip.tier-a:not(.on) { color: var(--bronze-2); }
+.cl-chip.tier-b:not(.on) { color: var(--green); }
+.cl-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.cl-home-input {
+  width: 54px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--text);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  text-align: center;
+}
+.cl-home-input:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+
+.cl-help {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+.cl-help ul {
+  margin: 8px 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+.cl-help code {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  color: var(--bronze-2);
+  font-size: 0.82rem;
+}
+.cl-parsed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.cl-parsed-chip {
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+.cl-parsed-chip.field,
+.cl-parsed-chip.flag,
+.cl-parsed-chip.tier,
+.cl-parsed-chip.status {
+  border-style: solid;
+  color: var(--bronze-2);
+}
+.cl-parsed-chip.exclude {
+  color: var(--red);
+}
+
+.cl-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 4px 0 10px;
+}
+.cl-status-bar .admin-msg {
+  margin: 0;
+}
+.cl-fill-btn {
+  margin: 0;
+}
+.cl-empty {
+  padding: 28px 4px;
+}
+
+/* Queue cards */
+.cl-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cl-card {
+  display: flex;
+  gap: 14px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.cl-card--passed {
+  opacity: 0.55;
+}
+.cl-card--customer {
+  border-color: rgba(76, 175, 125, 0.4);
+}
+.cl-card-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 52px;
+  flex: none;
+}
+.cl-rank {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+}
+.tier-badge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: help;
+  border: 1px solid transparent;
+}
+.tier-badge.tier-a {
+  background: var(--bronze);
+  color: #20160c;
+}
+.tier-badge.tier-b {
+  background: rgba(200, 150, 106, 0.18);
+  border-color: var(--bronze);
+  color: var(--bronze-2);
+}
+.tier-badge.tier-c {
+  background: var(--ink-3);
+  color: var(--text);
+  border-color: var(--line);
+}
+.tier-badge.tier-d {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--line);
+}
+.cl-score {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  cursor: help;
+}
+.cl-pin {
+  color: var(--bronze-2);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cl-card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cl-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cl-school {
+  color: var(--text);
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.12rem;
+  margin: 0;
+}
+.cl-meta {
+  font-size: 0.82rem;
+}
+.cl-next {
+  border: 1px solid var(--bronze);
+  color: var(--bronze-2);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+.cl-why {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cl-signal {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+.cl-signal.warm {
+  border-color: var(--bronze);
+  color: var(--bronze-2);
+}
+.cl-signal.neg {
+  border-color: rgba(217, 100, 90, 0.5);
+  color: var(--red);
+}
+.cl-contact {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cl-field .cl-input {
+  width: 130px;
+  border-color: var(--line);
+}
+.cl-field.wide .cl-input {
+  width: 220px;
+}
+.cl-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  padding-bottom: 5px;
+}
+.cl-links a {
+  color: var(--bronze-2);
+}
+.cl-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cl-email-btn {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 0.84rem;
+  text-decoration: none;
+  display: inline-block;
+}
+.cl-card-actions .ghost-btn {
+  padding: 8px 14px;
+  font-size: 0.84rem;
+}
+.cl-when {
+  font-size: 0.76rem;
+}
+.cl-note {
+  width: 240px;
+}
+.cl-tier-select {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 3px 4px;
+}
+
+/* Status pills shared by the queue and the sheet */
+.status-new {
+  border-color: var(--line);
+  color: var(--muted);
+}
+.status-replied,
+.status-interested {
+  border-color: var(--green);
+  color: var(--green);
+}
+.status-customer {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(76, 175, 125, 0.12);
+}
+.status-passed {
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.8;
+}
+
 @media (max-width: 720px) {
+  .cl-search-row {
+    flex-wrap: wrap;
+  }
+  .cl-search-input {
+    flex-basis: 100%;
+    order: -1;
+  }
+  .cl-card {
+    flex-direction: column;
+  }
+  .cl-card-rail {
+    flex-direction: row;
+    width: auto;
+  }
+  .cl-field .cl-input,
+  .cl-field.wide .cl-input,
+  .cl-note {
+    width: 100%;
+  }
+  .cl-field {
+    flex: 1 1 160px;
+  }
   .admin {
     grid-template-columns: 1fr;
   }

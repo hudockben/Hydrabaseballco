@@ -198,7 +198,8 @@
     var labels = {
       name: 'Name', email: 'Email', phone: 'Phone',
       team: 'Team / organization', state: 'State', zip: 'Zip code',
-      level: 'Level of play', quantity: 'Approx. # of baseballs', message: 'Message'
+      level: 'Level of play', quantity: 'Approx. # of baseballs',
+      logo: 'Custom logo', message: 'Message'
     };
 
     function fieldLines(data) {
@@ -243,5 +244,926 @@
         .then(function (r) { return r.ok ? showThanks() : (mailtoFallback(data), reset()); })
         .catch(function () { mailtoFallback(data); reset(); });
     });
+  }
+
+  /* Custom ball preview — puts an uploaded team logo on the real A1492.
+     The stage is the product photograph with the spot being printed retouched
+     out (tools/make-ball-blank.py), so a mark lands on bare leather while the
+     seams, the grain and the light stay exactly as they were shot. Everything
+     else about the ball is the photograph. The artwork is read and composited
+     entirely in the browser; the file is never sent anywhere. */
+  var stage = document.getElementById('ballStage');
+  if (stage && stage.getContext && stage.getContext('2d') && window.FileReader) {
+    var ctx = stage.getContext('2d');
+
+    /* ---- Geometry (internal pixels; CSS scales the canvas down) --------
+       The canvas is the retouched photo (1100x1100) at 900px wide. Its ball
+       comes from a least-squares fit of the limb — centre (545.5, 519.8),
+       radius 394.5 — and the cleared panel is centred at (565, 588). Both are
+       scaled by 900/1100 here. tools/make-ball-blank.py builds the photo. */
+    var W = 900, H = 900;
+    var CX = 446.3, CY = 425.3, R = 322.8;
+    var TAU = Math.PI * 2;
+
+    /* Where a mark can go, in flat decal units, with the box it is fitted into
+       and the photo that has that spot cleared. The ball keeps the Hydra name
+       either way: printed in the horseshoe as it ships, or moved down onto the
+       panel as the HYDRA / A1492 lockup when a team takes the horseshoe — which
+       is retouched into the photo by tools/make-ball-blank.py, not drawn here.
+       Both spots were measured off the photo and mapped through the projection
+       below. */
+    var PLACEMENTS = {
+      panel: {
+        x: 0.05, y: 0.174, fitW: 0.8, fitH: 0.4,
+        src: '/images/ball-blank.jpg'
+      },
+      horseshoe: {
+        x: 0.09, y: -0.95, fitW: 1.05, fitH: 0.66,
+        src: '/images/ball-blank-horseshoe.jpg'
+      }
+    };
+    var placement = 'panel';
+
+    var hint = document.getElementById('ballHint');
+    var statusEl = document.getElementById('logoStatus');
+    var controls = document.getElementById('logoControls');
+    var fileInput = document.getElementById('logoInput');
+    var dropEl = document.getElementById('logoDrop');
+    var sizeInput = document.getElementById('logoSize');
+    var knockBox = document.getElementById('logoKnockout');
+    var downloadBtn = document.getElementById('logoDownload');
+    var attachBtn = document.getElementById('logoAttach');
+    var resetBtn = document.getElementById('logoReset');
+    var swatchEls = document.querySelectorAll('[data-ink]');
+    var spotEls = document.querySelectorAll('.swatch[data-spot]');
+    var nudgeEls = document.querySelectorAll('[data-nudge]');
+    var readout = document.getElementById('inkReadout');
+
+    /* The Pantone palette is authored in the markup (app/page.tsx) and read off
+       the chips here, so the colour on a chip and the colour it stamps with
+       cannot drift apart. Every run is one ink — the press has no full-colour
+       option — so the first chip is what a ball starts out stamped in. */
+    var INK = {}, INK_LABEL = {}, DEFAULT_INK = '';
+    (function () {
+      for (var i = 0; i < swatchEls.length; i++) {
+        var id = swatchEls[i].getAttribute('data-ink');
+        var hex = /^#?([0-9a-f]{6})$/i.exec(swatchEls[i].getAttribute('data-hex') || '');
+        if (!id || !hex) { continue; }
+        var v = parseInt(hex[1], 16);
+        INK[id] = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+        INK_LABEL[id] = swatchEls[i].getAttribute('data-name') || id;
+        if (!DEFAULT_INK) { DEFAULT_INK = id; }
+      }
+    })();
+    function inkFor(id) {
+      return Object.prototype.hasOwnProperty.call(INK, id) ? INK[id] : null;
+    }
+
+    var MAX_BYTES = 12 * 1024 * 1024;
+    var DEFAULT_HINT = 'Upload a logo to get started.';
+
+    /* Logo state. Positions and sizes are in "flat" units where 1 = the ball's
+       radius at the centre of the sphere (see the projection note below). */
+    var logoImg = null, logoSrcW = 0, logoSrcH = 0, logoName = '';
+    var logoData = null, logoW = 0, logoH = 0;
+    var posX = PLACEMENTS.panel.x, posY = PLACEMENTS.panel.y, widthU = 0.55;
+    var ink = DEFAULT_INK, knockout = false;
+
+    function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+    /* The spot's outline, shown while the mark is being moved or resized so a
+       logo growing toward a seam is something you can see coming. */
+    var guideOn = false, guideTimer = 0;
+    function flashGuide() {
+      guideOn = true;
+      if (guideTimer) { clearTimeout(guideTimer); }
+      guideTimer = setTimeout(function () {
+        guideOn = false;
+        guideTimer = 0;
+        queueDraw();
+      }, 1400);
+    }
+
+    function makeLayer() {
+      var c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      return c;
+    }
+
+    /* ---- Sphere projection --------------------------------------------
+       A decal on a sphere seen head-on is an azimuthal-equidistant map: a
+       screen point r from the centre (in radii) sits asin(r) radians of arc
+       away, so the flat artwork coordinate is r scaled by asin(r)/r. That
+       ratio only depends on r, so it lives in a small lookup table instead of
+       an asin() per pixel per frame. */
+    var KN = 4096;
+    var kTable = new Float32Array(KN + 1);
+    (function () {
+      for (var i = 0; i <= KN; i++) {
+        var rr = i / KN;
+        kTable[i] = rr < 1e-6 ? 1 : Math.asin(rr < 1 ? rr : 1) / rr;
+      }
+    })();
+    function kAt(r) {
+      var f = r * KN, i = f | 0;
+      if (i >= KN) { return kTable[KN]; }
+      return kTable[i] + (kTable[i + 1] - kTable[i]) * (f - i);
+    }
+
+    /* ---- The ball ------------------------------------------------------
+       One photograph, drawn straight onto the canvas. The only thing derived
+       from it is a leather mask: grass crosses in front of the ball along the
+       bottom of the circle, and a printed mark must not paint over it. Grass is
+       the one strongly green thing in the frame, so greenness keys it out —
+       white leather, black print and red seams all stay printable. */
+    var photos = {};
+    var leather = null;
+
+    function buildLeatherMask(img) {
+      var c = makeLayer();
+      var cc = c.getContext('2d');
+      if (!cc) { return; }
+      cc.drawImage(img, 0, 0, W, H);
+      var px;
+      try {
+        px = cc.getImageData(0, 0, W, H).data;
+      } catch (err) {
+        return; /* same-origin, so this shouldn't happen — but don't die on it */
+      }
+      var m = new Uint8Array(W * H);
+      for (var i = 0, o = 0; i < m.length; i++, o += 4) {
+        var other = px[o] > px[o + 2] ? px[o] : px[o + 2];
+        var green = px[o + 1] - other;
+        /* <= 2 is leather or ink, >= 18 is grass, ramp across the edge. */
+        m[i] = green <= 2 ? 255 : (green >= 18 ? 0 : Math.round((18 - green) * 255 / 16));
+      }
+      leather = m;
+    }
+
+    /* ---- The printing already on the ball ------------------------------
+       A stamp run is one ink: the mark a team sends up, the Hydra wordmark,
+       the model line and the specs along the bottom all come off the same
+       press in the same colour. So picking an ink has to restamp the printing
+       in the photograph too — and unlike the uploaded artwork, that printing
+       arrives baked into the pixels.
+
+       It is lifted the way tools/make-ball-blank.py lifts a whole panel: a
+       grayscale closing fills anything darker and thinner than its kernel, so
+       closing - photo is the printing and nothing else. What that yields, per
+       photo, is two layers — the leather the ink is sitting on, and the ink as
+       a shape. Draw the first over the photo and the printing lifts off; fill
+       the second with the chosen colour and multiply it back down and the
+       printing returns in that ink, with the grain and the shading of the
+       leather still reading through it, exactly as an uploaded mark does.
+
+       Only the three spots that carry printing are searched. Elsewhere the
+       lacing holes and the shadow between the stitches run just as dark as a
+       glyph, and recolouring those would be plainly wrong. Boxes are in canvas
+       pixels, measured off the photo like the placements above; a spot that
+       has been retouched out simply yields no ink. */
+    var PRINT_BOXES = [
+      [312, 630, 112, 262],   /* the Hydra wordmark, up in the horseshoe */
+      [308, 618, 404, 558],   /* between the seams: the model mark, or the
+                                 HYDRA / A1492 lockup that replaces it */
+      [302, 602, 643, 740]    /* the specs line along the bottom */
+    ];
+    var PRINT_R = 16;             /* half the kernel — wider than any stroke */
+    var PRINT_LO = 20;            /* below this the leather's own grain */
+    var PRINT_HI = 42;            /* above it, ink */
+    var PRINT_FLOOR = 0.95;       /* the printing reflects ~5% of its leather */
+    var STAIN_R = 6, STAIN_MAX = 8;  /* how close to thread or grass is too close */
+    var LIMB2 = R * R * 0.9409;   /* (0.97R)^2 — inside the limb, off the edge */
+
+    /* Grayscale dilation (grow) or erosion of a bw x bh patch, separable: once
+       along the rows, once down the columns. That is what makes a 33px kernel
+       a handful of passes over a small box instead of a search per pixel. */
+    function morph(src, bw, bh, r, grow) {
+      var tmp = new Float32Array(bw * bh), out = new Float32Array(bw * bh);
+      var x, y, j, lo, hi, v, s, row;
+      for (y = 0; y < bh; y++) {
+        row = y * bw;
+        for (x = 0; x < bw; x++) {
+          lo = x > r ? x - r : 0;
+          hi = x + r < bw ? x + r : bw - 1;
+          v = src[row + lo];
+          for (j = lo + 1; j <= hi; j++) {
+            s = src[row + j];
+            if (grow ? s > v : s < v) { v = s; }
+          }
+          tmp[row + x] = v;
+        }
+      }
+      for (x = 0; x < bw; x++) {
+        for (y = 0; y < bh; y++) {
+          lo = y > r ? y - r : 0;
+          hi = y + r < bh ? y + r : bh - 1;
+          v = tmp[lo * bw + x];
+          for (j = lo + 1; j <= hi; j++) {
+            s = tmp[j * bw + x];
+            if (grow ? s > v : s < v) { v = s; }
+          }
+          out[y * bw + x] = v;
+        }
+      }
+      return out;
+    }
+
+    /* Build a photo's two printing layers. Runs once, when the photo lands. */
+    function buildPrintLayers(entry) {
+      var work = makeLayer(), wc = work.getContext('2d');
+      var bare = makeLayer(), bc = bare.getContext('2d');
+      var mark = makeLayer(), mc = mark.getContext('2d');
+      if (!wc || !bc || !mc) { return; }
+      wc.drawImage(entry.img, 0, 0, W, H);
+
+      for (var b = 0; b < PRINT_BOXES.length; b++) {
+        var box = PRINT_BOXES[b];
+        var x0 = box[0], y0 = box[2], bw = box[1] - box[0], bh = box[3] - box[2];
+        var patch;
+        try {
+          patch = wc.getImageData(x0, y0, bw, bh);
+        } catch (err) {
+          return; /* same-origin, so this shouldn't happen — but don't die on it */
+        }
+        var px = patch.data, n = bw * bh, i, o;
+        var lum = new Float32Array(n), stain = new Float32Array(n);
+        for (i = 0, o = 0; i < n; i++, o += 4) {
+          lum[i] = 0.2126 * px[o] + 0.7152 * px[o + 1] + 0.0722 * px[o + 2];
+          /* How far from white leather this pixel's colour is, on the two
+             sides that matter: green for the grass, red for the seam thread.
+             Print is neutral, so it scores about nothing either way. */
+          var other = px[o] > px[o + 2] ? px[o] : px[o + 2];
+          var greenish = px[o + 1] - other, reddish = px[o] - px[o + 1] - 20;
+          stain[i] = greenish > reddish ? greenish : reddish;
+        }
+        var paper = morph(morph(lum, bw, bh, PRINT_R, true), bw, bh, PRINT_R, false);
+        /* Judged over a neighbourhood rather than pixel by pixel: the shadow
+           between two stitches is as neutral as ink, and a dark pixel's own
+           colour is too far gone in the JPEG to be worth asking. Growing the
+           stain instead keeps the thread, the grass and the shadows they cast
+           out of it, and leaves glyph interiors alone. */
+        var near = morph(stain, bw, bh, STAIN_R, true);
+
+        /* Coverage is how much of the leather's own light the ink is holding
+           back, faded in over the grain so only glyphs are picked up. The
+           leather's colour is carried as a ratio against its luminance: it is
+           one hide, so the tint the clean pixels agree on is the tint under
+           the printing too. */
+        var cover = new Float32Array(n);
+        var sumR = 0, sumG = 0, sumB = 0, sumL = 0;
+        for (i = 0, o = 0; i < n; i++, o += 4) {
+          var lit = paper[i];
+          var dx = x0 + (i % bw) + 0.5 - CX, dy = y0 + ((i / bw) | 0) + 0.5 - CY;
+          /* Lit leather, well inside the limb, clear of thread and grass. */
+          var onLeather = lit >= 60 && near[i] <= STAIN_MAX && dx * dx + dy * dy < LIMB2;
+          var t = 0;
+          if (onLeather) {
+            var d = lit - lum[i];
+            t = (d - PRINT_LO) / (PRINT_HI - PRINT_LO);
+            t = t < 0 ? 0 : (t > 1 ? 1 : t);
+            var solid = d / (lit * PRINT_FLOOR);
+            t *= solid > 1 ? 1 : solid;
+          }
+          cover[i] = t;
+          if (onLeather && t < 0.02) {
+            sumR += px[o]; sumG += px[o + 1]; sumB += px[o + 2]; sumL += lum[i];
+          }
+        }
+        if (!sumL) { continue; }
+        var kr = sumR / sumL, kg = sumG / sumL, kb = sumB / sumL;
+
+        var bareImg = bc.createImageData(bw, bh), bd = bareImg.data;
+        var markImg = mc.createImageData(bw, bh), md = markImg.data;
+        for (i = 0, o = 0; i < n; i++, o += 4) {
+          var a = cover[i];
+          if (a <= 0) { continue; }
+          bd[o] = paper[i] * kr;
+          bd[o + 1] = paper[i] * kg;
+          bd[o + 2] = paper[i] * kb;
+          bd[o + 3] = a * 255;
+          md[o] = 255; md[o + 1] = 255; md[o + 2] = 255;
+          md[o + 3] = a * 255;
+        }
+        bc.putImageData(bareImg, x0, y0);
+        mc.putImageData(markImg, x0, y0);
+      }
+
+      entry.bare = bare;
+      entry.mark = mark;
+      paintPrint(entry);
+    }
+
+    /* Colour a photo's printing. `source-in` keeps the shape's coverage and
+       swaps only what fills it, so changing swatch is a repaint of two dozen
+       glyphs rather than a rebuild of the mask behind them. */
+    function paintPrint(entry) {
+      var rgb = inkFor(ink);
+      if (!entry || !entry.mark || !rgb) { return; }
+      var c = entry.mark.getContext('2d');
+      if (!c) { return; }
+      c.save();
+      c.globalCompositeOperation = 'source-in';
+      c.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+      c.fillRect(0, 0, W, H);
+      c.restore();
+    }
+
+    /* Only the photo for the spot in use is fetched; the second one arrives
+       the first time somebody picks the horseshoe. The grass runs across both
+       identically, so the leather mask is built once from whichever lands. */
+    function loadPhoto(key) {
+      var entry = photos[key];
+      if (entry) { return entry; }
+      var img = new Image();
+      entry = photos[key] = { img: img, ready: false };
+      img.onload = function () {
+        entry.ready = true;
+        if (!leather) { buildLeatherMask(img); }
+        buildPrintLayers(entry);
+        compose();
+      };
+      img.onerror = function () {
+        fail('The ball photo didn\u2019t load. Reload the page and try again.');
+      };
+      img.src = PLACEMENTS[key].src;
+      return entry;
+    }
+    loadPhoto('panel');
+
+    /* Flat decal units back to canvas pixels — the inverse of kAt(). */
+    function flatToScreen(fx, fy) {
+      var r = Math.sqrt(fx * fx + fy * fy);
+      if (r < 1e-6) { return [CX, CY]; }
+      var scale = Math.sin(r > Math.PI / 2 ? Math.PI / 2 : r) / r;
+      return [CX + fx * scale * R, CY + fy * scale * R];
+    }
+
+    var logoLayer = makeLayer();
+    var logoCtx = logoLayer.getContext('2d');
+    var logoImage = logoCtx ? logoCtx.createImageData(W, H) : null;
+
+    var scratch = document.createElement('canvas');
+    var scratchCtx = scratch.getContext('2d');
+
+    /* ---- Preparing the uploaded artwork -------------------------------- */
+    /* Lift a flat backdrop off the artwork. The colour is sampled from the
+       four corners rather than assumed white, so a mark sitting on a grey or
+       cream card keys out as cleanly as one on white — a fixed near-white
+       threshold leaves mid-greys half-opaque and the card still shows. If the
+       corners disagree (a photo, a busy edge) fall back to knocking back
+       near-white pixels, which is the best guess left. */
+    function knockBackdrop(img) {
+      var w = img.width, h = img.height, d = img.data;
+      var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
+      var lo = [255, 255, 255], hi = [0, 0, 0], sum = [0, 0, 0];
+      var flat = true, i, ch, v;
+
+      for (i = 0; i < corners.length && flat; i++) {
+        var o = corners[i];
+        if (d[o + 3] < 250) { flat = false; break; }
+        for (ch = 0; ch < 3; ch++) {
+          v = d[o + ch];
+          if (v < lo[ch]) { lo[ch] = v; }
+          if (v > hi[ch]) { hi[ch] = v; }
+          sum[ch] += v;
+        }
+      }
+
+      var spread = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
+      var bg = [sum[0] / 4, sum[1] / 4, sum[2] / 4];
+      var bgLum = 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2];
+      if (!flat || spread > 20 || bgLum < 140) { knockWhite(img); return; }
+
+      var NEAR = 30, FAR = 70;
+      for (i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) { continue; }
+        var dr = d[i] - bg[0], dg = d[i + 1] - bg[1], db = d[i + 2] - bg[2];
+        var dist = Math.sqrt(dr * dr + dg * dg + db * db);
+        if (dist <= NEAR) { d[i + 3] = 0; }
+        else if (dist < FAR) { d[i + 3] = d[i + 3] * ((dist - NEAR) / (FAR - NEAR)); }
+      }
+    }
+
+    /* Drop near-white pixels. Saturated light colours (a yellow mark, say)
+       are left alone. */
+    function knockWhite(img) {
+      var d = img.data, HI = 246, LO = 208, SAT = 30;
+      for (var i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) { continue; }
+        var r = d[i], g = d[i + 1], b = d[i + 2];
+        var mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        var mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        if (mx - mn > SAT) { continue; }
+        var lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        if (lum >= HI) { d[i + 3] = 0; }
+        else if (lum > LO) { d[i + 3] = d[i + 3] * ((HI - lum) / (HI - LO)); }
+      }
+    }
+
+    /* Recolour to a one-colour stamp. Ink coverage follows the artwork's
+       luminance rather than its silhouette: filling the alpha shape would
+       flatten a crest into a solid blob, whereas a real single-colour press
+       keeps the interior detail and leaves the light areas as bare leather
+       (white here, which multiply passes straight through). */
+    function inkify(img, rgb) {
+      var d = img.data, ir = rgb[0], ig = rgb[1], ib = rgb[2];
+      for (var i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) { continue; }
+        var t = 1 - (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+        d[i] = 255 + (ir - 255) * t;
+        d[i + 1] = 255 + (ig - 255) * t;
+        d[i + 2] = 255 + (ib - 255) * t;
+      }
+    }
+
+    function prepareLogo() {
+      if (!logoImg || !scratchCtx) { logoData = null; return; }
+      /* Cap the working raster so a 6000px export still drags at 60fps. */
+      var s = Math.min(1, 900 / Math.max(logoSrcW, logoSrcH));
+      logoW = Math.max(1, Math.round(logoSrcW * s));
+      logoH = Math.max(1, Math.round(logoSrcH * s));
+      scratch.width = logoW; scratch.height = logoH;
+      scratchCtx.clearRect(0, 0, logoW, logoH);
+      scratchCtx.drawImage(logoImg, 0, 0, logoW, logoH);
+
+      var img;
+      try {
+        img = scratchCtx.getImageData(0, 0, logoW, logoH);
+      } catch (err) {
+        /* A few browsers still treat an SVG as tainting the canvas, which
+           makes the pixels unreadable — say so instead of dying silently. */
+        logoData = null;
+        fail('Your browser won’t let this file be read pixel by pixel. Try a PNG or JPG.');
+        return;
+      }
+      if (knockout) { knockBackdrop(img); }
+      var rgb = inkFor(ink);
+      if (rgb) { inkify(img, rgb); }
+      logoData = img;
+    }
+
+    /* Drop the mark back into the middle of the spot it's printed on. */
+    function centreLogo() {
+      posX = PLACEMENTS[placement].x;
+      posY = PLACEMENTS[placement].y;
+    }
+
+    /* Centre the mark on the chosen spot and size it to that spot's box. */
+    function fitToPlacement() {
+      var spot = PLACEMENTS[placement];
+      centreLogo();
+      if (logoSrcW && logoSrcH) {
+        widthU = clamp(Math.min(spot.fitW, spot.fitH * (logoSrcW / logoSrcH)), 0.15, 1.3);
+        if (sizeInput) { sizeInput.value = String(Math.round(widthU * 100)); }
+      }
+    }
+
+    function setPlacement(next) {
+      if (!PLACEMENTS[next] || next === placement) { return; }
+      placement = next;
+      loadPhoto(next);
+      for (var i = 0; i < spotEls.length; i++) {
+        var on = spotEls[i].getAttribute('data-spot') === next;
+        spotEls[i].classList.toggle('is-active', on);
+        spotEls[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      fitToPlacement();
+      queueDraw();
+    }
+
+    /* ---- Wrapping the artwork onto the sphere -------------------------- */
+    function renderLogoLayer() {
+      if (!logoCtx || !logoImage) { return; }
+      var dst = logoImage.data;
+      dst.fill(0);
+      if (!logoData) { logoCtx.putImageData(logoImage, 0, 0); return; }
+
+      var src = logoData.data;
+      var heightU = widthU * (logoH / logoW);
+      var invW = 1 / widthU, invH = 1 / heightU;
+      var lastX = logoW - 1, lastY = logoH - 1;
+      var x0 = Math.max(0, Math.floor(CX - R)), x1 = Math.min(W, Math.ceil(CX + R));
+      var y0 = Math.max(0, Math.floor(CY - R)), y1 = Math.min(H, Math.ceil(CY + R));
+
+      for (var y = y0; y < y1; y++) {
+        var dv = (y + 0.5 - CY) / R, dv2 = dv * dv;
+        for (var x = x0; x < x1; x++) {
+          var du = (x + 0.5 - CX) / R;
+          var r2 = du * du + dv2;
+          if (r2 >= 0.9985) { continue; }
+          var k = kAt(Math.sqrt(r2));
+          var ux = (du * k - posX) * invW + 0.5;
+          if (ux < 0 || ux >= 1) { continue; }
+          var uy = (dv * k - posY) * invH + 0.5;
+          if (uy < 0 || uy >= 1) { continue; }
+
+          /* Bilinear sample, premultiplied so antialiased edges don't fringe. */
+          var tx = ux * lastX, ty = uy * lastY;
+          var ix = tx | 0, iy = ty | 0;
+          var fx = tx - ix, fy = ty - iy;
+          var ix1 = ix < lastX ? ix + 1 : ix, iy1 = iy < lastY ? iy + 1 : iy;
+          var o00 = (iy * logoW + ix) << 2, o10 = (iy * logoW + ix1) << 2;
+          var o01 = (iy1 * logoW + ix) << 2, o11 = (iy1 * logoW + ix1) << 2;
+          var w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy);
+          var w01 = (1 - fx) * fy, w11 = fx * fy;
+          var a00 = w00 * src[o00 + 3], a10 = w10 * src[o10 + 3];
+          var a01 = w01 * src[o01 + 3], a11 = w11 * src[o11 + 3];
+          var pa = a00 + a10 + a01 + a11;
+          if (pa < 1) { continue; }
+          var idx = y * W + x, o = idx << 2;
+          dst[o] = (a00 * src[o00] + a10 * src[o10] + a01 * src[o01] + a11 * src[o11]) / pa;
+          dst[o + 1] = (a00 * src[o00 + 1] + a10 * src[o10 + 1] + a01 * src[o01 + 1] + a11 * src[o11 + 1]) / pa;
+          dst[o + 2] = (a00 * src[o00 + 2] + a10 * src[o10 + 2] + a01 * src[o01 + 2] + a11 * src[o11 + 2]) / pa;
+          /* Ink stops where the grass crosses in front of the ball. */
+          dst[o + 3] = leather ? pa * leather[idx] / 255 : pa;
+        }
+      }
+      logoCtx.putImageData(logoImage, 0, 0);
+    }
+
+    /* Before anything is uploaded, show where a mark would land. The spot's
+       fit box is mapped through the projection, so the guide sits on the
+       leather the same way the artwork will — flatter up on the horseshoe. */
+    function drawPanelGuide(withCaption) {
+      var spot = PLACEMENTS[placement];
+      var left = flatToScreen(spot.x - spot.fitW / 2, spot.y);
+      var right = flatToScreen(spot.x + spot.fitW / 2, spot.y);
+      var top = flatToScreen(spot.x, spot.y - spot.fitH / 2);
+      var bottom = flatToScreen(spot.x, spot.y + spot.fitH / 2);
+      var gx = (left[0] + right[0]) / 2, gy = (top[1] + bottom[1]) / 2;
+      var rx = Math.abs(right[0] - left[0]) / 2, ry = Math.abs(bottom[1] - top[1]) / 2;
+      ctx.save();
+      ctx.setLineDash([11, 9]);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(11, 11, 13, 0.26)';
+      ctx.beginPath();
+      ctx.ellipse(gx, gy, rx, ry, 0, 0, TAU);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (withCaption) {
+        ctx.fillStyle = 'rgba(11, 11, 13, 0.32)';
+        ctx.font = '600 ' + Math.max(15, Math.round(ry * 0.42)) + 'px "Saira Condensed", "Arial Narrow", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('YOUR LOGO HERE', gx, gy);
+      }
+      ctx.restore();
+    }
+
+    function compose() {
+      ctx.clearRect(0, 0, W, H);
+      /* While a newly-picked photo loads, the one already decoded stands in. */
+      var entry = photos[placement];
+      if (!entry || !entry.ready) { entry = photos.panel; }
+      var ready = Boolean(entry && entry.ready);
+      if (ready) { ctx.drawImage(entry.img, 0, 0, W, H); }
+      /* The ball's own printing, lifted off its leather and stamped back down
+         in the chosen ink — the same multiply the uploaded mark gets, so both
+         sit in the leather the same way. */
+      if (ready && entry.bare && inkFor(ink)) {
+        ctx.save();
+        ctx.drawImage(entry.bare, 0, 0);
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(entry.mark, 0, 0);
+        ctx.restore();
+      }
+      if (logoData && ready) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(CX, CY, R, 0, TAU); ctx.clip();
+        /* Multiply so the leather's grain, shading and highlight come through
+           the ink — printed on, not pasted on. */
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.globalAlpha = 0.94;
+        ctx.drawImage(logoLayer, 0, 0);
+        ctx.restore();
+      }
+      /* Over the mark, so the outline stays readable while it's being placed. */
+      if (ready && (!logoData || guideOn)) { drawPanelGuide(!logoData); }
+    }
+
+    var frame = 0;
+    function queueDraw() {
+      if (!window.requestAnimationFrame) { renderLogoLayer(); compose(); return; }
+      if (frame) { return; }
+      frame = window.requestAnimationFrame(function () {
+        frame = 0;
+        renderLogoLayer();
+        compose();
+      });
+    }
+
+    compose();
+
+    /* ---- Status ------------------------------------------------------- */
+    function say(msg) {
+      if (!statusEl) { return; }
+      statusEl.textContent = msg;
+      statusEl.classList.remove('is-error');
+    }
+    function fail(msg) {
+      if (!statusEl) { return; }
+      statusEl.textContent = msg;
+      statusEl.classList.add('is-error');
+    }
+
+    /* ---- Loading a file ------------------------------------------------ */
+    function setInk(next) {
+      if (!Object.prototype.hasOwnProperty.call(INK, next)) { next = DEFAULT_INK; }
+      ink = next;
+      for (var i = 0; i < swatchEls.length; i++) {
+        var on = swatchEls[i].getAttribute('data-ink') === next;
+        swatchEls[i].classList.toggle('is-active', on);
+        swatchEls[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      /* Restamp the photos already decoded; one that lands later is coloured
+         as its layers are built. */
+      for (var key in photos) {
+        if (Object.prototype.hasOwnProperty.call(photos, key)) { paintPrint(photos[key]); }
+      }
+      if (readout && INK_LABEL[next]) {
+        readout.textContent = INK_LABEL[next] + ' — one ink, every mark on the ball.';
+      }
+    }
+
+    function loadFile(file) {
+      if (!file) { return; }
+      if (file.type && file.type.indexOf('image/') !== 0) {
+        fail('That file isn’t an image — try a PNG, JPG, SVG or WebP.');
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        fail('That file is over 12 MB. Export it a little smaller and try again.');
+        return;
+      }
+
+      var revoke = null;
+      var src;
+      if (window.URL && window.URL.createObjectURL) {
+        src = window.URL.createObjectURL(file);
+        revoke = function () { window.URL.revokeObjectURL(src); };
+        start(src, revoke);
+      } else {
+        var reader = new FileReader();
+        reader.onload = function () { start(String(reader.result), null); };
+        reader.onerror = function () { fail('That file couldn’t be read.'); };
+        reader.readAsDataURL(file);
+      }
+
+      function start(url, done) {
+        var img = new Image();
+        img.onload = function () {
+          if (done) { done(); }
+          /* SVGs without intrinsic dimensions report 0 — fall back to a square. */
+          logoSrcW = img.naturalWidth || 512;
+          logoSrcH = img.naturalHeight || 512;
+          logoImg = img;
+          logoName = file.name || 'logo';
+
+          /* JPGs can't carry transparency, so a flat backdrop is a near
+             certainty — key it out up front rather than making them find it. */
+          knockout = /jpe?g/i.test(file.type || '');
+          if (knockBox) { knockBox.checked = knockout; }
+
+          /* Drop the mark straight onto the chosen spot, scaled to fill it,
+             so a wide wordmark and a tall crest both land somewhere sensible
+             before the size slider is ever touched. */
+          fitToPlacement();
+          /* The ink is the team's, not the file's — swapping artwork keeps the
+             colour that was picked for the run. */
+
+          prepareLogo();
+          /* prepareLogo has already explained why if it bailed — don't follow
+             it with a "loaded" message and a panel of dead controls. */
+          if (!logoData) { logoImg = null; return; }
+          queueDraw();
+
+          if (controls) { controls.hidden = false; }
+          stage.classList.add('is-draggable');
+          stage.setAttribute('tabindex', '0');
+          if (hint) { hint.textContent = 'Drag the logo to place it. Focus the ball and nudge with the arrow keys.'; }
+          say(knockout
+            ? logoName + ' loaded — its background was removed for you.'
+            : logoName + ' loaded.');
+        };
+        img.onerror = function () {
+          if (done) { done(); }
+          fail('That image couldn’t be read. Try re-saving it as a PNG.');
+        };
+        img.src = url;
+      }
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        if (fileInput.files && fileInput.files.length) { loadFile(fileInput.files[0]); }
+      });
+    }
+
+    /* Drag and drop onto the panel, scoped to the dropzone so the rest of the
+       page keeps its normal behaviour. */
+    if (dropEl) {
+      ['dragenter', 'dragover'].forEach(function (type) {
+        dropEl.addEventListener(type, function (e) {
+          e.preventDefault();
+          dropEl.classList.add('is-over');
+        });
+      });
+      ['dragleave', 'dragend'].forEach(function (type) {
+        dropEl.addEventListener(type, function () { dropEl.classList.remove('is-over'); });
+      });
+      dropEl.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropEl.classList.remove('is-over');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          loadFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    /* ---- Controls ------------------------------------------------------ */
+    if (sizeInput) {
+      sizeInput.addEventListener('input', function () {
+        var v = parseFloat(sizeInput.value);
+        if (isNaN(v)) { return; }
+        widthU = v / 100;
+        flashGuide();
+        queueDraw();
+      });
+    }
+
+    var NUDGE_STEP = 0.03;
+    var NUDGE = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    for (var ki = 0; ki < nudgeEls.length; ki++) {
+      nudgeEls[ki].addEventListener('click', function () {
+        var dir = this.getAttribute('data-nudge');
+        if (dir === 'center') {
+          centreLogo();
+        } else if (NUDGE[dir]) {
+          posX = clamp(posX + NUDGE[dir][0] * NUDGE_STEP, -1.2, 1.2);
+          posY = clamp(posY + NUDGE[dir][1] * NUDGE_STEP, -1.2, 1.2);
+        } else {
+          return;
+        }
+        flashGuide();
+        queueDraw();
+      });
+    }
+
+    for (var pi = 0; pi < spotEls.length; pi++) {
+      spotEls[pi].addEventListener('click', function () {
+        var next = this.getAttribute('data-spot') || 'panel';
+        setPlacement(next);
+        say(next === 'horseshoe'
+          ? 'Printed on the horseshoe — the Hydra name moves down to the panel.'
+          : 'Printed on the panel between the seams.');
+      });
+    }
+
+    for (var si = 0; si < swatchEls.length; si++) {
+      swatchEls[si].addEventListener('click', function () {
+        setInk(this.getAttribute('data-ink') || DEFAULT_INK);
+        prepareLogo();
+        queueDraw();
+      });
+    }
+
+    if (knockBox) {
+      knockBox.addEventListener('change', function () {
+        knockout = knockBox.checked;
+        prepareLogo();
+        queueDraw();
+      });
+    }
+
+    /* ---- Placing the logo ---------------------------------------------- */
+    function screenToFlat(clientX, clientY) {
+      var rect = stage.getBoundingClientRect();
+      if (!rect.width || !rect.height) { return [posX, posY]; }
+      var du = ((clientX - rect.left) * (W / rect.width) - CX) / R;
+      var dv = ((clientY - rect.top) * (H / rect.height) - CY) / R;
+      var r = Math.sqrt(du * du + dv * dv);
+      if (r > 0.995) { var s = 0.995 / r; du *= s; dv *= s; r = 0.995; }
+      var k = kAt(r);
+      return [du * k, dv * k];
+    }
+
+    /* Pointer Events only — without them the sliders and arrow keys still
+       place the logo, so the feature degrades rather than breaks. */
+    if (window.PointerEvent) {
+      var dragId = null, grabX = 0, grabY = 0;
+
+      stage.addEventListener('pointerdown', function (e) {
+        if (!logoData) { return; }
+        var f = screenToFlat(e.clientX, e.clientY);
+        grabX = posX - f[0];
+        grabY = posY - f[1];
+        dragId = e.pointerId;
+        stage.classList.add('is-dragging');
+        if (stage.setPointerCapture) {
+          try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        e.preventDefault();
+      });
+
+      stage.addEventListener('pointermove', function (e) {
+        if (dragId === null || e.pointerId !== dragId) { return; }
+        var f = screenToFlat(e.clientX, e.clientY);
+        posX = clamp(f[0] + grabX, -1.2, 1.2);
+        posY = clamp(f[1] + grabY, -1.2, 1.2);
+        flashGuide();
+        queueDraw();
+      });
+
+      var endDrag = function (e) {
+        if (dragId === null || (e && e.pointerId !== dragId)) { return; }
+        if (stage.releasePointerCapture) {
+          try { stage.releasePointerCapture(dragId); } catch (err) {}
+        }
+        dragId = null;
+        stage.classList.remove('is-dragging');
+      };
+      stage.addEventListener('pointerup', endDrag);
+      stage.addEventListener('pointercancel', endDrag);
+    }
+
+    stage.addEventListener('keydown', function (e) {
+      if (!logoData) { return; }
+      var step = e.shiftKey ? 0.005 : 0.025;
+      if (e.key === 'ArrowLeft') { posX -= step; }
+      else if (e.key === 'ArrowRight') { posX += step; }
+      else if (e.key === 'ArrowUp') { posY -= step; }
+      else if (e.key === 'ArrowDown') { posY += step; }
+      else { return; }
+      posX = clamp(posX, -1.2, 1.2);
+      posY = clamp(posY, -1.2, 1.2);
+      e.preventDefault();
+      flashGuide();
+      queueDraw();
+    });
+
+    /* ---- Actions ------------------------------------------------------- */
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function () {
+        var url;
+        try {
+          url = stage.toDataURL('image/png');
+        } catch (err) {
+          /* Some browsers still taint a canvas that has drawn an SVG. */
+          fail('Your browser blocked saving this mockup. Try a PNG or JPG logo instead.');
+          return;
+        }
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'hydra-custom-ball.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        say('Mockup saved — attach it to your inquiry and we’ll match the artwork.');
+      });
+    }
+
+    if (attachBtn) {
+      attachBtn.addEventListener('click', function () {
+        var field = document.getElementById('ordersLogo');
+        if (field) {
+          field.value = 'Mocked up on site: ' + (logoName || 'team logo') +
+            ' (' + (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
+            INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
+        }
+        var msg = ordersForm ? ordersForm.querySelector('textarea[name="message"]') : null;
+        if (msg && msg.value.indexOf('custom logo') === -1) {
+          msg.value = (msg.value ? msg.value.replace(/\s+$/, '') + '\n\n' : '') +
+            'We’d like a quote on custom logo baseballs — I mocked ours up on the site.';
+        }
+        say('Added to your team order below. Download the mockup and attach it to your reply so we can match the artwork.');
+        var target = document.getElementById('team-orders');
+        /* Plain scrollIntoView so the page's scroll-behavior (and its
+           reduced-motion override) stays in charge. */
+        if (target && target.scrollIntoView) { target.scrollIntoView(); }
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        logoImg = null;
+        logoData = null;
+        logoName = '';
+        setPlacement('panel');
+        posX = PLACEMENTS.panel.x; posY = PLACEMENTS.panel.y; widthU = 0.55;
+        knockout = false;
+        if (knockBox) { knockBox.checked = false; }
+        if (sizeInput) { sizeInput.value = '55'; }
+        setInk(DEFAULT_INK);
+        if (fileInput) { fileInput.value = ''; }
+        if (controls) { controls.hidden = true; }
+        var field = document.getElementById('ordersLogo');
+        if (field) { field.value = ''; }
+        stage.classList.remove('is-draggable', 'is-dragging');
+        stage.removeAttribute('tabindex');
+        if (hint) { hint.textContent = DEFAULT_HINT; }
+        say('');
+        queueDraw();
+      });
+    }
   }
 })();

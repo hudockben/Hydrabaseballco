@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { csvFilename, customerCsv } from '@/lib/customer-export';
+import { scoreAll } from '@/lib/customer-tiers';
+import { CUSTOMER_STATUSES, type CustomerRecord } from '@/lib/customers';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 type Row = Record<string, unknown>;
 
-// DB column -> JSON key. Order also drives the CSV export.
+// DB column -> JSON key, for every text column the UI edits.
 const FIELDS: Array<[string, string]> = [
   ['state', 'state'],
   ['school', 'school'],
@@ -19,6 +22,11 @@ const FIELDS: Array<[string, string]> = [
   ['instagram', 'instagram'],
   ['email', 'email'],
   ['notes', 'notes'],
+  ['coach_name', 'coachName'],
+  ['phone', 'phone'],
+  ['website', 'website'],
+  ['status', 'status'],
+  ['tier_override', 'tierOverride'],
 ];
 
 /** Trim a value; empty becomes null so blank cells stay clean. */
@@ -27,21 +35,31 @@ const s = (v: unknown): string | null => {
   return t || null;
 };
 
-function mapRow(r: Row) {
+/**
+ * `status` is NOT NULL and drives the tiering, so anything unrecognized — an
+ * imported sheet with its own Status column, say — lands on 'new'.
+ */
+const status = (v: unknown): string => {
+  const t = (v == null ? '' : String(v)).trim().toLowerCase();
+  return (CUSTOMER_STATUSES as string[]).includes(t) ? t : 'new';
+};
+
+/** timestamptz (Date or string, depending on the driver) -> ISO string. */
+const iso = (v: unknown): string | null => {
+  if (v == null) return null;
+  if (v instanceof Date) return v.toISOString();
+  const d = new Date(String(v));
+  return Number.isNaN(d.getTime()) ? String(v) : d.toISOString();
+};
+
+function mapRow(r: Row): CustomerRecord {
   const out: Record<string, unknown> = { id: Number(r.id) };
   for (const [col, key] of FIELDS) out[key] = (r[col] as string) ?? null;
-  return out;
-}
-
-function toCsv(rows: Row[]): string {
-  const esc = (v: unknown) => {
-    const str = v == null ? '' : String(v);
-    return /[",\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
-  };
-  const header = ['State', 'School', 'Conference', '2026 Roster Link', 'Division',
-    '1st Degree Conn', '1st Degree Notes', 'Instagram', 'Email', 'Notes'];
-  const lines = rows.map((r) => FIELDS.map(([col]) => esc(r[col])).join(','));
-  return [header.join(','), ...lines].join('\n');
+  out.status = ((r.status as string) ?? 'new') || 'new';
+  out.lastContacted = iso(r.last_contacted);
+  out.enrichedAt = iso(r.enriched_at);
+  out.updatedAt = iso(r.updated_at);
+  return out as unknown as CustomerRecord;
 }
 
 export async function GET(req: NextRequest) {
@@ -51,11 +69,15 @@ export async function GET(req: NextRequest) {
     const rows = (await sql`
       select * from customers
       order by state asc nulls last, school asc nulls last, id asc`) as Row[];
-    if (new URL(req.url).searchParams.get('format') === 'csv') {
-      return new NextResponse(toCsv(rows), {
+    const params = new URL(req.url).searchParams;
+    if (params.get('format') === 'csv') {
+      // Full dump, ordered the way the list is: most likely to buy first.
+      const scored = scoreAll(rows.map(mapRow), { homeState: params.get('home') });
+      scored.sort((a, b) => b.tier.score - a.tier.score);
+      return new NextResponse(customerCsv(scored), {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="hydra-customers-${Date.now()}.csv"`,
+          'Content-Disposition': `attachment; filename="${csvFilename()}"`,
         },
       });
     }
@@ -74,15 +96,17 @@ async function bulkInsert(rows: Record<string, unknown>[]): Promise<number> {
     const chunk = rows.slice(i, i + 500).filter((r) => FIELDS.some(([, key]) => s(r[key]) != null));
     if (!chunk.length) continue;
     const col = (key: string) => chunk.map((r) => s(r[key]));
+    const statuses = chunk.map((r) => status(r.status));
     await sql`
       insert into customers
         (state, school, conference, roster_link, division, first_degree_conn,
-         first_degree_notes, instagram, email, notes)
+         first_degree_notes, instagram, email, notes, coach_name, phone, website, status)
       select * from unnest(
         ${col('state')}::text[], ${col('school')}::text[], ${col('conference')}::text[],
         ${col('rosterLink')}::text[], ${col('division')}::text[], ${col('firstDegreeConn')}::text[],
         ${col('firstDegreeNotes')}::text[], ${col('instagram')}::text[], ${col('email')}::text[],
-        ${col('notes')}::text[]
+        ${col('notes')}::text[], ${col('coachName')}::text[], ${col('phone')}::text[],
+        ${col('website')}::text[], ${statuses}::text[]
       )`;
     inserted += chunk.length;
   }
@@ -106,11 +130,12 @@ export async function POST(req: NextRequest) {
     const rows = (await sql`
       insert into customers
         (state, school, conference, roster_link, division, first_degree_conn,
-         first_degree_notes, instagram, email, notes)
+         first_degree_notes, instagram, email, notes, coach_name, phone, website, status)
       values
         (${s(body.state)}, ${s(body.school)}, ${s(body.conference)}, ${s(body.rosterLink)},
          ${s(body.division)}, ${s(body.firstDegreeConn)}, ${s(body.firstDegreeNotes)},
-         ${s(body.instagram)}, ${s(body.email)}, ${s(body.notes)})
+         ${s(body.instagram)}, ${s(body.email)}, ${s(body.notes)}, ${s(body.coachName)},
+         ${s(body.phone)}, ${s(body.website)}, ${status(body.status)})
       returning *`) as Row[];
     return NextResponse.json({ customer: mapRow(rows[0]) });
   } catch (err) {
@@ -119,6 +144,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * Partial update: only the keys present in the body change, so the queue can
+ * flip a single status (or drop in an email it just found) without shipping the
+ * whole row. `markContacted` stamps the outreach date in the same round-trip.
+ */
 export async function PATCH(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
@@ -126,21 +156,39 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   try {
     const sql = await db();
-    await sql`
+    const [existing] = (await sql`select * from customers where id = ${id}`) as Row[];
+    if (!existing) return NextResponse.json({ error: 'Row not found' }, { status: 404 });
+
+    // Merge: a key the client didn't send keeps its stored value.
+    const v = (col: string, key: string) =>
+      (Object.prototype.hasOwnProperty.call(body, key) ? s(body[key]) : s(existing[col]));
+    const now = new Date().toISOString();
+    const lastContacted = body.markContacted ? now : iso(existing.last_contacted);
+    const enrichedAt = body.markEnriched ? now : iso(existing.enriched_at);
+
+    const rows = (await sql`
       update customers set
-        state = ${s(body.state)},
-        school = ${s(body.school)},
-        conference = ${s(body.conference)},
-        roster_link = ${s(body.rosterLink)},
-        division = ${s(body.division)},
-        first_degree_conn = ${s(body.firstDegreeConn)},
-        first_degree_notes = ${s(body.firstDegreeNotes)},
-        instagram = ${s(body.instagram)},
-        email = ${s(body.email)},
-        notes = ${s(body.notes)},
+        state = ${v('state', 'state')},
+        school = ${v('school', 'school')},
+        conference = ${v('conference', 'conference')},
+        roster_link = ${v('roster_link', 'rosterLink')},
+        division = ${v('division', 'division')},
+        first_degree_conn = ${v('first_degree_conn', 'firstDegreeConn')},
+        first_degree_notes = ${v('first_degree_notes', 'firstDegreeNotes')},
+        instagram = ${v('instagram', 'instagram')},
+        email = ${v('email', 'email')},
+        notes = ${v('notes', 'notes')},
+        coach_name = ${v('coach_name', 'coachName')},
+        phone = ${v('phone', 'phone')},
+        website = ${v('website', 'website')},
+        status = ${status(v('status', 'status'))},
+        tier_override = ${v('tier_override', 'tierOverride')},
+        last_contacted = ${lastContacted},
+        enriched_at = ${enrichedAt},
         updated_at = now()
-      where id = ${id}`;
-    return NextResponse.json({ ok: true });
+      where id = ${id}
+      returning *`) as Row[];
+    return NextResponse.json({ ok: true, customer: mapRow(rows[0]) });
   } catch (err) {
     console.error('customers PATCH error', err);
     return NextResponse.json({ error: 'Update failed.' }, { status: 500 });
