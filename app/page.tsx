@@ -230,10 +230,10 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
-            <a href="#front-office">Front Office</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
+            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 
@@ -906,10 +906,10 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
-            <a href="#front-office">Front Office</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
+            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 
