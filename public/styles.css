@@ -491,8 +491,9 @@ ul { list-style: none; }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
 /* ---------- Front Office ---------- */
-/* Sits between the cream Hydra Difference panel and the dark customizer, so
-   the roster runs on white and the rhythm cream → white → dark holds. */
+/* Last section before the footer, in the tab's own order: the dark apparel
+   band above it and the cream footer below, so the roster runs on white
+   between them and the headshots keep the most contrast on the page. */
 .office { background: var(--paper); padding: clamp(60px, 8vw, 104px) 0; }
 .office__head { max-width: 640px; margin: 0 auto; text-align: center; }
 .office__title { color: var(--text); }
