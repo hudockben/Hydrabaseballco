@@ -395,13 +395,18 @@ ul { list-style: none; }
    fallback .difference__media relies on. */
 .proof {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-top: 40px;
   padding-top: 34px;
   border-top: 1px solid var(--line);
 }
 .proof__item { display: flex; flex-direction: column; gap: 10px; }
+/* The inks shot is three balls side by side, so it takes the full width and
+   keeps its own proportions rather than being cropped square to sit in a
+   column — the two team runs share the row underneath it. */
+.proof__item--wide { grid-column: 1 / -1; }
+.proof__item--wide .proof__shot { aspect-ratio: 1104 / 496; }
 .proof__shot {
   display: block;
   aspect-ratio: 1 / 1;
@@ -412,10 +417,11 @@ ul { list-style: none; }
   background-size: cover, cover;
   box-shadow: var(--shadow);
 }
-.proof__shot--indiana {
+.proof__shot--inks {
+  background-color: #6d6d6d;
   background-image:
-    url('/images/custom-indiana.jpg'),
-    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+    url('/images/a1492-inks.jpg'),
+    linear-gradient(180deg, #7a7a7a 0%, #666668 100%);
 }
 .proof__shot--icml {
   background-image:
@@ -1104,8 +1110,9 @@ ul { list-style: none; }
 @media (max-width: 560px) {
   .hero { min-height: 80vh; }
   .feature-grid { grid-template-columns: 1fr; gap: 24px; }
-  /* The shots stay three across — they read as a lineup, and at this width a
-     stacked column would push the customizer well off the screen. */
+  /* The two runs stay side by side under the inks shot — they read as a pair,
+     and at this width stacking them would push the customizer well off the
+     screen. */
   .proof { gap: 10px; margin-top: 32px; padding-top: 28px; }
   .proof__cap { font-size: 0.6rem; letter-spacing: 0.08em; }
   .grades__list { grid-template-columns: 1fr; gap: 20px; }

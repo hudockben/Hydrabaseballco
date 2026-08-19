@@ -460,18 +460,18 @@ export default function HomePage() {
               </li>
             </ul>
 
-            {/* Three balls off the line: two team runs and the game ball they
-                are printed on. Backgrounds rather than <img> so a run whose
-                photo has not landed yet falls back to the on-brand gradient
-                instead of a broken frame, the way .difference__media does. */}
+            {/* The line in three inks across the top, then two team runs off
+                it. Backgrounds rather than <img> so a run whose photo has not
+                landed yet falls back to the on-brand gradient instead of a
+                broken frame, the way .difference__media does. */}
             <ul className="proof">
-              <li className="proof__item">
+              <li className="proof__item proof__item--wide">
                 <span
-                  className="proof__shot proof__shot--indiana"
+                  className="proof__shot proof__shot--inks"
                   role="img"
-                  aria-label="An A1492 stamped for Indiana Baseball in a single red ink"
+                  aria-label="Three Hydra baseballs side by side — an A1492 stamped in red, an A1492+ in blue, an A1492+ in pink"
                 ></span>
-                <span className="proof__cap">Indiana Baseball</span>
+                <span className="proof__cap">Stamped In Any Ink</span>
               </li>
               <li className="proof__item">
                 <span
