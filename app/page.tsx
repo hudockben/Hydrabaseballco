@@ -186,10 +186,10 @@ const TEAM: TeamMember[] = [
     role: 'West Coast Territory Leader',
     meta: ['Baseball operations · Data & analytics', 'Program logistics'],
     bio:
-      'Paul opens the West Coast for Hydra. He works in data and analytics with the ' +
-      'Milwaukee Brewers, and spent four years in baseball operations at St. John’s — where ' +
-      'the cost, the inventory, and the durability of a program’s baseballs were his to ' +
-      'manage, which is the read Hydra wants on what a program needs from its supplier.',
+      'Paul opens the West Coast for Hydra. He works in data and analytics in professional ' +
+      'baseball, and spent four years in baseball operations at St. John’s — where the cost, ' +
+      'the inventory, and the durability of a program’s baseballs were his to manage, which ' +
+      'is the read Hydra wants on what a program needs from its supplier.',
     photo: '/images/team/paul-laudati.jpg',
   },
 ];
