@@ -328,6 +328,9 @@
     var logoData = null, logoW = 0, logoH = 0;
     var posX = PLACEMENTS.panel.x, posY = PLACEMENTS.panel.y, widthU = 0.55;
     var ink = DEFAULT_INK, knockout = false;
+    /* What the last knockout pass did, so the tick box can say whether there
+       was a background there at all — see the change handler below. */
+    var knockedPx = 0, knockedLum = -1, inkCoverage = 1;
 
     function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
@@ -609,9 +612,12 @@
     /* Lift a flat backdrop off the artwork. The colour is sampled from the
        four corners rather than assumed white, so a mark sitting on a grey or
        cream card keys out as cleanly as one on white — a fixed near-white
-       threshold leaves mid-greys half-opaque and the card still shows. If the
-       corners disagree (a photo, a busy edge) fall back to knocking back
-       near-white pixels, which is the best guess left. */
+       threshold leaves mid-greys half-opaque and the card still shows. Tone
+       doesn't come into it either: a mark on a navy or black card keys out the
+       same way, where a light-only rule used to leave the card and take the
+       light parts of the mark instead. If the corners disagree (a photo, a
+       busy edge) fall back to knocking back near-white pixels, which is the
+       best guess left. */
     function knockBackdrop(img) {
       var w = img.width, h = img.height, d = img.data;
       var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
@@ -631,15 +637,15 @@
 
       var spread = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
       var bg = [sum[0] / 4, sum[1] / 4, sum[2] / 4];
-      var bgLum = 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2];
-      if (!flat || spread > 20 || bgLum < 140) { knockWhite(img); return; }
+      if (!flat || spread > 20) { knockWhite(img); return; }
 
       var NEAR = 30, FAR = 70;
+      knockedLum = 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2];
       for (i = 0; i < d.length; i += 4) {
         if (!d[i + 3]) { continue; }
         var dr = d[i] - bg[0], dg = d[i + 1] - bg[1], db = d[i + 2] - bg[2];
         var dist = Math.sqrt(dr * dr + dg * dg + db * db);
-        if (dist <= NEAR) { d[i + 3] = 0; }
+        if (dist <= NEAR) { d[i + 3] = 0; knockedPx++; }
         else if (dist < FAR) { d[i + 3] = d[i + 3] * ((dist - NEAR) / (FAR - NEAR)); }
       }
     }
@@ -648,6 +654,7 @@
        are left alone. */
     function knockWhite(img) {
       var d = img.data, HI = 246, LO = 208, SAT = 30;
+      knockedLum = 255;
       for (var i = 0; i < d.length; i += 4) {
         if (!d[i + 3]) { continue; }
         var r = d[i], g = d[i + 1], b = d[i + 2];
@@ -655,7 +662,7 @@
         var mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
         if (mx - mn > SAT) { continue; }
         var lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        if (lum >= HI) { d[i + 3] = 0; }
+        if (lum >= HI) { d[i + 3] = 0; knockedPx++; }
         else if (lum > LO) { d[i + 3] = d[i + 3] * ((HI - lum) / (HI - LO)); }
       }
     }
@@ -667,13 +674,20 @@
        (white here, which multiply passes straight through). */
     function inkify(img, rgb) {
       var d = img.data, ir = rgb[0], ig = rgb[1], ib = rgb[2];
+      /* Average coverage across what's left standing, so a mark that would
+         print as almost nothing — white artwork off a dark card — can be
+         called out rather than quietly vanishing into the leather. */
+      var cov = 0, weight = 0;
       for (var i = 0; i < d.length; i += 4) {
         if (!d[i + 3]) { continue; }
         var t = 1 - (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+        var a = d[i + 3] / 255;
+        cov += t * a; weight += a;
         d[i] = 255 + (ir - 255) * t;
         d[i + 1] = 255 + (ig - 255) * t;
         d[i + 2] = 255 + (ib - 255) * t;
       }
+      inkCoverage = weight ? cov / weight : 1;
     }
 
     function prepareLogo() {
@@ -696,6 +710,7 @@
         fail('Your browser won’t let this file be read pixel by pixel. Try a PNG or JPG.');
         return;
       }
+      knockedPx = 0; knockedLum = -1; inkCoverage = 1;
       if (knockout) { knockBackdrop(img); }
       var rgb = inkFor(ink);
       if (rgb) { inkify(img, rgb); }
@@ -855,6 +870,21 @@
     compose();
 
     /* ---- Status ------------------------------------------------------- */
+    /* What the last knockout pass is worth saying about. Three of these read
+       as "the tick box did nothing" without a word of explanation. */
+    function knockNote() {
+      if (knockedPx < logoW * logoH * 0.005) {
+        return 'Nothing to remove — this artwork already has a clear background.';
+      }
+      if (inkCoverage < 0.15) {
+        return 'Background removed, but this mark is light on dark: one ink can’t print white onto the leather. Send a dark-on-light version.';
+      }
+      if (knockedLum >= 235) {
+        return 'White background removed — white prints straight through to the leather, so the ball looks the same either way.';
+      }
+      return 'Background removed.';
+    }
+
     function say(msg) {
       if (!statusEl) { return; }
       statusEl.textContent = msg;
@@ -941,8 +971,8 @@
           stage.classList.add('is-draggable');
           stage.setAttribute('tabindex', '0');
           if (hint) { hint.textContent = 'Drag the logo to place it. Focus the ball and nudge with the arrow keys.'; }
-          say(knockout
-            ? logoName + ' loaded — its background was removed for you.'
+          say(knockout && knockedPx
+            ? logoName + ' loaded. ' + knockNote()
             : logoName + ' loaded.');
         };
         img.onerror = function () {
@@ -1032,6 +1062,7 @@
         knockout = knockBox.checked;
         prepareLogo();
         queueDraw();
+        say(knockout ? knockNote() : 'Background left in place.');
       });
     }
 
