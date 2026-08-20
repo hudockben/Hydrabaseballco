@@ -170,6 +170,19 @@ const TEAM: TeamMember[] = [
     photo: '/images/team/ari-heinemann.jpg',
   },
   {
+    id: 'caleb-cawley',
+    name: 'Caleb Cawley',
+    role: 'Director of Marketing & Media',
+    meta: ['15+ years of video production', '5+ years in professional marketing'],
+    bio:
+      'Promotions manager for a television station in a top-five U.S. media market, with a ' +
+      'B.S. in Cinema, Television & Media Production. Caleb leads Hydra’s media, content, ' +
+      'and brand development — the video, digital content, and creative campaigns that ' +
+      'bring the brand to life, and the storytelling that carries it as the company grows ' +
+      'across the baseball industry.',
+    photo: '/images/team/caleb-cawley.jpg',
+  },
+  {
     id: 'noel-miller',
     name: 'Noel Miller',
     role: 'Social Media Manager · Product Development',
