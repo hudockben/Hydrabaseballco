@@ -147,6 +147,64 @@ const TEAM: TeamMember[] = [
       'coaches, and programs — better baseball products, priced for the people who live it.',
     photo: '/images/team/brandon-miller.jpg',
   },
+  {
+    id: 'ben-hudock',
+    name: 'Ben Hudock',
+    role: 'Co-Owner · President of Technology & Accounting',
+    meta: ['4 years of Division II baseball', '12 years of elite-level coaching'],
+    bio:
+      'Two Class 4A state titles in Pennsylvania. Ben runs Hydra’s technology, accounting, ' +
+      'and operations: a software engineer’s toolkit and a coach’s read on what programs ' +
+      'actually need, pointed at the systems behind the ball.',
+    photo: '/images/team/ben-hudock.jpg',
+  },
+  {
+    id: 'ari-heinemann',
+    name: 'Ari Heinemann',
+    role: 'Director of Finance',
+    meta: ['MBA in Finance', 'Financial strategy & investment planning'],
+    bio:
+      'Ari runs Hydra’s day-to-day finances — budgeting, forecasting, cash flow — and ' +
+      'shapes the investment strategy behind its growth: the work that lets a young ' +
+      'company scale at a pace it can carry.',
+    photo: '/images/team/ari-heinemann.jpg',
+  },
+  {
+    id: 'caleb-cawley',
+    name: 'Caleb Cawley',
+    role: 'Director of Marketing & Media',
+    meta: ['15+ years of video production', '5+ years in professional marketing'],
+    bio:
+      'Promotions manager for a television station in a top-five U.S. media market, with a ' +
+      'B.S. in Cinema, Television & Media Production. Caleb leads Hydra’s media, content, ' +
+      'and brand development — the video, digital content, and creative campaigns that ' +
+      'bring the brand to life, and the storytelling that carries it as the company grows ' +
+      'across the baseball industry.',
+    photo: '/images/team/caleb-cawley.jpg',
+  },
+  {
+    id: 'noel-miller',
+    name: 'Noel Miller',
+    role: 'Social Media Manager · Product Development',
+    meta: ['Master in Organizational Leadership', 'Brand strategy & creative development'],
+    bio:
+      'Noel runs Hydra’s social presence and helps drive what comes next — new baseballs, ' +
+      'merchandise, product concepts. Brand strategy and creative development behind all of ' +
+      'it: how Hydra looks, how it feels, and how it reaches the next generation of players.',
+    photo: '/images/team/noel-miller.jpg',
+  },
+  {
+    id: 'paul-laudati',
+    name: 'Paul Laudati',
+    role: 'West Coast Territory Leader',
+    meta: ['Baseball operations · Data & analytics', 'Program logistics'],
+    bio:
+      'Paul opens the West Coast for Hydra. He works in data and analytics in professional ' +
+      'baseball, and spent four years in baseball operations at St. John’s — where the cost, ' +
+      'the inventory, and the durability of a program’s baseballs were his to manage, which ' +
+      'is the read Hydra wants on what a program needs from its supplier.',
+    photo: '/images/team/paul-laudati.jpg',
+  },
 ];
 
 /* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
@@ -185,10 +243,10 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
-            <a href="#front-office">Front Office</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
+            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 
@@ -415,18 +473,18 @@ export default function HomePage() {
               </li>
             </ul>
 
-            {/* Three balls off the line: two team runs and the game ball they
-                are printed on. Backgrounds rather than <img> so a run whose
-                photo has not landed yet falls back to the on-brand gradient
-                instead of a broken frame, the way .difference__media does. */}
+            {/* The line in three inks across the top, then two team runs off
+                it. Backgrounds rather than <img> so a run whose photo has not
+                landed yet falls back to the on-brand gradient instead of a
+                broken frame, the way .difference__media does. */}
             <ul className="proof">
-              <li className="proof__item">
+              <li className="proof__item proof__item--wide">
                 <span
-                  className="proof__shot proof__shot--indiana"
+                  className="proof__shot proof__shot--inks"
                   role="img"
-                  aria-label="An A1492 stamped for Indiana Baseball in a single red ink"
+                  aria-label="Three Hydra baseballs side by side — an A1492 stamped in red, an A1492+ in blue, an A1492+ in pink"
                 ></span>
-                <span className="proof__cap">Indiana Baseball</span>
+                <span className="proof__cap">Stamped In Any Ink</span>
               </li>
               <li className="proof__item">
                 <span
@@ -446,67 +504,6 @@ export default function HomePage() {
               </li>
             </ul>
           </div>
-        </div>
-      </section>
-
-      {/* ===== Front Office ===== */}
-      <section className="office" id="front-office">
-        <div className="container">
-          <div className="office__head reveal">
-            <span className="eyebrow eyebrow--red">Front Office</span>
-            <h2 className="section-title office__title">The People Behind The Ball</h2>
-            <span className="office__rule" aria-hidden="true"></span>
-            <p className="office__lead">
-              Hydra is run by players. When you order a run, these are the people you&rsquo;re
-              dealing with &mdash; no call center, no middlemen.
-            </p>
-          </div>
-
-          {TEAM.length > 0 ? (
-            /* One person is a founder's card, not a lone column in a grid —
-               the modifier lays that first card out sideways and drops off on
-               its own the moment a second person lands. */
-            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
-              {TEAM.map((member) => (
-                <li className="member" key={member.id}>
-                  {/* The shot rides in on a custom property so the gradient
-                      underneath it stays in the stylesheet — a photo that 404s
-                      falls back to it instead of leaving a hole. */}
-                  <span
-                    className="member__shot"
-                    role="img"
-                    aria-label={`${member.name}, ${member.role}`}
-                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
-                  >
-                    {member.photo ? null : (
-                      <span className="member__initials" aria-hidden="true">
-                        {initials(member.name)}
-                      </span>
-                    )}
-                  </span>
-                  <div className="member__body">
-                    <h3 className="member__name">{member.name}</h3>
-                    <p className="member__role">{member.role}</p>
-                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
-                      (line) => (
-                        <p className="member__meta" key={line}>
-                          {line}
-                        </p>
-                      ),
-                    )}
-                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
-                    {member.email ? (
-                      <a className="member__email" href={`mailto:${member.email}`}>
-                        {member.email}
-                      </a>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="office__empty reveal">Roster coming soon&hellip;</p>
-          )}
         </div>
       </section>
 
@@ -699,6 +696,79 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Apparel (Coming Soon) ===== */}
+      <section className="apparel" id="apparel">
+        <div className="container apparel__inner reveal">
+          <span className="eyebrow eyebrow--red">Apparel</span>
+          <h2 className="section-title apparel__title">Coming Soon&hellip;</h2>
+          <span className="apparel__rule" aria-hidden="true"></span>
+          <p className="apparel__text">
+            Hydra gear for players &mdash; on the field and off. Our apparel line is on deck.
+          </p>
+        </div>
+      </section>
+
+      {/* ===== Front Office ===== */}
+      <section className="office" id="front-office">
+        <div className="container">
+          <div className="office__head reveal">
+            <span className="eyebrow eyebrow--red">Front Office</span>
+            <h2 className="section-title office__title">The People Behind The Ball</h2>
+            <span className="office__rule" aria-hidden="true"></span>
+            <p className="office__lead">
+              Hydra is run by players. When you order a run, these are the people you&rsquo;re
+              dealing with &mdash; no call center, no middlemen.
+            </p>
+          </div>
+
+          {TEAM.length > 0 ? (
+            /* One person is a founder's card, not a lone column in a grid —
+               the modifier lays that first card out sideways and drops off on
+               its own the moment a second person lands. */
+            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
+              {TEAM.map((member) => (
+                <li className="member" key={member.id}>
+                  {/* The shot rides in on a custom property so the gradient
+                      underneath it stays in the stylesheet — a photo that 404s
+                      falls back to it instead of leaving a hole. */}
+                  <span
+                    className="member__shot"
+                    role="img"
+                    aria-label={`${member.name}, ${member.role}`}
+                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
+                  >
+                    {member.photo ? null : (
+                      <span className="member__initials" aria-hidden="true">
+                        {initials(member.name)}
+                      </span>
+                    )}
+                  </span>
+                  <div className="member__body">
+                    <h3 className="member__name">{member.name}</h3>
+                    <p className="member__role">{member.role}</p>
+                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
+                      (line) => (
+                        <p className="member__meta" key={line}>
+                          {line}
+                        </p>
+                      ),
+                    )}
+                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
+                    {member.email ? (
+                      <a className="member__email" href={`mailto:${member.email}`}>
+                        {member.email}
+                      </a>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="office__empty reveal">Roster coming soon&hellip;</p>
+          )}
+        </div>
+      </section>
+
       {/* ===== Team Orders / Inquiry ===== */}
       <section className="orders" id="team-orders">
         <div className="container orders__inner reveal">
@@ -833,18 +903,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Apparel (Coming Soon) ===== */}
-      <section className="apparel" id="apparel">
-        <div className="container apparel__inner reveal">
-          <span className="eyebrow eyebrow--red">Apparel</span>
-          <h2 className="section-title apparel__title">Coming Soon&hellip;</h2>
-          <span className="apparel__rule" aria-hidden="true"></span>
-          <p className="apparel__text">
-            Hydra gear for players &mdash; on the field and off. Our apparel line is on deck.
-          </p>
-        </div>
-      </section>
-
       {/* ===== Footer ===== */}
       <footer className="footer" id="contact">
         <div className="container footer__grid">
@@ -861,10 +919,10 @@ export default function HomePage() {
             <a href="#home">Mission</a>
             <a href="#balls">Balls</a>
             <a href="#about">About</a>
-            <a href="#front-office">Front Office</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             <a href="#team-orders">Team Orders</a>
+            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 

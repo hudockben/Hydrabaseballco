@@ -28,13 +28,14 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | `ball.jpg` | Source photo for everything below | The A1492 Pro Series product shot. No longer served to the browser itself — the tools measure and retouch it. |
 | `ball-plus.jpg` | "The Ball" section, and the third shot in "The Hydra Difference" | The A1492+ game ball the section leads with, cut out of `ball-plus-src.jpg` and set on this photo's field. Built by `tools/make-ball-plus.py`. |
 | `ball-plus-src.jpg` | Nowhere — an input to that tool | The phone shot of the game ball in hand, indoors. Kept at full size and orientation as it came off the phone; the tool applies the EXIF rotation itself. |
-| `custom-indiana.jpg` | "The Hydra Difference" | A run stamped for Indiana Baseball, the team mark on the panel. Straight off the customizer, no retouching. |
+| `a1492-inks.jpg` | "The Hydra Difference" | The line in three inks — an A1492 in red, an A1492+ in blue, an A1492+ in pink. Three balls side by side, so it spans the full width of the proof block and keeps its own proportions instead of being cropped square. |
+| `custom-indiana.jpg` | _Currently unused_ | A run stamped for Indiana Baseball, the team mark on the panel. Straight off the customizer, no retouching. Held the first proof slot until the inks shot took it. |
 | `custom-icml.jpg` | "The Hydra Difference" | A run stamped for the Indiana County Men's League. The league mark takes the horseshoe, so the Hydra name sits on the panel — the `ball-blank-horseshoe.jpg` path below. |
 | `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
 | `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
 | `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
 | `tray-plus.jpg` | _Currently unused_ | `hero-6.jpg` with the front-centre ball swapped for the A1492+, and the phone screenshot's black bands cropped off. Built by `tools/make-tray-plus.py`. Drop it in for `hero-6.jpg` in `.difference__media` to put the game ball in that panel. |
-| `team/*.jpg` | "Front Office" | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). See `team/README.md` — the roster itself lives in the `TEAM` list in `app/page.tsx`. |
+| `team/*.jpg` | "Front Office" | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). Built from `team/src/` by `tools/make-headshots.py`, which cuts each person out of whatever they were photographed against and sets them all on one studio sweep. See `team/README.md`; the roster itself lives in the `TEAM` list in `app/page.tsx`. |
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3

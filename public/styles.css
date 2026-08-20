@@ -395,13 +395,18 @@ ul { list-style: none; }
    fallback .difference__media relies on. */
 .proof {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-top: 40px;
   padding-top: 34px;
   border-top: 1px solid var(--line);
 }
 .proof__item { display: flex; flex-direction: column; gap: 10px; }
+/* The inks shot is three balls side by side, so it takes the full width and
+   keeps its own proportions rather than being cropped square to sit in a
+   column — the two team runs share the row underneath it. */
+.proof__item--wide { grid-column: 1 / -1; }
+.proof__item--wide .proof__shot { aspect-ratio: 1104 / 496; }
 .proof__shot {
   display: block;
   aspect-ratio: 1 / 1;
@@ -412,10 +417,11 @@ ul { list-style: none; }
   background-size: cover, cover;
   box-shadow: var(--shadow);
 }
-.proof__shot--indiana {
+.proof__shot--inks {
+  background-color: #6d6d6d;
   background-image:
-    url('/images/custom-indiana.jpg'),
-    radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
+    url('/images/a1492-inks.jpg'),
+    linear-gradient(180deg, #7a7a7a 0%, #666668 100%);
 }
 .proof__shot--icml {
   background-image:
@@ -491,25 +497,29 @@ ul { list-style: none; }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 
 /* ---------- Front Office ---------- */
-/* Sits between the cream Hydra Difference panel and the dark customizer, so
-   the roster runs on white and the rhythm cream → white → dark holds. */
-.office { background: var(--paper); padding: clamp(60px, 8vw, 104px) 0; }
+/* Between the dark apparel band and the white Team Orders form, near the end
+   of the page. Cream rather than white: the form below it already runs on
+   white, and two white sections in a row read as one. */
+.office { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
 .office__head { max-width: 640px; margin: 0 auto; text-align: center; }
 .office__title { color: var(--text); }
 .office__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
 .office__lead { color: var(--muted); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
 
 /* Cards keep a headshot's width rather than stretching to fill the row, so a
-   roster of two reads as two people and not as two billboards; the track
-   centres whatever the count is and reflows as the roster grows. */
+   roster of two reads as two people and not as two billboards. Wrapped flex
+   rather than a grid track: a roster that doesn't divide evenly by the row —
+   five people across four columns — centres the short last row instead of
+   hanging it off the left edge. */
 .office__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 250px));
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: clamp(26px, 3.4vw, 44px);
-  margin-top: clamp(38px, 5vw, 58px);
+  margin: clamp(38px, 5vw, 58px) auto 0;
+  max-width: 880px;
 }
-.member { display: flex; flex-direction: column; }
+.member { flex: 0 1 250px; max-width: 250px; display: flex; flex-direction: column; }
 /* The photo is a background layered over the gradient rather than an <img>:
    --shot carries the file in from the card, and a shot that hasn't landed
    yet leaves the gradient showing instead of a broken frame — the same
@@ -583,11 +593,11 @@ ul { list-style: none; }
    modifier comes off in app/page.tsx as soon as there's a second person, so
    the grid above takes back over. */
 .office__grid--solo {
-  grid-template-columns: minmax(0, 1fr);
   max-width: 380px;
   margin-left: auto;
   margin-right: auto;
 }
+.office__grid--solo .member { flex: 1 1 100%; max-width: none; }
 @media (min-width: 760px) {
   .office__grid--solo { max-width: 880px; }
   .office__grid--solo .member {
@@ -1100,18 +1110,23 @@ ul { list-style: none; }
 @media (max-width: 560px) {
   .hero { min-height: 80vh; }
   .feature-grid { grid-template-columns: 1fr; gap: 24px; }
-  /* The shots stay three across — they read as a lineup, and at this width a
-     stacked column would push the customizer well off the screen. */
+  /* The two runs stay side by side under the inks shot — they read as a pair,
+     and at this width stacking them would push the customizer well off the
+     screen. */
   .proof { gap: 10px; margin-top: 32px; padding-top: 28px; }
   .proof__cap { font-size: 0.6rem; letter-spacing: 0.08em; }
   .grades__list { grid-template-columns: 1fr; gap: 20px; }
-  /* Two cards across rather than one — a roster stacked single-file
-     turns into a very long scroll, and the headshots read as a lineup the
-     way the shots above them do. */
-  .office__grid { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 20px; }
-  .member__name { font-size: 1.08rem; }
-  .member__bio { font-size: 0.88rem; }
-  .member__initials { font-size: 2.1rem; }
+  /* One card per row on a phone. Two across fits, but it leaves a bio about
+     twenty characters wide — these cards carry a paragraph each, so the
+     scroll is the cheaper cost. */
+  .office__grid {
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 40px;
+  }
+  .member { flex: 1 1 100%; max-width: none; }
+  .member__initials { font-size: 2.4rem; }
   .orders__form { grid-template-columns: 1fr; }
   .orders__form input[name="team"] { grid-column: auto; }
   .trustbar__grid { grid-template-columns: 1fr; }
