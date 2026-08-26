@@ -349,11 +349,12 @@ ul { list-style: none; }
   position: relative;
   min-height: 540px;
   background-color: #2f4624;
-  /* A tray of A1492s with the game ball in among them; radial gradient is the
-     fallback if the file is absent. The single-ball product shot leads the
-     Balls section further up. */
+  /* Baskets of finished A1492s on the production floor; radial gradient is the
+     fallback if the file is absent. The photo is portrait and the panel is
+     landscape, so `cover` keeps the middle band — a full field of balls. The
+     single-ball product shot leads the Balls section further up. */
   background-image:
-    url('/images/tray-plus.jpg'),
+    url('/images/baskets.jpg'),
     radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;

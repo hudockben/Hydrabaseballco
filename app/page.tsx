@@ -268,7 +268,7 @@ export default function HomePage() {
           {/* Slide 1 paints immediately; the remaining slides (photos and the
               video) are added by the slideshow only once their media loads —
               anything that fails to load is skipped gracefully. */}
-          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-6.jpg')" }}></div>
+          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/baskets.jpg')" }}></div>
           <div className="hero__slide hero__slide--video">
             <video
               className="hero__video"
@@ -426,7 +426,7 @@ export default function HomePage() {
         <div
           className="difference__media"
           role="img"
-          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf, an A1492+ game ball among them"
+          aria-label="Baskets of freshly finished Hydra A1492 Pro Series baseballs on the production floor"
         ></div>
 
         <div className="difference__panel">
