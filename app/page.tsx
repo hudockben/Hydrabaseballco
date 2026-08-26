@@ -361,10 +361,10 @@ export default function HomePage() {
           <div className="balls__grid">
             <figure className="balls__photo">
               <img
-                src="/images/ball-plus.jpg"
-                alt="Hydra A1492+ Pro Series game ball resting on the grass"
-                width={1100}
-                height={1100}
+                src="/images/a1492-pair.jpg"
+                alt="A Hydra A1492 practice ball and an A1492+ game ball together in the grass"
+                width={1206}
+                height={1721}
                 loading="lazy"
               />
             </figure>

@@ -29,7 +29,8 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | File | Where it shows | Notes |
 |------|----------------|-------|
 | `ball.jpg` | Source photo for everything below | The A1492 Pro Series product shot. No longer served to the browser itself — the tools measure and retouch it. |
-| `ball-plus.jpg` | "The Ball" section, and the third shot in "The Hydra Difference" | The A1492+ game ball the section leads with, cut out of `ball-plus-src.jpg` and set on this photo's field. Built by `tools/make-ball-plus.py`. |
+| `a1492-pair.jpg` | "The Ball" section | Both models in one frame — an A1492 above an A1492+, in the grass. A real camera frame, not a phone screenshot, so the card takes its own portrait proportions instead of the square crop the shot before it needed. Replaced `ball-plus.jpg` in this section. |
+| `ball-plus.jpg` | The third shot in "The Hydra Difference" | The A1492+ game ball, cut out of `ball-plus-src.jpg` and set on `ball.jpg`'s field. Built by `tools/make-ball-plus.py`. Led "The Ball" section until the pair shot took it. |
 | `ball-plus-src.jpg` | Nowhere — an input to that tool | The phone shot of the game ball in hand, indoors. Kept at full size and orientation as it came off the phone; the tool applies the EXIF rotation itself. |
 | `a1492-inks.jpg` | "The Hydra Difference" | The line in three inks — an A1492 in red, an A1492+ in blue, an A1492+ in pink. Three balls side by side, so it spans the full width of the proof block and keeps its own proportions instead of being cropped square. |
 | `custom-indiana.jpg` | _Currently unused_ | A run stamped for Indiana Baseball, the team mark on the panel. Straight off the customizer, no retouching. Held the first proof slot until the inks shot took it. |

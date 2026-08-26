@@ -306,16 +306,15 @@ ul { list-style: none; }
   background: #2f4624;
   box-shadow: var(--shadow);
 }
-/* The source photo carries a black band along its top edge; a square crop
-   sampled low drops it without touching the file the retouch tool measures. */
+/* The pair shot is a clean camera frame — no phone-screenshot band to trim —
+   so the card keeps the photo's own portrait proportions. Cropping it square,
+   as the single-ball shot before it needed, would drop one of the two balls. */
 .balls__photo img {
   display: block;
   width: 100%;
   height: auto;
-  /* 1100x1117 cropped square from the bottom edge = exactly the 17px band. */
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1206 / 1721;
   object-fit: cover;
-  object-position: center bottom;
 }
 .balls__models { display: flex; flex-direction: column; gap: 28px; }
 /* One model per row here — the pair reads as a lineup rather than a footnote.
