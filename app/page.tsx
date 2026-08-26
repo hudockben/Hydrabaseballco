@@ -417,6 +417,152 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          {/* ===== Cutaway ===== */}
+          {/* One SVG holding two drawings of the same ball: the finished
+              exterior underneath, and the layered cross-section on top, clipped
+              to a sector that opens from twelve o'clock. The sector is the
+              intersection of two half-planes — a fixed one covering the right
+              half, and a second that starts over the left half and rotates
+              180deg into place — so the whole sweep is a CSS rotate on one
+              rect, no per-frame JavaScript. Radii are viewBox units on a
+              180-unit ball, at the proportions of a real one: the pill a little
+              under half the radius, yarn the bulk of it, leather a thin skin.
+              script.js only decides when to run it; see .cut in styles.css. */}
+          <div className="cut" id="ballCut">
+            <figure className="cut__stage">
+              <svg
+                className="cut__svg"
+                viewBox="0 0 400 400"
+                role="img"
+                aria-label="Cutaway of an A1492 Pro Series baseball: a full-grain leather cover over layers of wound yarn, around a red cushioned cork center"
+              >
+                <defs>
+                  <radialGradient id="cutHide" cx="38%" cy="30%" r="80%">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="60%" stopColor="#f5f1e8" />
+                    <stop offset="100%" stopColor="#dbd3c1" />
+                  </radialGradient>
+                  <radialGradient id="cutCork" cx="40%" cy="34%" r="74%">
+                    <stop offset="0%" stopColor="#dcac77" />
+                    <stop offset="100%" stopColor="#a97941" />
+                  </radialGradient>
+                  <radialGradient id="cutRubber" cx="40%" cy="34%" r="74%">
+                    <stop offset="0%" stopColor="#d8313f" />
+                    <stop offset="100%" stopColor="#9d101d" />
+                  </radialGradient>
+                  {/* Ambient shading inside the cut face, so the section reads
+                      as a hollow the light falls into rather than a pie chart. */}
+                  <radialGradient id="cutShade" cx="50%" cy="50%" r="50%">
+                    <stop offset="60%" stopColor="#000000" stopOpacity="0" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="0.19" />
+                  </radialGradient>
+                  {/* Wool is fibrous, not flat: a little monochrome noise over
+                      the windings and the cork does more than any gradient. */}
+                  {/* feTurbulence fills the whole filter region, not the shape
+                      it is attached to, so the last step composites the noise
+                      back into the circle — without it the grain paints a square
+                      and the drop shadow follows that square, not the ball. */}
+                  <filter id="cutFibre" x="0" y="0" width="100%" height="100%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="9" result="n" />
+                    <feColorMatrix in="n" type="saturate" values="0" result="grey" />
+                    <feComposite in="grey" in2="SourceGraphic" operator="in" />
+                  </filter>
+                  <clipPath id="cutRight">
+                    <rect x="200" y="0" width="200" height="400" />
+                  </clipPath>
+                  <clipPath id="cutSweep">
+                    <rect className="cut__spin" x="-200" y="-200" width="400" height="800" />
+                  </clipPath>
+                </defs>
+
+                {/* The ball as it leaves the shop */}
+                <g className="cut__outside">
+                  <circle cx="200" cy="200" r="180" fill="url(#cutHide)" />
+                  <circle cx="200" cy="200" r="180" fill="#000000" filter="url(#cutFibre)" opacity="0.06" />
+                  {/* Endpoints sit at r=170 so the stitch rows, offset 9 either
+                      side, still finish inside the r=180 edge. */}
+                  <g className="cut__seam">
+                    <path d="M 100 62 C 162 120 162 280 100 338" />
+                    <path d="M 300 62 C 238 120 238 280 300 338" />
+                  </g>
+                  <g className="cut__stitch">
+                    <path d="M 91 62 C 153 120 153 280 91 338" />
+                    <path d="M 109 62 C 171 120 171 280 109 338" />
+                    <path d="M 309 62 C 247 120 247 280 309 338" />
+                    <path d="M 291 62 C 229 120 229 280 291 338" />
+                  </g>
+                </g>
+
+                {/* The same ball, opened. Two nested clips make the sector. */}
+                <g clipPath="url(#cutRight)">
+                  <g clipPath="url(#cutSweep)">
+                    <circle cx="200" cy="200" r="180" fill="#f8f4ec" />
+                    <circle cx="200" cy="200" r="168" fill="#e9e3d4" />
+                    <circle cx="200" cy="200" r="158" fill="#d5cfc0" />
+                    <circle cx="200" cy="200" r="138" fill="#efeadc" />
+                    <circle cx="200" cy="200" r="116" fill="#c9c2b1" />
+                    <circle cx="200" cy="200" r="87" fill="url(#cutRubber)" />
+                    <circle cx="200" cy="200" r="72" fill="#23232a" />
+                    <circle cx="200" cy="200" r="62" fill="url(#cutCork)" />
+                    {/* Each turn of yarn, as it reads in section */}
+                    <g className="cut__threads">
+                      {Array.from({ length: 35 }, (_, i) => 64 + i * 3).map((r) => (
+                        <circle key={r} cx="200" cy="200" r={r} />
+                      ))}
+                    </g>
+                    <circle cx="200" cy="200" r="180" fill="#000000" filter="url(#cutFibre)" opacity="0.1" />
+                    <circle cx="200" cy="200" r="180" fill="url(#cutShade)" />
+                    {/* Edges of the cut */}
+                    <g className="cut__edges">
+                      <circle cx="200" cy="200" r="180" fill="none" />
+                      <circle cx="200" cy="200" r="168" fill="none" />
+                      <circle cx="200" cy="200" r="87" fill="none" />
+                    </g>
+                  </g>
+                </g>
+
+                {/* The cut face's outer ring is within a shade of the cream
+                    this section sits on, so the ball needs its own rim to keep
+                    a silhouette once the leather is opened. */}
+                <circle className="cut__rim" cx="200" cy="200" r="180" fill="none" />
+
+                {/* The blade line, riding the leading edge of the sweep */}
+                <line className="cut__blade" x1="200" y1="200" x2="200" y2="8" />
+              </svg>
+            </figure>
+
+            <div className="cut__copy">
+              <span className="eyebrow eyebrow--red">Inside the ball</span>
+              <h3 className="cut__title">Three layers, one seam</h3>
+              <ol className="cut__legend">
+                <li className="cut__layer">
+                  <span className="cut__swatch cut__swatch--hide" aria-hidden="true"></span>
+                  <div>
+                    <h4>Full-grain leather</h4>
+                    <p>The cover, stitched in red.</p>
+                  </div>
+                </li>
+                <li className="cut__layer">
+                  <span className="cut__swatch cut__swatch--yarn" aria-hidden="true"></span>
+                  <div>
+                    <h4>Yarn wound center</h4>
+                    <p>Wound in layers over the pill.</p>
+                  </div>
+                </li>
+                <li className="cut__layer">
+                  <span className="cut__swatch cut__swatch--cork" aria-hidden="true"></span>
+                  <div>
+                    <h4>Red cushioned cork center</h4>
+                    <p>The pill the ball is built around.</p>
+                  </div>
+                </li>
+              </ol>
+              <button type="button" className="cut__replay" id="ballCutReplay">
+                Cut it again
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 

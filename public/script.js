@@ -37,6 +37,38 @@
     revealEls.forEach(function (el) { el.classList.add('is-visible'); });
   }
 
+  /* Cutaway — the cross-section sweeps open once the block scrolls into view.
+     Every frame of the sweep is CSS (see .cut in styles.css), including the
+     reduced-motion case, where the ball is simply already open; this only picks
+     the moment and lets the button run it again. Stripping the class and
+     reading a layout property before putting it back is what restarts a CSS
+     animation that has already finished. */
+  var cutaway = document.getElementById('ballCut');
+  if (cutaway) {
+    var runCut = function () {
+      cutaway.classList.remove('is-cutting');
+      void cutaway.offsetWidth;
+      cutaway.classList.add('is-cutting');
+    };
+
+    if ('IntersectionObserver' in window) {
+      var cutIo = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            runCut();
+            cutIo.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.25 });
+      cutIo.observe(cutaway);
+    } else {
+      runCut();
+    }
+
+    var cutReplay = document.getElementById('ballCutReplay');
+    if (cutReplay) { cutReplay.addEventListener('click', runCut); }
+  }
+
   /* Hero slideshow — cross-fades through the player photos and the intro
      video. Photos load their image first and the video waits until it can
      play; any media that 404s or can't be played is skipped, so the rotation

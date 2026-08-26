@@ -306,14 +306,15 @@ ul { list-style: none; }
   background: #2f4624;
   box-shadow: var(--shadow);
 }
-/* The pair sits side by side, so the card is landscape and takes the photo's
-   own 1721x1206 — no crop. A square, as the single-ball shot before it needed,
-   would drop one of the two balls. */
+/* The pair sits side by side, so the card is landscape. 16:9 crops the photo's
+   own 1721x1206 down to its middle 80% of height — the balls run y 260-780 of
+   1206, so that leaves them clear by 141px above and 307px below. A square, as
+   the single-ball shot before it needed, would drop one of the two balls. */
 .balls__photo img {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1721 / 1206;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
 }
 .balls__models { display: flex; flex-direction: column; gap: 28px; }
@@ -338,6 +339,139 @@ ul { list-style: none; }
 }
 .spec__v { color: var(--text); font-size: 0.98rem; }
 .balls__cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- Cutaway ----------
+   The sector that opens over the cross-section is the intersection of two
+   clips: #cutRight covers the right half and never moves, and #cutSweep starts
+   over the left half and rotates 180deg into it. Their overlap grows from
+   nothing to exactly half the ball, so one rotate does the whole cut and no
+   frame of it is drawn in JavaScript. Closed is the resting state, the way
+   .reveal is hidden until it scrolls in; script.js adds .is-cutting once. */
+.cut {
+  margin-top: clamp(44px, 5vw, 72px);
+  padding-top: clamp(36px, 4vw, 56px);
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 60px);
+  align-items: center;
+}
+.cut__stage { width: 100%; max-width: 420px; justify-self: center; }
+.cut__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.22));
+}
+
+/* Exterior: the seam sits in the leather, the stitches ride either side of it */
+.cut__seam path { fill: none; stroke: rgba(120, 96, 74, 0.28); stroke-width: 2; }
+.cut__stitch path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-dasharray: 2 13;
+}
+
+/* Section: one stroke per turn of yarn, and a heavier line on each boundary */
+.cut__threads circle { fill: none; stroke: rgba(58, 50, 36, 0.15); stroke-width: 0.9; }
+.cut__edges circle { stroke: rgba(42, 35, 24, 0.34); stroke-width: 1.3; }
+.cut__rim { stroke: rgba(44, 36, 24, 0.24); stroke-width: 1.4; }
+
+.cut__spin {
+  transform: rotate(0deg);
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+}
+.cut.is-cutting .cut__spin { animation: cut-open 1.5s cubic-bezier(0.62, 0.03, 0.24, 1) forwards; }
+
+/* The blade rides the leading edge on the same curve, then leaves */
+.cut__blade {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.95));
+}
+.cut.is-cutting .cut__blade {
+  animation:
+    cut-open 1.5s cubic-bezier(0.62, 0.03, 0.24, 1) forwards,
+    cut-blade 1.5s linear forwards;
+}
+
+@keyframes cut-open {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(180deg); }
+}
+@keyframes cut-blade {
+  0% { opacity: 0; }
+  7% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.cut__title {
+  font-family: var(--display);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  color: var(--text);
+  margin-top: 10px;
+}
+.cut__legend { display: flex; flex-direction: column; gap: 18px; margin-top: 26px; }
+/* Each layer lands as the cut reaches it, so the list reads with the sweep */
+.cut__layer { display: flex; gap: 14px; opacity: 0; transform: translateY(10px); }
+.cut.is-cutting .cut__layer { animation: cut-label 0.55s ease forwards; }
+.cut.is-cutting .cut__layer:nth-child(1) { animation-delay: 0.42s; }
+.cut.is-cutting .cut__layer:nth-child(2) { animation-delay: 0.82s; }
+.cut.is-cutting .cut__layer:nth-child(3) { animation-delay: 1.18s; }
+@keyframes cut-label {
+  to { opacity: 1; transform: none; }
+}
+.cut__swatch {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+.cut__swatch--hide { background: #f2ede1; }
+.cut__swatch--yarn { background: #cac3b2; }
+.cut__swatch--cork { background: var(--red); }
+.cut__layer h4 {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.92rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.cut__layer p { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
+.cut__replay {
+  margin-top: 28px;
+  align-self: flex-start;
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.cut__replay:hover { color: var(--text); border-color: #cbc3b2; }
 
 .difference {
   display: grid;
@@ -1094,6 +1228,7 @@ ul { list-style: none; }
 
   .balls__grid { grid-template-columns: 1fr; }
   .balls__photo { max-width: 520px; margin: 0 auto; }
+  .cut { grid-template-columns: 1fr; }
   .difference { grid-template-columns: 1fr; }
   .difference__media { min-height: 360px; }
   .quote { grid-template-columns: 1fr; }
@@ -1138,6 +1273,13 @@ ul { list-style: none; }
   html { scroll-behavior: auto; }
   .hero__slide { transition: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
+  /* No sweep — the ball is simply already open, labels and all. */
+  .cut__spin { transform: rotate(180deg); }
+  .cut__blade { display: none; }
+  .cut__layer { opacity: 1; transform: none; }
+  .cut.is-cutting .cut__spin,
+  .cut.is-cutting .cut__blade,
+  .cut.is-cutting .cut__layer { animation: none; }
   .btn { transition: none; }
   .member__shot { transition: none; }
   .swatch, .dropzone { transition: none; }
