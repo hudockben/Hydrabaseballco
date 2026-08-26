@@ -348,6 +348,11 @@ ul { list-style: none; }
    frame of it is drawn in JavaScript. Closed is the resting state, the way
    .reveal is hidden until it scrolls in; script.js adds .is-cutting once. */
 .cut {
+  /* The ball turns first and settles; everything else waits out --cut-lead,
+     which is the spin plus a beat of stillness before the blade lands. */
+  --cut-spin: 0.95s;
+  --cut-lead: 1.05s;
+  --cut-sweep: 1.35s;
   margin-top: clamp(44px, 5vw, 72px);
   padding-top: clamp(36px, 4vw, 56px);
   border-top: 1px solid var(--line);
@@ -380,12 +385,22 @@ ul { list-style: none; }
 .cut__edges circle { stroke: rgba(42, 35, 24, 0.34); stroke-width: 1.3; }
 .cut__rim { stroke: rgba(44, 36, 24, 0.24); stroke-width: 1.4; }
 
+/* A turn and a half, shedding speed the whole way, landing back at 0deg —
+   where the seams are drawn — so the ball comes to rest exactly as composed. */
+.cut__turn {
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+}
+.cut.is-cutting .cut__turn { animation: cut-turn var(--cut-spin) cubic-bezier(0.12, 0.72, 0.2, 1) forwards; }
+
 .cut__spin {
   transform: rotate(0deg);
   transform-box: view-box;
   transform-origin: 200px 200px;
 }
-.cut.is-cutting .cut__spin { animation: cut-open 1.5s cubic-bezier(0.62, 0.03, 0.24, 1) forwards; }
+.cut.is-cutting .cut__spin {
+  animation: cut-open var(--cut-sweep) cubic-bezier(0.62, 0.03, 0.24, 1) var(--cut-lead) forwards;
+}
 
 /* The blade rides the leading edge on the same curve, then leaves */
 .cut__blade {
@@ -399,10 +414,14 @@ ul { list-style: none; }
 }
 .cut.is-cutting .cut__blade {
   animation:
-    cut-open 1.5s cubic-bezier(0.62, 0.03, 0.24, 1) forwards,
-    cut-blade 1.5s linear forwards;
+    cut-open var(--cut-sweep) cubic-bezier(0.62, 0.03, 0.24, 1) var(--cut-lead) forwards,
+    cut-blade var(--cut-sweep) linear var(--cut-lead) forwards;
 }
 
+@keyframes cut-turn {
+  from { transform: rotate(-540deg); }
+  to { transform: rotate(0deg); }
+}
 @keyframes cut-open {
   from { transform: rotate(0deg); }
   to { transform: rotate(180deg); }
@@ -428,9 +447,9 @@ ul { list-style: none; }
 /* Each layer lands as the cut reaches it, so the list reads with the sweep */
 .cut__layer { display: flex; gap: 14px; opacity: 0; transform: translateY(10px); }
 .cut.is-cutting .cut__layer { animation: cut-label 0.55s ease forwards; }
-.cut.is-cutting .cut__layer:nth-child(1) { animation-delay: 0.42s; }
-.cut.is-cutting .cut__layer:nth-child(2) { animation-delay: 0.82s; }
-.cut.is-cutting .cut__layer:nth-child(3) { animation-delay: 1.18s; }
+.cut.is-cutting .cut__layer:nth-child(1) { animation-delay: calc(var(--cut-lead) + 0.38s); }
+.cut.is-cutting .cut__layer:nth-child(2) { animation-delay: calc(var(--cut-lead) + 0.74s); }
+.cut.is-cutting .cut__layer:nth-child(3) { animation-delay: calc(var(--cut-lead) + 1.06s); }
 @keyframes cut-label {
   to { opacity: 1; transform: none; }
 }
@@ -1277,6 +1296,7 @@ ul { list-style: none; }
   .cut__spin { transform: rotate(180deg); }
   .cut__blade { display: none; }
   .cut__layer { opacity: 1; transform: none; }
+  .cut.is-cutting .cut__turn,
   .cut.is-cutting .cut__spin,
   .cut.is-cutting .cut__blade,
   .cut.is-cutting .cut__layer { animation: none; }

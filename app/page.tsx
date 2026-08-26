@@ -480,17 +480,21 @@ export default function HomePage() {
                 <g className="cut__outside">
                   <circle cx="200" cy="200" r="180" fill="url(#cutHide)" />
                   <circle cx="200" cy="200" r="180" fill="#000000" filter="url(#cutFibre)" opacity="0.06" />
-                  {/* Endpoints sit at r=170 so the stitch rows, offset 9 either
-                      side, still finish inside the r=180 edge. */}
-                  <g className="cut__seam">
-                    <path d="M 100 62 C 162 120 162 280 100 338" />
-                    <path d="M 300 62 C 238 120 238 280 300 338" />
-                  </g>
-                  <g className="cut__stitch">
-                    <path d="M 91 62 C 153 120 153 280 91 338" />
-                    <path d="M 109 62 C 171 120 171 280 109 338" />
-                    <path d="M 309 62 C 247 120 247 280 309 338" />
-                    <path d="M 291 62 C 229 120 229 280 291 338" />
+                  {/* Only the seams turn, never the leather under them — the
+                      hide's highlight is where the light is, and light doesn't
+                      travel with the ball. Endpoints sit at r=170 so the stitch
+                      rows, offset 9 either side, finish inside the r=180 edge. */}
+                  <g className="cut__turn">
+                    <g className="cut__seam">
+                      <path d="M 100 62 C 162 120 162 280 100 338" />
+                      <path d="M 300 62 C 238 120 238 280 300 338" />
+                    </g>
+                    <g className="cut__stitch">
+                      <path d="M 91 62 C 153 120 153 280 91 338" />
+                      <path d="M 109 62 C 171 120 171 280 109 338" />
+                      <path d="M 309 62 C 247 120 247 280 309 338" />
+                      <path d="M 291 62 C 229 120 229 280 291 338" />
+                    </g>
                   </g>
                 </g>
 
