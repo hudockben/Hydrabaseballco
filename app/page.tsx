@@ -287,7 +287,7 @@ export default function HomePage() {
           </div>
           <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
-          <div className="hero__slide" data-src="/images/hero-5.jpg"></div>
+          <div className="hero__slide" data-src="/images/a1492-plus-pile.jpg"></div>
         </div>
         <div className="hero__dots" id="heroDots"></div>
         <div className="container hero__inner">

@@ -16,7 +16,8 @@ any that fail to load/play are skipped.
 | `hero-2.jpg` | Batter action shot. |
 | `hero.mp4` (`../videos/`) | Behind-the-scenes clip of a ball being stamped. H.264/AAC MP4, muted autoplay, `object-fit: cover`. Plays through, then the rotation continues. |
 | `hero-3.jpg` | Pitcher action shot. |
-| `hero-5.jpg` | Hydra baseballs on the grass (branded). |
+| `a1492-plus-pile.jpg` | A pile of A1492+ Pro Series balls, close in — the Hydra mark, the model mark and the spec stamp all legible. |
+| `hero-5.jpg` | _No longer a slide_ — blank baseballs on the grass under the Hydra wordmark. Held the last slot until the A1492+ pile took it. |
 | `hero-6.jpg` | _No longer a slide_ — Hydra A1492 Pro Series baseballs on the turf. Led the rotation until the baskets photo took it, and stays put as the input to `tools/make-tray-plus.py`. |
 | `hero-video-poster.jpg` | Poster frame shown before the video plays / if it can't. |
 
