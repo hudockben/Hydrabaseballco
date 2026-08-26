@@ -431,7 +431,7 @@ ul { list-style: none; }
 }
 .proof__shot--stock {
   background-image:
-    url('/images/ball-plus.jpg'),
+    url('/images/a1492-pile.jpg'),
     radial-gradient(120% 90% at 50% 30%, #4f6a3f 0%, #38502c 45%, #25371d 100%);
 }
 .proof__cap {

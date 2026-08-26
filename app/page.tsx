@@ -498,9 +498,9 @@ export default function HomePage() {
                 <span
                   className="proof__shot proof__shot--stock"
                   role="img"
-                  aria-label="The stock Hydra A1492+ Pro Series game ball on the grass"
+                  aria-label="A pile of stock Hydra A1492 Pro Series baseballs, the Hydra mark and the spec stamp on the leather"
                 ></span>
-                <span className="proof__cap">A1492+ Game Ball</span>
+                <span className="proof__cap">A1492 Pro Series</span>
               </li>
             </ul>
           </div>
