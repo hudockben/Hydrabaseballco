@@ -361,9 +361,9 @@ export default function HomePage() {
             <figure className="balls__photo">
               <img
                 src="/images/a1492-pair.jpg"
-                alt="A Hydra A1492 practice ball and an A1492+ game ball together in the grass"
-                width={1206}
-                height={1721}
+                alt="A Hydra A1492 practice ball and an A1492+ game ball side by side in the grass"
+                width={1721}
+                height={1206}
                 loading="lazy"
               />
             </figure>

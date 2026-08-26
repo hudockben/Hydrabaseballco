@@ -306,15 +306,14 @@ ul { list-style: none; }
   background: #2f4624;
   box-shadow: var(--shadow);
 }
-/* The pair shot is taller than the specs beside it, so the card crops to 4:5
-   and trims the grass at either end — a square, as the single-ball shot before
-   it needed, would drop one of the two balls. The photo is 1206x1721, so 4:5
-   keeps the middle 87.5% of its height and both balls clear the edges. */
+/* The pair sits side by side, so the card is landscape and takes the photo's
+   own 1721x1206 — no crop. A square, as the single-ball shot before it needed,
+   would drop one of the two balls. */
 .balls__photo img {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1721 / 1206;
   object-fit: cover;
 }
 .balls__models { display: flex; flex-direction: column; gap: 28px; }
