@@ -170,6 +170,16 @@ const TEAM: TeamMember[] = [
     photo: '/images/team/ari-heinemann.jpg',
   },
   {
+    id: 'bill-miller',
+    name: 'Bill Miller',
+    role: 'Head of Logistics & Operations',
+    meta: ['40+ years of business ownership', 'Logistics, inventory & fulfillment'],
+    bio:
+      'Bill brings more than 40 years of business ownership and operational experience to ' +
+      'Hydra. He oversees logistics, inventory, and fulfillment, helping to ensure Hydra ' +
+      'remains efficient and reliable.',
+  },
+  {
     id: 'caleb-cawley',
     name: 'Caleb Cawley',
     role: 'Director of Marketing & Media',
