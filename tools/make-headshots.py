@@ -70,6 +70,11 @@ PEOPLE = [
     {'id': 'noel-miller', 'src': 'noel-miller.png', 'crop': (194, 8, 992, 1006), 'debanded': True},
     # Shot against a ballpark wall; the widest 4:5 the frame holds.
     {'id': 'paul-laudati', 'src': 'paul-laudati.jpeg', 'crop': (218, 0, 917, 874)},
+    # Another screenshot, and the tallest of them: the bands come off to a
+    # 1170x1448. Nearly the widest 4:5 that leaves, centred on his head and
+    # seated on the bottom edge — the head lands at the same size as the rest,
+    # and the frame would run past the photo if it sat any higher.
+    {'id': 'bill-miller', 'src': 'bill-miller.png', 'crop': (2, 38, 1130, 1448), 'debanded': True},
 ]
 
 

@@ -178,6 +178,7 @@ const TEAM: TeamMember[] = [
       'Bill brings more than 40 years of business ownership and operational experience to ' +
       'Hydra. He oversees logistics, inventory, and fulfillment, helping to ensure Hydra ' +
       'remains efficient and reliable.',
+    photo: '/images/team/bill-miller.jpg',
   },
   {
     id: 'caleb-cawley',
