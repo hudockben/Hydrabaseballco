@@ -45,7 +45,7 @@ function loadStripeJs(): Promise<void> {
 /**
  * "Buy Now": the products flagged Sell online in the admin Pricing tab, priced
  * by their volume tiers, paid through Stripe's checkout embedded in the page.
- * Renders nothing until Stripe keys are set and at least one product is listed,
+ * Renders only its #shop anchor until Stripe keys are set and at least one product is listed,
  * so the section can ship before the store is ready to open.
  */
 export default function Shop() {
@@ -74,7 +74,9 @@ export default function Shop() {
     return () => checkoutRef.current?.destroy();
   }, []);
 
-  if (!pk || products.length === 0) return null;
+  // Until the store opens, leave just the anchor: it sits right above Team
+  // Orders, so the header's Shop links land on the inquiry form, not nowhere.
+  if (!pk || products.length === 0) return <span id="shop" aria-hidden="true" />;
 
   const product = products.find((p) => p.id === productId) ?? products[0];
   const quantity = Math.floor(Number(qty));
