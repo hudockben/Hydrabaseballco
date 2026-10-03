@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { totalFor, type ShopProduct } from '@/lib/shop';
 
+/** Balls at which the card suggests asking for bulk pricing: 10 dozen. */
+const BULK_BALLS = 120;
+
 const money = (cents: number, currency = 'usd') =>
   (cents / 100).toLocaleString('en-US', { style: 'currency', currency: currency.toUpperCase() });
 
@@ -196,9 +199,12 @@ export default function Shop() {
             <button type="button" className="btn btn--dark" onClick={startCheckout} disabled={busy || !validQty || product.outOfStock}>
               {product.outOfStock ? 'Out of stock' : busy ? 'Loading checkout…' : 'Checkout'}
             </button>
-            <p className="shop__bulk">
-              Ordering in bulk? <a href="#team-orders">Inquire for team &amp; bulk pricing</a>.
-            </p>
+            {/* 10+ dozen (120 balls) is a bulk order: point it at a quote. */}
+            {validQty && quantity * product.ballsPerUnit >= BULK_BALLS && (
+              <p className="shop__bulk">
+                Ordering in bulk? <a href="#team-orders">Inquire for team &amp; bulk pricing</a>.
+              </p>
+            )}
             <p className="shop__secure">Shipping is added at checkout. Secure payment by Stripe; ships within the US.</p>
           </div>
         ) : (
