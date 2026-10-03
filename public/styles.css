@@ -1351,6 +1351,8 @@ ul { list-style: none; }
 .shop__msg { color: var(--red-dk); font-size: 0.9rem; margin-bottom: 12px; }
 .shop__card .btn { width: 100%; justify-content: center; }
 .shop__card .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.shop__bulk { margin-top: 14px; text-align: center; font-size: 0.95rem; color: var(--text); }
+.shop__bulk a { color: var(--red); font-weight: 600; }
 .shop__secure { margin-top: 10px; font-size: 0.8rem; color: var(--muted); text-align: center; }
 .shop__checkout { margin: 36px auto 0; text-align: left; }
 .shop__back { margin-bottom: 14px; background: none; border: 0; font: inherit; font-size: 0.9rem; font-weight: 600; color: var(--muted); cursor: pointer; }

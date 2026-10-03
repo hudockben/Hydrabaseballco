@@ -123,8 +123,8 @@ export default function Shop() {
         <span className="eyebrow eyebrow--red">Shop</span>
         <h2 className="section-title">Buy Baseballs</h2>
         <p className="shop__lead">
-          Order stock A1492 balls by the dozen or by the bucket &mdash; the more you buy, the less each ball costs.
-          Custom logo runs go through <a href="#team-orders">Team Orders</a>.
+          Order Hydra baseballs by the dozen. Buying in bulk or want your logo on them?{' '}
+          <a href="#team-orders">Inquire for pricing</a>.
         </p>
 
         {!checkingOut ? (
@@ -196,6 +196,9 @@ export default function Shop() {
             <button type="button" className="btn btn--dark" onClick={startCheckout} disabled={busy || !validQty || product.outOfStock}>
               {product.outOfStock ? 'Out of stock' : busy ? 'Loading checkout…' : 'Checkout'}
             </button>
+            <p className="shop__bulk">
+              Ordering in bulk? <a href="#team-orders">Inquire for team &amp; bulk pricing</a>.
+            </p>
             <p className="shop__secure">Shipping is added at checkout. Secure payment by Stripe; ships within the US.</p>
           </div>
         ) : (
