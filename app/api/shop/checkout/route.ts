@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
     const [products, shippingRates] = await Promise.all([loadShopProducts(), loadShippingRateIds()]);
     const product = products.find((p) => p.id === productId);
     if (!product) return NextResponse.json({ error: 'That product isn’t available.' }, { status: 400 });
+    if (product.outOfStock) {
+      return NextResponse.json({ error: 'That ball is out of stock right now.' }, { status: 409 });
+    }
     const origin = req.headers.get('origin') || new URL(req.url).origin;
 
     const session = await stripe('POST', '/checkout/sessions', {

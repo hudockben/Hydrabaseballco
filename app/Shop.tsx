@@ -84,7 +84,7 @@ export default function Shop() {
   const plural = (n: number, w: string) => (n === 1 ? w : w === 'dozen' ? 'dozen' : `${w}s`);
 
   async function startCheckout() {
-    if (!validQty) return;
+    if (!validQty || product.outOfStock) return;
     setBusy(true);
     setErr('');
     try {
@@ -135,7 +135,7 @@ export default function Shop() {
                 <select value={product.id} onChange={(e) => setProductId(e.target.value)}>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name}
+                      {p.outOfStock ? `${p.name} — Out of stock` : p.name}
                     </option>
                   ))}
                 </select>
@@ -154,6 +154,12 @@ export default function Shop() {
             </div>
 
             {product.description && <p className="shop__desc">{product.description}</p>}
+            {product.outOfStock && (
+              <p className="shop__stock">
+                Out of stock &mdash; more on the way. Need balls sooner? Reach out through{' '}
+                <a href="#team-orders">Team Orders</a>.
+              </p>
+            )}
             <p className="shop__price">{priceLabel}</p>
             {product.tiers.length > 0 && (
               <ul className="shop__tiers" aria-label="Volume pricing">
@@ -187,8 +193,8 @@ export default function Shop() {
             {!validQty && <p className="shop__msg">Enter a quantity from 1 to {maxQty}.</p>}
             {err && <p className="shop__msg">{err}</p>}
 
-            <button type="button" className="btn btn--dark" onClick={startCheckout} disabled={busy || !validQty}>
-              {busy ? 'Loading checkout…' : 'Checkout'}
+            <button type="button" className="btn btn--dark" onClick={startCheckout} disabled={busy || !validQty || product.outOfStock}>
+              {product.outOfStock ? 'Out of stock' : busy ? 'Loading checkout…' : 'Checkout'}
             </button>
             <p className="shop__secure">Shipping is added at checkout. Secure payment by Stripe; ships within the US.</p>
           </div>

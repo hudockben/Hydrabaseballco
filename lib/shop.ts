@@ -20,6 +20,7 @@ export interface ShopProduct {
   tiers: ShopTier[];
   unitLabel: string; // what one unit of the Stripe price is, e.g. "dozen"
   ballsPerUnit: number; // balls in one unit, for the Revenue tab's per-ball numbers
+  outOfStock: boolean; // Stripe product metadata out_of_stock = true
 }
 
 /**

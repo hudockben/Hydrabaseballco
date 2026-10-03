@@ -1330,6 +1330,11 @@ ul { list-style: none; }
 .shop__field select:focus,
 .shop__field input:focus { outline: none; border-color: var(--ink); }
 .shop__desc { margin: 18px 0 0; color: var(--muted); font-size: 0.95rem; }
+.shop__stock {
+  margin: 16px 0 0; padding: 12px 14px; border-radius: 10px;
+  background: rgba(200, 32, 47, 0.07); color: var(--red-dk); font-weight: 600; font-size: 0.95rem;
+}
+.shop__stock a { text-decoration: underline; }
 .shop__price { margin: 14px 0 0; font-weight: 600; color: var(--text); }
 .shop__tiers { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
 .shop__tiers li {

@@ -33,6 +33,8 @@ export async function loadShopProducts(): Promise<ShopProduct[]> {
           }))
         : [],
       ...unitFor(p.unit_label, p.metadata?.balls_per_unit),
+      // Flipped in Stripe: product → Metadata → out_of_stock = true.
+      outOfStock: /^(true|yes|1)$/i.test(String(p.metadata?.out_of_stock ?? '').trim()),
     });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));

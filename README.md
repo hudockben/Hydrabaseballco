@@ -85,7 +85,9 @@ in the admin:
 3. In Stripe → Product catalog, add each ball with a **one-time** price **per dozen**
    (the shop sells by the dozen; set the product's *Unit label* to `ball` to sell singles). Every
    active product shows in the shop at its price, using Stripe's volume pricing
-   if the price has tiers. Shipping rates added under Product catalog →
+   if the price has tiers. To mark a ball sold out, add metadata `out_of_stock` = `true` on the
+   Stripe product (delete it to restock); the shop shows it as out of stock and
+   won't take payment. Shipping rates added under Product catalog →
    Shipping rates are offered at checkout (up to five); with none, shipping is free.
 
 Every paid checkout lands in **Revenue** as a `paid` order with the customer,
