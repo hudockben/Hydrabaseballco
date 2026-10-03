@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import Script from 'next/script';
+import Shop from './Shop';
 
 /* ---- Inline icons (stroke = currentColor) ---- */
 const IconShieldCheck = (
@@ -928,6 +929,9 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      {/* ===== Shop (Stripe) — hidden until a product is set to Sell online ===== */}
+      <Shop />
 
       {/* ===== Team Orders / Inquiry ===== */}
       <section className="orders" id="team-orders">

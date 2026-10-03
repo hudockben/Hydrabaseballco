@@ -53,6 +53,7 @@ create table if not exists products (
   unit_cost   numeric(12, 2) not null default 0, -- COGS per ball
   ship_cost   numeric(12, 2) not null default 0, -- default shipping per ball
   active      boolean not null default true,
+  sell_online boolean not null default false, -- listed in the public site's shop
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
@@ -84,9 +85,11 @@ create table if not exists orders (
                 check (status in ('quote', 'confirmed', 'fulfilled', 'paid')),
   ordered_at    date not null default current_date,
   notes         text,
+  stripe_session_id text, -- set on orders paid through the online shop
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
+create unique index if not exists orders_stripe_session_idx on orders (stripe_session_id);
 create index if not exists orders_prospect_idx   on orders (prospect_id);
 create index if not exists orders_product_idx    on orders (product_id);
 create index if not exists orders_ordered_at_idx on orders (ordered_at);

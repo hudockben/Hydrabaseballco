@@ -1306,3 +1306,44 @@ ul { list-style: none; }
   .pantone__chip { transition: none; }
   .pantone__chip:hover { transform: none; }
 }
+
+/* ---------- Shop (Stripe embedded checkout) ---------- */
+.shop { background: var(--cream); padding: clamp(64px, 9vw, 110px) 0; text-align: center; }
+.shop__inner { max-width: 760px; margin: 0 auto; }
+.shop__inner .section-title { color: var(--text); }
+.shop__lead { color: var(--muted); font-size: 1.08rem; margin: 18px auto 0; max-width: 56ch; }
+.shop__lead a { color: var(--red); font-weight: 600; }
+.shop__card {
+  margin: 36px auto 0; max-width: 560px; padding: clamp(22px, 4vw, 34px);
+  background: var(--paper); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: var(--shadow); text-align: left;
+}
+.shop__fields { display: grid; grid-template-columns: 1fr 140px; gap: 14px; }
+.shop__field { display: grid; gap: 6px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.shop__field select,
+.shop__field input {
+  font: inherit; font-size: 1rem; letter-spacing: 0; text-transform: none; color: var(--text);
+  padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; width: 100%;
+}
+.shop__field select:focus,
+.shop__field input:focus { outline: none; border-color: var(--ink); }
+.shop__tiers { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+.shop__tiers li {
+  display: flex; gap: 6px; align-items: baseline; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line); font-size: 0.86rem; color: var(--muted);
+}
+.shop__tiers li strong { color: var(--text); }
+.shop__tiers li.is-active { border-color: var(--red); background: rgba(200, 32, 47, 0.06); }
+.shop__totals { margin: 22px 0 18px; border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 6px; }
+.shop__totals div { display: flex; justify-content: space-between; color: var(--muted); }
+.shop__totals dd { color: var(--text); font-variant-numeric: tabular-nums; }
+.shop__total { font-weight: 700; font-size: 1.1rem; }
+.shop__total dt, .shop__total dd { color: var(--text); }
+.shop__msg { color: var(--red-dk); font-size: 0.9rem; margin-bottom: 12px; }
+.shop__card .btn { width: 100%; justify-content: center; }
+.shop__card .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.shop__secure { margin-top: 10px; font-size: 0.8rem; color: var(--muted); text-align: center; }
+.shop__checkout { margin: 36px auto 0; text-align: left; }
+.shop__back { margin-bottom: 14px; background: none; border: 0; font: inherit; font-size: 0.9rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.shop__back:hover { color: var(--text); }
+@media (max-width: 520px) { .shop__fields { grid-template-columns: 1fr; } }

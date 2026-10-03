@@ -155,6 +155,12 @@ export function ensureSchema(): Promise<void> {
       await optional(() => sql`alter table orders add column if not exists
         shipping_charged numeric(12, 2) not null default 0`);
 
+      // Online store: which products the public site sells, and the Stripe
+      // checkout each paid online order came from (one order per session).
+      await optional(() => sql`alter table products add column if not exists
+        sell_online boolean not null default false`);
+      await optional(() => sql`alter table orders add column if not exists stripe_session_id text`);
+
       // Older `prospects` tables (Coach column + High School type).
       await optional(() => sql`alter table prospects add column if not exists contact_name text`);
       await optional(() => sql`alter table prospects drop constraint if exists prospects_type_check`);
@@ -168,6 +174,8 @@ export function ensureSchema(): Promise<void> {
       await optional(() => sql`create index if not exists orders_prospect_idx on orders (prospect_id)`);
       await optional(() => sql`create index if not exists orders_product_idx on orders (product_id)`);
       await optional(() => sql`create index if not exists orders_ordered_at_idx on orders (ordered_at)`);
+      await optional(() => sql`create unique index if not exists orders_stripe_session_idx
+        on orders (stripe_session_id)`);
       await optional(() => sql`create index if not exists customers_state_idx on customers (state)`);
       await optional(() => sql`create index if not exists customers_school_idx on customers (school)`);
       await optional(() => sql`create index if not exists customers_status_idx on customers (status)`);

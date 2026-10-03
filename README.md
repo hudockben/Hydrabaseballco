@@ -65,6 +65,29 @@ Copy `.env.example` and set these in **Vercel → Settings → Environment Varia
 | `ADMIN_PASSWORD` | Password to reach `/admin`. |
 | `SESSION_SECRET` | Long random string for signing login cookies (`openssl rand -hex 32`). |
 | `SCORECARD_API_KEY` | _Optional_ — higher College Scorecard rate limits. |
+| `STRIPE_SECRET_KEY` | _Online store_ — Stripe secret key (`sk_test_…` / `sk_live_…`). |
+| `STRIPE_PUBLISHABLE_KEY` | _Online store_ — Stripe publishable key (`pk_test_…` / `pk_live_…`). |
+| `STRIPE_WEBHOOK_SECRET` | _Online store_ — signing secret of the webhook endpoint (`whsec_…`). |
+
+## Online store (Stripe)
+
+The homepage has a **Shop** section (above Team Orders) with Stripe Checkout
+embedded right in the page. It stays hidden until it has something to sell:
+
+1. Set the three `STRIPE_*` env vars in Vercel and redeploy.
+2. In Stripe → Developers → Webhooks, add an endpoint at
+   `https://<your-domain>/api/stripe/webhook` listening for
+   `checkout.session.completed` and `checkout.session.async_payment_succeeded`;
+   its signing secret is `STRIPE_WEBHOOK_SECRET`.
+3. In **Admin → Pricing**, tick **Sell online** on each product to list. The
+   shop charges that product's volume tiers (lowest tier = minimum order) and
+   bills its *Ship/unit* × quantity as shipping.
+
+Prices are resolved on the server, never trusted from the browser. Every paid
+checkout lands in **Revenue** as a `paid` order with the customer, email, and
+ship-to address in the notes, and COGS snapshotted from the product. Sales tax
+is not collected — turn on Stripe Tax first if you need it. Custom logo runs
+still go through the Team Orders form.
 
 ## Database setup (Neon)
 
