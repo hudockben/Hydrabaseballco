@@ -126,8 +126,8 @@ export default function Shop() {
         <span className="eyebrow eyebrow--red">Shop</span>
         <h2 className="section-title">Buy Baseballs</h2>
         <p className="shop__lead">
-          Order Hydra baseballs by the dozen. Buying in bulk or want your logo on them?{' '}
-          <a href="#team-orders">Inquire for pricing</a>.
+          Order Hydra baseballs by the dozen. Orders of 10+ dozen are considered bulk &mdash; for bulk
+          or custom logo orders, <a href="#team-orders">inquire for pricing</a>.
         </p>
 
         {!checkingOut ? (
