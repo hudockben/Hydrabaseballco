@@ -176,6 +176,7 @@ ul { list-style: none; }
    wide enough that it never comes to that. */
 .site-nav a { white-space: nowrap; }
 .btn--header { margin-left: 4px; }
+.site-nav a.site-nav__mobile { display: none; }
 
 .nav-toggle {
   display: none;
@@ -1229,6 +1230,7 @@ ul { list-style: none; }
   .site-nav.is-open { transform: translateY(0); }
   .site-nav a { padding: 14px 28px; }
   .btn--header { display: none; }
+  .site-nav a.site-nav__mobile { display: block; }
   .nav-toggle { display: flex; }
 }
 
