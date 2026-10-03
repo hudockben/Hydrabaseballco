@@ -158,6 +158,8 @@ export function ensureSchema(): Promise<void> {
       // Online store: the Stripe checkout each paid online order came from
       // (one order per session).
       await optional(() => sql`alter table orders add column if not exists stripe_session_id text`);
+      // Per-ball price of a dozen ($65 / 12) needs more than cents to add back up.
+      await optional(() => sql`alter table orders alter column unit_price type numeric(12, 4)`);
 
       // Older `prospects` tables (Coach column + High School type).
       await optional(() => sql`alter table prospects add column if not exists contact_name text`);

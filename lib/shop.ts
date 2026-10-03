@@ -18,6 +18,21 @@ export interface ShopProduct {
   unitAmount: number | null; // cents; null when the price is tiered
   tiersMode: 'volume' | 'graduated' | null;
   tiers: ShopTier[];
+  unitLabel: string; // what one unit of the Stripe price is, e.g. "dozen"
+  ballsPerUnit: number; // balls in one unit, for the Revenue tab's per-ball numbers
+}
+
+/**
+ * What one unit of a Stripe price buys. Balls sell by the dozen, so a product
+ * with no "Unit label" in Stripe is a dozen. Set the label to "ball" (or
+ * "bucket" with a balls_per_unit metadata value) to sell it differently.
+ */
+export function unitFor(label: string | null | undefined, ballsMeta?: string | null) {
+  const unitLabel = (label || 'dozen').trim().toLowerCase();
+  const fromMeta = Math.floor(Number(ballsMeta));
+  const known: Record<string, number> = { dozen: 12, ball: 1, each: 1, baseball: 1 };
+  const ballsPerUnit = fromMeta > 0 ? fromMeta : known[unitLabel] ?? 1;
+  return { unitLabel, ballsPerUnit };
 }
 
 /** Largest single online order; anything bigger goes through Team Orders. */

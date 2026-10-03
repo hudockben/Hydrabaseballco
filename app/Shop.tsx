@@ -79,8 +79,9 @@ export default function Shop() {
   const subtotal = validQty ? totalFor(product, quantity) : null;
   const priceLabel =
     product.unitAmount != null
-      ? `${money(product.unitAmount, product.currency)} / ball`
-      : 'Volume pricing — the more you buy, the less each ball costs';
+      ? `${money(product.unitAmount, product.currency)} / ${product.unitLabel}`
+      : `Volume pricing — the more you buy, the less each ${product.unitLabel} costs`;
+  const plural = (n: number, w: string) => (n === 1 ? w : w === 'dozen' ? 'dozen' : `${w}s`);
 
   async function startCheckout() {
     if (!validQty) return;
@@ -140,7 +141,7 @@ export default function Shop() {
                 </select>
               </label>
               <label className="shop__field">
-                <span>Quantity</span>
+                <span>Quantity ({plural(2, product.unitLabel)})</span>
                 <input
                   type="number"
                   min={1}
@@ -163,11 +164,17 @@ export default function Shop() {
                     <li key={i} className={active ? 'is-active' : undefined}>
                       <span>{t.upTo == null ? `${from}+` : `${from}–${t.upTo}`}</span>
                       <strong>{money(t.unitAmount, product.currency)}</strong>
-                      <span>/ ball</span>
+                      <span>/ {product.unitLabel}</span>
                     </li>
                   );
                 })}
               </ul>
+            )}
+
+            {validQty && product.ballsPerUnit > 1 && (
+              <p className="shop__desc">
+                {quantity} {plural(quantity, product.unitLabel)} = {quantity * product.ballsPerUnit} balls
+              </p>
             )}
 
             <dl className="shop__totals">

@@ -75,7 +75,7 @@ create table if not exists orders (
   product_id    bigint references products (id) on delete set null,
   customer_name text, -- snapshot, survives prospect deletion
   quantity      integer not null default 0,
-  unit_price    numeric(12, 2) not null default 0, -- price charged per unit
+  unit_price    numeric(12, 4) not null default 0, -- price charged per unit (4dp: a dozen's per-ball price)
   unit_cost     numeric(12, 2) not null default 0, -- COGS per unit at sale time
   shipping_cost numeric(12, 2) not null default 0, -- total shipping the business pays
   shipping_charged numeric(12, 2) not null default 0, -- shipping billed to the customer

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const ship = s.shipping_details?.address ?? customer.address ?? {};
   const shipTo = [ship.line1, ship.line2, ship.city, ship.state, ship.postal_code].filter(Boolean).join(', ');
   const notes = [
-    `Online order: ${m.product_name ?? 'item'} (Stripe ${s.id})`,
+    `Online order: ${m.quantity ?? '?'} ${m.unit_label ?? 'x'} ${m.product_name ?? 'item'} (Stripe ${s.id})`,
     customer.email,
     customer.phone,
     shipTo && `Ship to: ${s.shipping_details?.name ? `${s.shipping_details.name}, ` : ''}${shipTo}`,
@@ -38,8 +38,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const sql = await db();
-    const qty = num(m.quantity) || 1;
-    const unitPrice = Math.round(num(s.amount_subtotal) / qty) / 100;
+    // Revenue counts balls, so a dozen-priced order books as 12× the balls at
+    // a twelfth of the price each — COGS per ball then lines up with it.
+    const qty = (num(m.quantity) || 1) * (num(m.balls_per_unit) || 1);
+    const unitPrice = Math.round((num(s.amount_subtotal) / qty) * 100) / 10000;
     // COGS comes from the admin Pricing product with the same name as the
     // Stripe product, when there is one; otherwise the order books at zero cost.
     await sql`

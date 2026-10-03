@@ -34,7 +34,12 @@ export async function POST(req: NextRequest) {
       ...(shippingRates.length ? { shipping_options: shippingRates.map((id) => ({ shipping_rate: id })) } : {}),
       phone_number_collection: { enabled: true },
       // Read back by the webhook, which writes the Revenue-tab order.
-      metadata: { product_name: product.name, quantity: String(quantity) },
+      metadata: {
+        product_name: product.name,
+        quantity: String(quantity),
+        unit_label: product.unitLabel,
+        balls_per_unit: String(product.ballsPerUnit),
+      },
     });
 
     return NextResponse.json({ clientSecret: session.client_secret });

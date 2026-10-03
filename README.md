@@ -82,7 +82,8 @@ in the admin:
    `https://www.hydrabaseballco.com/api/stripe/webhook` listening for
    `checkout.session.completed` and `checkout.session.async_payment_succeeded`;
    its signing secret is `STRIPE_WEBHOOK_SECRET`.
-3. In Stripe → Product catalog, add each ball with a **one-time** price. Every
+3. In Stripe → Product catalog, add each ball with a **one-time** price **per dozen**
+   (the shop sells by the dozen; set the product's *Unit label* to `ball` to sell singles). Every
    active product shows in the shop at its price, using Stripe's volume pricing
    if the price has tiers. Shipping rates added under Product catalog →
    Shipping rates are offered at checkout (up to five); with none, shipping is free.

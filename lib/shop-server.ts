@@ -1,5 +1,5 @@
 import { stripe } from '@/lib/stripe';
-import type { ShopProduct } from '@/lib/shop';
+import { unitFor, type ShopProduct } from '@/lib/shop';
 
 // Server-only: reads the storefront's catalog from Stripe. Kept apart from
 // lib/shop.ts so the browser bundle never pulls in the secret-key client.
@@ -32,6 +32,7 @@ export async function loadShopProducts(): Promise<ShopProduct[]> {
             flatAmount: Number(t.flat_amount ?? 0),
           }))
         : [],
+      ...unitFor(p.unit_label, p.metadata?.balls_per_unit),
     });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
