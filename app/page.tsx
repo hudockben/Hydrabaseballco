@@ -312,6 +312,11 @@ export default function HomePage() {
               For Players
             </h1>
             <p className="hero__lead">
+              Hydra makes high-quality, durable baseballs for colleges, high schools, travel
+              organizations, facilities, leagues, and teams that go through countless baseballs every
+              year. Run by former players.
+            </p>
+            <p className="hero__lead hero__lead--more">
               We&rsquo;re former players who know what it takes between the lines &mdash; and what
               players truly want and need. Hydra is our way of giving back to the game that gave us
               everything, putting quality gear in the hands of the players who live it every day.
