@@ -72,22 +72,26 @@ Copy `.env.example` and set these in **Vercel → Settings → Environment Varia
 ## Online store (Stripe)
 
 The homepage has a **Shop** section (above Team Orders) with Stripe Checkout
-embedded right in the page. It stays hidden until it has something to sell:
+embedded right in the page. Products and prices are managed in **Stripe**, not
+in the admin:
 
-1. Set the three `STRIPE_*` env vars in Vercel and redeploy.
+1. Set the three `STRIPE_*` env vars in Vercel and redeploy. A restricted key
+   needs **Checkout Sessions: Write**, **Products: Read**, **Prices: Read** and
+   **Shipping Rates: Read**.
 2. In Stripe → Developers → Webhooks, add an endpoint at
-   `https://<your-domain>/api/stripe/webhook` listening for
+   `https://www.hydrabaseballco.com/api/stripe/webhook` listening for
    `checkout.session.completed` and `checkout.session.async_payment_succeeded`;
    its signing secret is `STRIPE_WEBHOOK_SECRET`.
-3. In **Admin → Pricing**, tick **Sell online** on each product to list. The
-   shop charges that product's volume tiers (lowest tier = minimum order) and
-   bills its *Ship/unit* × quantity as shipping.
+3. In Stripe → Product catalog, add each ball with a **one-time** price. Every
+   active product shows in the shop at its price, using Stripe's volume pricing
+   if the price has tiers. Shipping rates added under Product catalog →
+   Shipping rates are offered at checkout (up to five); with none, shipping is free.
 
-Prices are resolved on the server, never trusted from the browser. Every paid
-checkout lands in **Revenue** as a `paid` order with the customer, email, and
-ship-to address in the notes, and COGS snapshotted from the product. Sales tax
-is not collected — turn on Stripe Tax first if you need it. Custom logo runs
-still go through the Team Orders form.
+Every paid checkout lands in **Revenue** as a `paid` order with the customer,
+email, and ship-to address in the notes. If an admin Pricing product has the
+same name as the Stripe product, its unit cost is used for COGS. Sales tax is
+not collected — turn on Stripe Tax first if you need it. Custom logo runs still
+go through the Team Orders form.
 
 ## Database setup (Neon)
 

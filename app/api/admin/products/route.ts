@@ -44,7 +44,6 @@ async function loadProducts(): Promise<Product[]> {
     unitCost: num(p.unit_cost),
     shipCost: num(p.ship_cost),
     active: Boolean(p.active),
-    sellOnline: Boolean(p.sell_online),
     tiers: byProduct.get(Number(p.id)) ?? [],
   }));
 }
@@ -77,9 +76,9 @@ export async function POST(req: NextRequest) {
   try {
     const sql = await db();
     const rows = (await sql`
-      insert into products (name, sku, unit_cost, ship_cost, active, sell_online)
+      insert into products (name, sku, unit_cost, ship_cost, active)
       values (${name}, ${body.sku ? String(body.sku) : null}, ${num(body.unitCost)},
-              ${num(body.shipCost)}, ${body.active === false ? false : true}, ${body.sellOnline === true})
+              ${num(body.shipCost)}, ${body.active === false ? false : true})
       returning id`) as Row[];
     const id = Number(rows[0].id);
     await replaceTiers(id, cleanTiers(body.tiers));
@@ -107,7 +106,6 @@ export async function PATCH(req: NextRequest) {
         unit_cost = coalesce(${body.unitCost != null ? num(body.unitCost) : null}, unit_cost),
         ship_cost = coalesce(${body.shipCost != null ? num(body.shipCost) : null}, ship_cost),
         active = coalesce(${typeof body.active === 'boolean' ? body.active : null}, active),
-        sell_online = coalesce(${typeof body.sellOnline === 'boolean' ? body.sellOnline : null}, sell_online),
         updated_at = now()
       where id = ${id}`;
     if (body.tiers !== undefined) await replaceTiers(id, cleanTiers(body.tiers));

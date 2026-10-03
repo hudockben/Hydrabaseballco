@@ -28,7 +28,6 @@ interface Draft {
   unitCost: string;
   shipCost: string;
   active: boolean;
-  sellOnline: boolean;
   tiers: TierDraft[];
 }
 
@@ -38,7 +37,6 @@ const emptyDraft = (): Draft => ({
   unitCost: '',
   shipCost: '',
   active: true,
-  sellOnline: false,
   tiers: [{ minQty: '1', unitPrice: '' }],
 });
 
@@ -112,7 +110,6 @@ export default function PricingPage() {
       unitCost: n(draft.unitCost),
       shipCost: n(draft.shipCost),
       active: draft.active,
-      sellOnline: draft.sellOnline,
       tiers: draft.tiers
         .filter((t) => t.minQty !== '' && t.unitPrice !== '')
         .map((t) => ({ minQty: Math.max(1, Math.floor(n(t.minQty))), unitPrice: n(t.unitPrice) })),
@@ -152,7 +149,6 @@ export default function PricingPage() {
       unitCost: String(p.unitCost),
       shipCost: String(p.shipCost),
       active: p.active,
-      sellOnline: p.sellOnline,
       tiers: p.tiers.length
         ? p.tiers.map((t) => ({ minQty: String(t.minQty), unitPrice: String(t.unitPrice) }))
         : [{ minQty: '1', unitPrice: '' }],
@@ -291,9 +287,6 @@ export default function PricingPage() {
             <div className="prod-form-actions">
               <label className="chk"><input type="checkbox" checked={draft.active}
                 onChange={(e) => setDraft({ ...draft, active: e.target.checked })} /> Active</label>
-              <label className="chk" title="List it in the site's shop at these tier prices; ship/unit is billed at checkout">
-                <input type="checkbox" checked={draft.sellOnline}
-                onChange={(e) => setDraft({ ...draft, sellOnline: e.target.checked })} /> Sell online</label>
               <button type="button" className="ghost-btn" onClick={() => setDraft(null)}>Cancel</button>
               <button type="submit" className="solid-btn" disabled={saving}>{saving ? 'Saving…' : draft.id ? 'Save changes' : 'Add product'}</button>
             </div>
@@ -311,7 +304,7 @@ export default function PricingPage() {
               <tbody>
                 {products.map((p) => (
                   <tr key={p.id} className={p.active ? undefined : 'row-saved'}>
-                    <td>{p.name}{!p.active && <span className="muted"> (inactive)</span>}{p.active && p.sellOnline && <span className="muted"> · online</span>}</td>
+                    <td>{p.name}{!p.active && <span className="muted"> (inactive)</span>}</td>
                     <td className="muted">{p.sku || '—'}</td>
                     <td>{usd(p.unitCost)}</td>
                     <td>{usd(p.shipCost)}</td>

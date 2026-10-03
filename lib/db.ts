@@ -155,10 +155,8 @@ export function ensureSchema(): Promise<void> {
       await optional(() => sql`alter table orders add column if not exists
         shipping_charged numeric(12, 2) not null default 0`);
 
-      // Online store: which products the public site sells, and the Stripe
-      // checkout each paid online order came from (one order per session).
-      await optional(() => sql`alter table products add column if not exists
-        sell_online boolean not null default false`);
+      // Online store: the Stripe checkout each paid online order came from
+      // (one order per session).
       await optional(() => sql`alter table orders add column if not exists stripe_session_id text`);
 
       // Older `prospects` tables (Coach column + High School type).

@@ -1,15 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { priceForQty, round2, usd, type PriceTier } from '@/lib/finance';
+import { totalFor, type ShopProduct } from '@/lib/shop';
 
-interface ShopProduct {
-  id: number;
-  name: string;
-  sku: string | null;
-  shipPerUnit: number;
-  tiers: PriceTier[];
-}
+const money = (cents: number, currency = 'usd') =>
+  (cents / 100).toLocaleString('en-US', { style: 'currency', currency: currency.toUpperCase() });
 
 interface EmbeddedCheckout {
   mount(el: HTMLElement): void;
@@ -43,17 +38,17 @@ function loadStripeJs(): Promise<void> {
 }
 
 /**
- * "Buy Now": the products flagged Sell online in the admin Pricing tab, priced
- * by their volume tiers, paid through Stripe's checkout embedded in the page.
- * Renders only its #shop anchor until Stripe keys are set and at least one product is listed,
+ * "Buy Now": the active products in the Stripe dashboard, at their Stripe
+ * prices, paid through Stripe's checkout embedded in the page. Renders only
+ * its #shop anchor until Stripe keys are set and a product exists in Stripe,
  * so the section can ship before the store is ready to open.
  */
 export default function Shop() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
   const [maxQty, setMaxQty] = useState(5000);
   const [pk, setPk] = useState('');
-  const [productId, setProductId] = useState<number | null>(null);
-  const [qty, setQty] = useState('12');
+  const [productId, setProductId] = useState<string | null>(null);
+  const [qty, setQty] = useState('1');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
@@ -81,13 +76,14 @@ export default function Shop() {
   const product = products.find((p) => p.id === productId) ?? products[0];
   const quantity = Math.floor(Number(qty));
   const validQty = quantity >= 1 && quantity <= maxQty;
-  const unit = validQty ? priceForQty(product.tiers, quantity) : null;
-  const subtotal = unit != null ? round2(unit * quantity) : null;
-  const shipping = validQty ? round2(product.shipPerUnit * quantity) : null;
-  const minQty = Math.min(...product.tiers.map((t) => t.minQty));
+  const subtotal = validQty ? totalFor(product, quantity) : null;
+  const priceLabel =
+    product.unitAmount != null
+      ? `${money(product.unitAmount, product.currency)} / ball`
+      : 'Volume pricing — the more you buy, the less each ball costs';
 
   async function startCheckout() {
-    if (unit == null) return;
+    if (!validQty) return;
     setBusy(true);
     setErr('');
     try {
@@ -135,7 +131,7 @@ export default function Shop() {
             <div className="shop__fields">
               <label className="shop__field">
                 <span>Ball</span>
-                <select value={product.id} onChange={(e) => setProductId(Number(e.target.value))}>
+                <select value={product.id} onChange={(e) => setProductId(e.target.value)}>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -147,7 +143,7 @@ export default function Shop() {
                 <span>Quantity</span>
                 <input
                   type="number"
-                  min={minQty}
+                  min={1}
                   max={maxQty}
                   inputMode="numeric"
                   value={qty}
@@ -156,41 +152,38 @@ export default function Shop() {
               </label>
             </div>
 
-            <ul className="shop__tiers" aria-label="Volume pricing">
-              {product.tiers.map((t) => (
-                <li key={t.minQty} className={unit === t.unitPrice && quantity >= t.minQty ? 'is-active' : undefined}>
-                  <span>{t.minQty}+</span>
-                  <strong>{usd(t.unitPrice)}</strong>
-                  <span>/ ball</span>
-                </li>
-              ))}
-            </ul>
+            {product.description && <p className="shop__desc">{product.description}</p>}
+            <p className="shop__price">{priceLabel}</p>
+            {product.tiers.length > 0 && (
+              <ul className="shop__tiers" aria-label="Volume pricing">
+                {product.tiers.map((t, i) => {
+                  const from = i === 0 ? 1 : (product.tiers[i - 1].upTo ?? 0) + 1;
+                  const active = validQty && quantity >= from && (t.upTo == null || quantity <= t.upTo);
+                  return (
+                    <li key={i} className={active ? 'is-active' : undefined}>
+                      <span>{t.upTo == null ? `${from}+` : `${from}–${t.upTo}`}</span>
+                      <strong>{money(t.unitAmount, product.currency)}</strong>
+                      <span>/ ball</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
 
             <dl className="shop__totals">
-              <div>
-                <dt>Subtotal</dt>
-                <dd>{subtotal != null ? usd(subtotal) : '—'}</dd>
-              </div>
-              {product.shipPerUnit > 0 && (
-                <div>
-                  <dt>Shipping</dt>
-                  <dd>{shipping != null && unit != null ? usd(shipping) : '—'}</dd>
-                </div>
-              )}
               <div className="shop__total">
-                <dt>Total</dt>
-                <dd>{subtotal != null ? usd(round2(subtotal + (shipping ?? 0))) : '—'}</dd>
+                <dt>Subtotal</dt>
+                <dd>{subtotal != null ? money(subtotal, product.currency) : '—'}</dd>
               </div>
             </dl>
 
             {!validQty && <p className="shop__msg">Enter a quantity from 1 to {maxQty}.</p>}
-            {validQty && unit == null && <p className="shop__msg">Minimum order is {minQty} balls.</p>}
             {err && <p className="shop__msg">{err}</p>}
 
-            <button type="button" className="btn btn--dark" onClick={startCheckout} disabled={busy || unit == null}>
+            <button type="button" className="btn btn--dark" onClick={startCheckout} disabled={busy || !validQty}>
               {busy ? 'Loading checkout…' : 'Checkout'}
             </button>
-            <p className="shop__secure">Secure payment by Stripe. Ships within the US.</p>
+            <p className="shop__secure">Shipping is added at checkout. Secure payment by Stripe; ships within the US.</p>
           </div>
         ) : (
           <div className="shop__checkout">

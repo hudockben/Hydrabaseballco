@@ -18,7 +18,6 @@ export interface Product {
   unitCost: number; // COGS per unit
   shipCost: number; // default shipping per unit
   active: boolean;
-  sellOnline: boolean; // listed in the public site's shop (Stripe checkout)
   tiers: PriceTier[];
 }
 

@@ -53,7 +53,6 @@ create table if not exists products (
   unit_cost   numeric(12, 2) not null default 0, -- COGS per ball
   ship_cost   numeric(12, 2) not null default 0, -- default shipping per ball
   active      boolean not null default true,
-  sell_online boolean not null default false, -- listed in the public site's shop
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
