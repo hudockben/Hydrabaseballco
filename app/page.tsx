@@ -377,6 +377,16 @@ export default function HomePage() {
           </div>
 
           <div className="balls__grid">
+            <div className="balls__photos">
+            <figure className="balls__photo">
+              <img
+                src="/images/a1592.jpg"
+                alt="A Hydra A1592 Competition Series ball in the grass"
+                width={1170}
+                height={658}
+                loading="lazy"
+              />
+            </figure>
             <figure className="balls__photo">
               <img
                 src="/images/a1492-pair.jpg"
@@ -386,14 +396,15 @@ export default function HomePage() {
                 loading="lazy"
               />
             </figure>
+            </div>
 
             <div className="balls__models">
               <ul className="grades__list balls__list">
                 {/* Top of the line, so it leads the list and wears the ink badge. */}
                 <li className="grade">
-                  <span className="grade__badge grade__badge--top">1592</span>
+                  <span className="grade__badge grade__badge--top">A1592</span>
                   <div>
-                    <h3 className="grade__name">Our Best Ball</h3>
+                    <h3 className="grade__name">Competition Series &middot; Our Best Ball</h3>
                     <p className="grade__desc">
                       Game-ready and built for the highest levels of competition &mdash; the feel,
                       performance, and durability that professional, college, and competitive leagues

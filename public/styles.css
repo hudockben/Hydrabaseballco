@@ -302,6 +302,7 @@ ul { list-style: none; }
   gap: clamp(28px, 4vw, 56px);
   align-items: center;
 }
+.balls__photos { display: grid; gap: 18px; }
 .balls__photo {
   border-radius: 14px;
   overflow: hidden;
