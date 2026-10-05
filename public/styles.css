@@ -323,6 +323,8 @@ ul { list-style: none; }
 /* One model per row here — the pair reads as a lineup rather than a footnote.
    Scoped past .grades__list, which sets two columns further down the file. */
 .balls .grades__list { grid-template-columns: 1fr; gap: 20px; }
+/* Equal badge widths keep the three model names on one left edge. */
+.balls .grade__badge { min-width: 80px; }
 .specs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -650,6 +652,8 @@ ul { list-style: none; }
   margin-bottom: 4px;
 }
 .grade__desc { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
+.grade__badge--top { background: var(--ink); }
+.grade__feats { margin-top: 6px; color: var(--text); font-size: 0.86rem; font-weight: 500; line-height: 1.5; }
 
 /* ---------- Front Office ---------- */
 /* Between the dark apparel band and the white Team Orders form, near the end

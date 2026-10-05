@@ -389,6 +389,22 @@ export default function HomePage() {
 
             <div className="balls__models">
               <ul className="grades__list balls__list">
+                {/* Top of the line, so it leads the list and wears the ink badge. */}
+                <li className="grade">
+                  <span className="grade__badge grade__badge--top">1592</span>
+                  <div>
+                    <h3 className="grade__name">Our Best Ball</h3>
+                    <p className="grade__desc">
+                      Game-ready and built for the highest levels of competition &mdash; the feel,
+                      performance, and durability that professional, college, and competitive leagues
+                      demand.
+                    </p>
+                    <p className="grade__feats">
+                      Grade A full-grain cowhide &middot; Premium gray wool windings &middot; Cushioned
+                      cork center &middot; COR and compression tested
+                    </p>
+                  </div>
+                </li>
                 <li className="grade">
                   <span className="grade__badge">A1492+</span>
                   <div>
