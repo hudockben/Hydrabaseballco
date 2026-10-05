@@ -903,6 +903,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Shop (Stripe) ===== */}
+      <Shop />
+
       {/* ===== Front Office ===== */}
       <section className="office" id="front-office">
         <div className="container">
@@ -963,9 +966,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
-      {/* ===== Shop (Stripe) — hidden until a product is set to Sell online ===== */}
-      <Shop />
 
       {/* ===== Team Orders / Inquiry ===== */}
       <section className="orders" id="team-orders">

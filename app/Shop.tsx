@@ -72,8 +72,8 @@ export default function Shop() {
     return () => checkoutRef.current?.destroy();
   }, []);
 
-  // Until the store opens, leave just the anchor: it sits right above Team
-  // Orders, so the header's Shop links land on the inquiry form, not nowhere.
+  // With nothing to sell (no Stripe keys or products), leave just the anchor so
+  // the header's Shop links still land somewhere rather than nowhere.
   if (!pk || products.length === 0) return <span id="shop" aria-hidden="true" />;
 
   const product = products.find((p) => p.id === productId) ?? products[0];
