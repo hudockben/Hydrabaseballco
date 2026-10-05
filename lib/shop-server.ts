@@ -12,6 +12,10 @@ export async function loadShopProducts(): Promise<ShopProduct[]> {
   });
   const out: ShopProduct[] = [];
   for (const p of res.data ?? []) {
+    // Invoice extras (shipping charges) live in the same catalog but aren't
+    // balls. Hidden by name, or by metadata hide_from_shop = true for anything else.
+    if (/shipping|freight|delivery/i.test(p.name ?? '')) continue;
+    if (/^(true|yes|1)$/i.test(String(p.metadata?.hide_from_shop ?? '').trim())) continue;
     const price = p.default_price;
     if (!price || typeof price !== 'object' || !price.active || price.type !== 'one_time') continue;
     const tiered = price.billing_scheme === 'tiered';
