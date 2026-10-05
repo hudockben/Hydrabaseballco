@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import Script from 'next/script';
+import Shop from './Shop';
 
 /* ---- Inline icons (stroke = currentColor) ---- */
 const IconShieldCheck = (
@@ -170,6 +171,17 @@ const TEAM: TeamMember[] = [
     photo: '/images/team/ari-heinemann.jpg',
   },
   {
+    id: 'bill-miller',
+    name: 'Bill Miller',
+    role: 'Head of Logistics & Operations',
+    meta: ['40+ years of business ownership', 'Logistics, inventory & fulfillment'],
+    bio:
+      'Bill brings more than 40 years of business ownership and operational experience to ' +
+      'Hydra. He oversees logistics, inventory, and fulfillment, helping to ensure Hydra ' +
+      'remains efficient and reliable.',
+    photo: '/images/team/bill-miller.jpg',
+  },
+  {
     id: 'caleb-cawley',
     name: 'Caleb Cawley',
     role: 'Director of Marketing & Media',
@@ -245,12 +257,14 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
+            {/* Desktop has the black Shop button; this is for the phone menu, where that button is hidden. */}
+            <a href="#shop" className="site-nav__mobile">Shop</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 
-          <a href="#team-orders" className="btn btn--dark btn--header">
+          <a href="#shop" className="btn btn--dark btn--header">
             Shop / Inquire
           </a>
 
@@ -268,7 +282,7 @@ export default function HomePage() {
           {/* Slide 1 paints immediately; the remaining slides (photos and the
               video) are added by the slideshow only once their media loads —
               anything that fails to load is skipped gracefully. */}
-          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/hero-6.jpg')" }}></div>
+          <div className="hero__slide is-active" style={{ backgroundImage: "url('/images/baskets.jpg')" }}></div>
           <div className="hero__slide hero__slide--video">
             <video
               className="hero__video"
@@ -287,7 +301,6 @@ export default function HomePage() {
           </div>
           <div className="hero__slide" data-src="/images/hero-2.jpg"></div>
           <div className="hero__slide" data-src="/images/hero-3.jpg"></div>
-          <div className="hero__slide" data-src="/images/hero-5.jpg"></div>
         </div>
         <div className="hero__dots" id="heroDots"></div>
         <div className="container hero__inner">
@@ -299,6 +312,11 @@ export default function HomePage() {
               For Players
             </h1>
             <p className="hero__lead">
+              Hydra makes high-quality, durable baseballs for colleges, high schools, travel
+              organizations, facilities, leagues, and teams that go through countless baseballs every
+              year. Run by former players.
+            </p>
+            <p className="hero__lead hero__lead--more">
               We&rsquo;re former players who know what it takes between the lines &mdash; and what
               players truly want and need. Hydra is our way of giving back to the game that gave us
               everything, putting quality gear in the hands of the players who live it every day.
@@ -354,23 +372,50 @@ export default function HomePage() {
         <div className="container balls__inner reveal">
           <div className="balls__head">
             <span className="eyebrow eyebrow--red">The Ball</span>
-            <h2 className="section-title balls__title">A1492 Pro Series</h2>
+            <h2 className="section-title balls__title">The Hydra Lineup</h2>
             <span className="balls__rule" aria-hidden="true"></span>
           </div>
 
           <div className="balls__grid">
+            <div className="balls__photos">
             <figure className="balls__photo">
               <img
-                src="/images/ball-plus.jpg"
-                alt="Hydra A1492+ Pro Series game ball resting on the grass"
-                width={1100}
-                height={1100}
+                src="/images/a1592.jpg"
+                alt="A Hydra A1592 Competition Series ball in the grass"
+                width={1170}
+                height={658}
                 loading="lazy"
               />
             </figure>
+            <figure className="balls__photo">
+              <img
+                src="/images/a1492-pair.jpg"
+                alt="A Hydra A1492 practice ball and an A1492+ game ball side by side in the grass"
+                width={1721}
+                height={1206}
+                loading="lazy"
+              />
+            </figure>
+            </div>
 
             <div className="balls__models">
               <ul className="grades__list balls__list">
+                {/* Top of the line, so it leads the list and wears the ink badge. */}
+                <li className="grade">
+                  <span className="grade__badge grade__badge--top">A1592</span>
+                  <div>
+                    <h3 className="grade__name">Competition Series &middot; Our Best Ball</h3>
+                    <p className="grade__desc">
+                      Game-ready and built for the highest levels of competition &mdash; the feel,
+                      performance, and durability that professional, college, and competitive leagues
+                      demand.
+                    </p>
+                    <p className="grade__feats">
+                      Grade A full-grain cowhide &middot; Premium gray wool windings &middot; Cushioned
+                      cork center &middot; COR and compression tested
+                    </p>
+                  </div>
+                </li>
                 <li className="grade">
                   <span className="grade__badge">A1492+</span>
                   <div>
@@ -418,6 +463,156 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          {/* ===== Cutaway ===== */}
+          {/* One SVG holding two drawings of the same ball: the finished
+              exterior underneath, and the layered cross-section on top, clipped
+              to a sector that opens from twelve o'clock. The sector is the
+              intersection of two half-planes — a fixed one covering the right
+              half, and a second that starts over the left half and rotates
+              180deg into place — so the whole sweep is a CSS rotate on one
+              rect, no per-frame JavaScript. Radii are viewBox units on a
+              180-unit ball, at the proportions of a real one: the pill a little
+              under half the radius, yarn the bulk of it, leather a thin skin.
+              script.js only decides when to run it; see .cut in styles.css. */}
+          <div className="cut" id="ballCut">
+            <figure className="cut__stage">
+              <svg
+                className="cut__svg"
+                viewBox="0 0 400 400"
+                role="img"
+                aria-label="Cutaway of an A1492 Pro Series baseball: a full-grain leather cover over layers of wound yarn, around a red cushioned cork center"
+              >
+                <defs>
+                  <radialGradient id="cutHide" cx="38%" cy="30%" r="80%">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="60%" stopColor="#f5f1e8" />
+                    <stop offset="100%" stopColor="#dbd3c1" />
+                  </radialGradient>
+                  <radialGradient id="cutCork" cx="40%" cy="34%" r="74%">
+                    <stop offset="0%" stopColor="#dcac77" />
+                    <stop offset="100%" stopColor="#a97941" />
+                  </radialGradient>
+                  <radialGradient id="cutRubber" cx="40%" cy="34%" r="74%">
+                    <stop offset="0%" stopColor="#d8313f" />
+                    <stop offset="100%" stopColor="#9d101d" />
+                  </radialGradient>
+                  {/* Ambient shading inside the cut face, so the section reads
+                      as a hollow the light falls into rather than a pie chart. */}
+                  <radialGradient id="cutShade" cx="50%" cy="50%" r="50%">
+                    <stop offset="60%" stopColor="#000000" stopOpacity="0" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="0.19" />
+                  </radialGradient>
+                  {/* Wool is fibrous, not flat: a little monochrome noise over
+                      the windings and the cork does more than any gradient. */}
+                  {/* feTurbulence fills the whole filter region, not the shape
+                      it is attached to, so the last step composites the noise
+                      back into the circle — without it the grain paints a square
+                      and the drop shadow follows that square, not the ball. */}
+                  <filter id="cutFibre" x="0" y="0" width="100%" height="100%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="9" result="n" />
+                    <feColorMatrix in="n" type="saturate" values="0" result="grey" />
+                    <feComposite in="grey" in2="SourceGraphic" operator="in" />
+                  </filter>
+                  <clipPath id="cutRight">
+                    <rect x="200" y="0" width="200" height="400" />
+                  </clipPath>
+                  <clipPath id="cutSweep">
+                    <rect className="cut__spin" x="-200" y="-200" width="400" height="800" />
+                  </clipPath>
+                </defs>
+
+                {/* The ball as it leaves the shop */}
+                <g className="cut__outside">
+                  <circle cx="200" cy="200" r="180" fill="url(#cutHide)" />
+                  <circle cx="200" cy="200" r="180" fill="#000000" filter="url(#cutFibre)" opacity="0.06" />
+                  {/* Only the seams turn, never the leather under them — the
+                      hide's highlight is where the light is, and light doesn't
+                      travel with the ball. Endpoints sit at r=170 so the stitch
+                      rows, offset 9 either side, finish inside the r=180 edge. */}
+                  <g className="cut__turn">
+                    <g className="cut__seam">
+                      <path d="M 100 62 C 162 120 162 280 100 338" />
+                      <path d="M 300 62 C 238 120 238 280 300 338" />
+                    </g>
+                    <g className="cut__stitch">
+                      <path d="M 91 62 C 153 120 153 280 91 338" />
+                      <path d="M 109 62 C 171 120 171 280 109 338" />
+                      <path d="M 309 62 C 247 120 247 280 309 338" />
+                      <path d="M 291 62 C 229 120 229 280 291 338" />
+                    </g>
+                  </g>
+                </g>
+
+                {/* The same ball, opened. Two nested clips make the sector. */}
+                <g clipPath="url(#cutRight)">
+                  <g clipPath="url(#cutSweep)">
+                    <circle cx="200" cy="200" r="180" fill="#f8f4ec" />
+                    <circle cx="200" cy="200" r="168" fill="#e9e3d4" />
+                    <circle cx="200" cy="200" r="158" fill="#d5cfc0" />
+                    <circle cx="200" cy="200" r="138" fill="#efeadc" />
+                    <circle cx="200" cy="200" r="116" fill="#c9c2b1" />
+                    <circle cx="200" cy="200" r="87" fill="url(#cutRubber)" />
+                    <circle cx="200" cy="200" r="72" fill="#23232a" />
+                    <circle cx="200" cy="200" r="62" fill="url(#cutCork)" />
+                    {/* Each turn of yarn, as it reads in section */}
+                    <g className="cut__threads">
+                      {Array.from({ length: 35 }, (_, i) => 64 + i * 3).map((r) => (
+                        <circle key={r} cx="200" cy="200" r={r} />
+                      ))}
+                    </g>
+                    <circle cx="200" cy="200" r="180" fill="#000000" filter="url(#cutFibre)" opacity="0.1" />
+                    <circle cx="200" cy="200" r="180" fill="url(#cutShade)" />
+                    {/* Edges of the cut */}
+                    <g className="cut__edges">
+                      <circle cx="200" cy="200" r="180" fill="none" />
+                      <circle cx="200" cy="200" r="168" fill="none" />
+                      <circle cx="200" cy="200" r="87" fill="none" />
+                    </g>
+                  </g>
+                </g>
+
+                {/* The cut face's outer ring is within a shade of the cream
+                    this section sits on, so the ball needs its own rim to keep
+                    a silhouette once the leather is opened. */}
+                <circle className="cut__rim" cx="200" cy="200" r="180" fill="none" />
+
+                {/* The blade line, riding the leading edge of the sweep */}
+                <line className="cut__blade" x1="200" y1="200" x2="200" y2="8" />
+              </svg>
+            </figure>
+
+            <div className="cut__copy">
+              <span className="eyebrow eyebrow--red">Inside the ball</span>
+              <h3 className="cut__title">Three layers, one seam</h3>
+              <ol className="cut__legend">
+                <li className="cut__layer">
+                  <span className="cut__swatch cut__swatch--hide" aria-hidden="true"></span>
+                  <div>
+                    <h4>Full-grain leather</h4>
+                    <p>The cover, stitched in red.</p>
+                  </div>
+                </li>
+                <li className="cut__layer">
+                  <span className="cut__swatch cut__swatch--yarn" aria-hidden="true"></span>
+                  <div>
+                    <h4>Yarn wound center</h4>
+                    <p>Wound in layers over the pill.</p>
+                  </div>
+                </li>
+                <li className="cut__layer">
+                  <span className="cut__swatch cut__swatch--cork" aria-hidden="true"></span>
+                  <div>
+                    <h4>Red cushioned cork center</h4>
+                    <p>The pill the ball is built around.</p>
+                  </div>
+                </li>
+              </ol>
+              <button type="button" className="cut__replay" id="ballCutReplay">
+                Cut it again
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -426,7 +621,7 @@ export default function HomePage() {
         <div
           className="difference__media"
           role="img"
-          aria-label="A tray of Hydra A1492 Pro Series baseballs on the turf, an A1492+ game ball among them"
+          aria-label="Baskets of freshly finished Hydra A1492 Pro Series baseballs on the production floor"
         ></div>
 
         <div className="difference__panel">
@@ -498,9 +693,9 @@ export default function HomePage() {
                 <span
                   className="proof__shot proof__shot--stock"
                   role="img"
-                  aria-label="The stock Hydra A1492+ Pro Series game ball on the grass"
+                  aria-label="A pile of stock Hydra A1492 Pro Series baseballs, the Hydra mark and the spec stamp on the leather"
                 ></span>
-                <span className="proof__cap">A1492+ Game Ball</span>
+                <span className="proof__cap">A1492 Pro Series</span>
               </li>
             </ul>
           </div>
@@ -769,6 +964,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== Shop (Stripe) — hidden until a product is set to Sell online ===== */}
+      <Shop />
+
       {/* ===== Team Orders / Inquiry ===== */}
       <section className="orders" id="team-orders">
         <div className="container orders__inner reveal">
@@ -921,6 +1119,7 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
+            <a href="#shop">Shop</a>
             <a href="#team-orders">Team Orders</a>
             <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>

@@ -10,8 +10,10 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 ## What's here
 
 - **Public landing page** (`/`) — the marketing site, "By Players For Players."
-  Ordered so the product leads: hero → **the ball** (A1492 Pro Series lineup and
-  specs) → **customize** (drop a team logo onto a real ball photo) → the Hydra
+  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
+  specs, plus a cutaway that opens the ball on scroll to show the leather,
+  the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
+  **customize** (drop a team logo onto a real ball photo) → the Hydra
   difference → apparel → **front office** → team orders. The front-office roster — name,
   role, bio, headshot — is the `TEAM` list at the top of `app/page.tsx`, and
   headshots go in `public/images/team/`; someone with no photo yet shows their
@@ -63,6 +65,37 @@ Copy `.env.example` and set these in **Vercel → Settings → Environment Varia
 | `ADMIN_PASSWORD` | Password to reach `/admin`. |
 | `SESSION_SECRET` | Long random string for signing login cookies (`openssl rand -hex 32`). |
 | `SCORECARD_API_KEY` | _Optional_ — higher College Scorecard rate limits. |
+| `STRIPE_SECRET_KEY` | _Online store_ — Stripe secret key (`sk_test_…` / `sk_live_…`). |
+| `STRIPE_PUBLISHABLE_KEY` | _Online store_ — Stripe publishable key (`pk_test_…` / `pk_live_…`). |
+| `STRIPE_WEBHOOK_SECRET` | _Online store_ — signing secret of the webhook endpoint (`whsec_…`). |
+
+## Online store (Stripe)
+
+The homepage has a **Shop** section (above Team Orders) with Stripe Checkout
+embedded right in the page. Products and prices are managed in **Stripe**, not
+in the admin:
+
+1. Set the three `STRIPE_*` env vars in Vercel and redeploy. A restricted key
+   needs **Checkout Sessions: Write**, **Products: Read**, **Prices: Read** and
+   **Shipping Rates: Read**.
+2. In Stripe → Developers → Webhooks, add an endpoint at
+   `https://www.hydrabaseballco.com/api/stripe/webhook` listening for
+   `checkout.session.completed` and `checkout.session.async_payment_succeeded`;
+   its signing secret is `STRIPE_WEBHOOK_SECRET`.
+3. In Stripe → Product catalog, add each ball with a **one-time** price **per dozen**
+   (the shop sells by the dozen; set the product's *Unit label* to `ball` to sell singles). Every
+   active product shows in the shop at its price, using Stripe's volume pricing
+   if the price has tiers. Products named like shipping ("UPS Shipping") or with metadata
+   `hide_from_shop` = `true` are left out of the shop. To mark a ball sold out, add metadata `out_of_stock` = `true` on the
+   Stripe product (delete it to restock); the shop shows it as out of stock and
+   won't take payment. Shipping rates added under Product catalog →
+   Shipping rates are offered at checkout (up to five); with none, shipping is free.
+
+Every paid checkout lands in **Revenue** as a `paid` order with the customer,
+email, and ship-to address in the notes. If an admin Pricing product has the
+same name as the Stripe product, its unit cost is used for COGS. Sales tax is
+not collected — turn on Stripe Tax first if you need it. Custom logo runs still
+go through the Team Orders form.
 
 ## Database setup (Neon)
 
