@@ -372,7 +372,7 @@ export default function HomePage() {
         <div className="container balls__inner reveal">
           <div className="balls__head">
             <span className="eyebrow eyebrow--red">The Ball</span>
-            <h2 className="section-title balls__title">A1492 Pro Series</h2>
+            <h2 className="section-title balls__title">The Hydra Lineup</h2>
             <span className="balls__rule" aria-hidden="true"></span>
           </div>
 

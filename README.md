@@ -10,7 +10,7 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 ## What's here
 
 - **Public landing page** (`/`) — the marketing site, "By Players For Players."
-  Ordered so the product leads: hero → **the ball** (A1492 Pro Series lineup and
+  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
   specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
   **customize** (drop a team logo onto a real ball photo) → the Hydra
