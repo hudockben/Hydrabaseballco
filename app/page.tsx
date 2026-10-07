@@ -421,7 +421,8 @@ export default function HomePage() {
                   <div>
                     <h3 className="grade__name">Premium Leather Game Ball</h3>
                     <p className="grade__desc">
-                      The game-day ball, marked with a &ldquo;+&rdquo; on the leather.
+                      Equivalent to a high school game ball &mdash; commonly used for high school
+                      competition and college practice.
                     </p>
                   </div>
                 </li>
