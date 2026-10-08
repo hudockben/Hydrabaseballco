@@ -160,6 +160,18 @@ const TEAM: TeamMember[] = [
     photo: '/images/team/ben-hudock.jpg',
   },
   {
+    id: 'colleen-melville',
+    name: 'Colleen Melville',
+    role: 'Investor · Director of Operations & Compliance',
+    meta: ['Inventory & supplier coordination', 'Compliance & administration'],
+    bio:
+      'Colleen is an investor in Hydra Baseball Co. and oversees key operational functions ' +
+      'across the business, including inventory reorders, supplier coordination, compliance, ' +
+      'and administrative operations. She helps ensure Hydra stays organized, stocked, and ' +
+      'prepared as the company continues to grow.',
+    photo: '/images/team/colleen-melville.jpg',
+  },
+  {
     id: 'ari-heinemann',
     name: 'Ari Heinemann',
     role: 'Director of Finance',

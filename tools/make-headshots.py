@@ -75,6 +75,10 @@ PEOPLE = [
     # seated on the bottom edge — the head lands at the same size as the rest,
     # and the frame would run past the photo if it sat any higher.
     {'id': 'bill-miller', 'src': 'bill-miller.png', 'crop': (2, 38, 1130, 1448), 'debanded': True},
+    # Studio shot, framed closer than the rest: her hair runs to the top edge.
+    # The 4:5 that puts her head at the same size as the rest, centred on her
+    # face and held against that top edge so the frame keeps all the hair.
+    {'id': 'colleen-melville', 'src': 'colleen-melville.png', 'crop': (69, 0, 1077, 1260)},
 ]
 
 
