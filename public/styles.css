@@ -657,9 +657,8 @@ ul { list-style: none; }
 .grade__feats { margin-top: 6px; color: var(--text); font-size: 0.86rem; font-weight: 500; line-height: 1.5; }
 
 /* ---------- Front Office ---------- */
-/* Between the dark apparel band and the white Team Orders form, near the end
-   of the page. Cream rather than white: the form below it already runs on
-   white, and two white sections in a row read as one. */
+/* The last section, after the white Team Orders form and before the footer.
+   Cream rather than white: two white sections in a row read as one. */
 .office { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
 .office__head { max-width: 640px; margin: 0 auto; text-align: center; }
 .office__title { color: var(--text); }
