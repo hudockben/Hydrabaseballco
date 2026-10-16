@@ -132,9 +132,9 @@ ul { list-style: none; }
   background: #fff;
   border-bottom: 1px solid var(--line);
 }
-/* The one row on the site that runs wider than the 1200px content column:
-   eight links, the logo and the button don't fit in it, and the alternative
-   was shrinking the nav type for everyone. 80px of extra width at the widest
+/* The one row on the site that runs wider than the 1200px content column,
+   widened when the nav carried an eighth link (see .site-nav), rather than
+   shrinking the nav type for everyone. 80px of extra width at the widest
    screens sets the logo and the button just outside the column the sections
    below line up on. */
 .site-header .container { max-width: 1280px; }
@@ -147,17 +147,17 @@ ul { list-style: none; }
 .site-nav {
   display: flex;
   align-items: center;
-  /* Eight links, and the row has to hold them before the webfont lands as
+  /* Seven links, and the row has to hold them before the webfont lands as
      well as after: Saira Condensed is a third narrower than the system sans
      that stands in for it, and the header is what breaks if the stand-in
-     doesn't fit. Measured in the stand-in, the eight labels at this gap plus
-     the logo, the two 24px gaps around the nav and the header button come to
-     1189px — which the 1200px content column can't hold, hence the wider
-     header container above, and which sets the breakpoint below at 1250px.
-     In Saira the same row measures 907px, so what's tuned here is the state
-     a first-time visitor sees for a moment, not the finished one. A ninth
-     link, or a label longer than "Front Office", needs this gap, the header
-     button or that container to give again. */
+     doesn't fit. This gap, the wider header container above and the
+     breakpoint below were tuned for eight — with "Front Office" in the row,
+     the labels at this gap plus the logo, the two 24px gaps around the nav
+     and the header button came to 1189px in the stand-in — so seven hold
+     with room to spare, and an eighth link no longer than that one fits
+     again without anything giving. In Saira the row measures 802px, so
+     what's tuned here is the state a first-time visitor sees for a moment,
+     not the finished one. */
   gap: 18px;
   margin-left: auto;
 }
@@ -656,134 +656,6 @@ ul { list-style: none; }
 .grade__badge--top { background: var(--ink); }
 .grade__feats { margin-top: 6px; color: var(--text); font-size: 0.86rem; font-weight: 500; line-height: 1.5; }
 
-/* ---------- Front Office ---------- */
-/* The last section, after the white Team Orders form and before the footer.
-   Cream rather than white: two white sections in a row read as one. */
-.office { background: var(--cream); padding: clamp(60px, 8vw, 104px) 0; }
-.office__head { max-width: 640px; margin: 0 auto; text-align: center; }
-.office__title { color: var(--text); }
-.office__rule { display: block; width: 64px; height: 3px; background: var(--red); margin: 24px auto 22px; }
-.office__lead { color: var(--muted); font-size: 1.06rem; max-width: 52ch; margin: 0 auto; }
-
-/* Cards keep a headshot's width rather than stretching to fill the row, so a
-   roster of two reads as two people and not as two billboards. Wrapped flex
-   rather than a grid track: a roster that doesn't divide evenly by the row —
-   five people across four columns — centres the short last row instead of
-   hanging it off the left edge. */
-.office__grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: clamp(26px, 3.4vw, 44px);
-  margin: clamp(38px, 5vw, 58px) auto 0;
-  max-width: 880px;
-}
-.member { flex: 0 1 250px; max-width: 250px; display: flex; flex-direction: column; }
-/* The photo is a background layered over the gradient rather than an <img>:
-   --shot carries the file in from the card, and a shot that hasn't landed
-   yet leaves the gradient showing instead of a broken frame — the same
-   fallback .proof__shot and .difference__media rely on. */
-.member__shot {
-  position: relative;
-  display: block;
-  aspect-ratio: 4 / 5;
-  border-radius: 12px;
-  background-color: #1d1d22;
-  background-image:
-    var(--shot, none),
-    radial-gradient(120% 90% at 50% 22%, #33333c 0%, #22222a 52%, #14141a 100%);
-  background-repeat: no-repeat, no-repeat;
-  background-position: center 22%, center;
-  background-size: cover, cover;
-  box-shadow: var(--shadow);
-  transition: transform .25s ease;
-}
-.member:hover .member__shot { transform: translateY(-4px); }
-.member__initials {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--display);
-  font-weight: 800;
-  font-style: italic;
-  font-size: 2.7rem;
-  letter-spacing: 0.04em;
-  color: rgba(244, 241, 234, 0.66);
-}
-.member__body { margin-top: 18px; }
-.member__name {
-  font-family: var(--display);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 1.22rem;
-  line-height: 1.1;
-}
-.member__role {
-  font-family: var(--display);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.72rem;
-  color: var(--red);
-  margin-top: 8px;
-}
-/* Credential lines stack right under the role, tight enough to read as one
-   block rather than as separate paragraphs. */
-.member__meta { font-size: 0.82rem; line-height: 1.35; color: var(--muted); margin-top: 6px; }
-.member__meta + .member__meta { margin-top: 2px; }
-.member__bio { font-size: 0.93rem; line-height: 1.5; color: var(--muted); margin-top: 12px; }
-.member__email {
-  align-self: flex-start;
-  /* A long address has to break rather than run out past the card edge. */
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  margin-top: 12px;
-  font-size: 0.85rem;
-  color: var(--text);
-  border-bottom: 1px solid var(--line);
-  transition: color .18s ease, border-color .18s ease;
-}
-.member__email:hover { color: var(--red); border-color: var(--red); }
-/* A roster of one would otherwise be a single narrow column under a
-   full-width heading. Sideways, it reads as the founder's card — and the
-   modifier comes off in app/page.tsx as soon as there's a second person, so
-   the grid above takes back over. */
-.office__grid--solo {
-  max-width: 380px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.office__grid--solo .member { flex: 1 1 100%; max-width: none; }
-@media (min-width: 760px) {
-  .office__grid--solo { max-width: 880px; }
-  .office__grid--solo .member {
-    display: grid;
-    grid-template-columns: minmax(0, 270px) minmax(0, 1fr);
-    align-items: center;
-    gap: clamp(32px, 4.5vw, 52px);
-  }
-  .office__grid--solo .member__body { margin-top: 0; }
-  .office__grid--solo .member__name { font-size: 1.55rem; }
-  .office__grid--solo .member__bio { font-size: 1rem; max-width: 46ch; }
-}
-
-/* Until the roster lands, the tab still leads somewhere — the same
-   "Coming Soon" note the apparel section runs on. */
-.office__empty {
-  margin: clamp(30px, 4vw, 44px) auto 0;
-  text-align: center;
-  font-family: var(--display);
-  font-weight: 700;
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 1.05rem;
-  color: var(--muted);
-}
-
 /* ---------- Custom ball preview ---------- */
 .customizer {
   background: var(--ink);
@@ -1213,10 +1085,11 @@ ul { list-style: none; }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 /* ---------- Responsive ---------- */
-/* The eight-link row needs 1189px of content to hold everything in the
-   stand-in font (see .site-nav), which is 1245px of viewport once the
-   container's padding is counted — so it hands over to the menu button just
-   below that rather than squeezing the logo out of the row. */
+/* Tuned for the eight-link row, which needed 1189px of content in the
+   stand-in font (see .site-nav) — 1245px of viewport once the container's
+   padding is counted — so the menu button takes over just below that rather
+   than the row squeezing the logo out. The seven links there now fit a
+   narrower window, so this hands over earlier than it strictly has to. */
 @media (max-width: 1250px) {
   .site-nav {
     position: fixed;
@@ -1277,17 +1150,6 @@ ul { list-style: none; }
   .proof { gap: 10px; margin-top: 32px; padding-top: 28px; }
   .proof__cap { font-size: 0.6rem; letter-spacing: 0.08em; }
   .grades__list { grid-template-columns: 1fr; gap: 20px; }
-  /* One card per row on a phone. Two across fits, but it leaves a bio about
-     twenty characters wide — these cards carry a paragraph each, so the
-     scroll is the cheaper cost. */
-  .office__grid {
-    max-width: 380px;
-    margin-left: auto;
-    margin-right: auto;
-    gap: 40px;
-  }
-  .member { flex: 1 1 100%; max-width: none; }
-  .member__initials { font-size: 2.4rem; }
   .orders__form { grid-template-columns: 1fr; }
   .orders__form input[name="team"] { grid-column: auto; }
   .trustbar__grid { grid-template-columns: 1fr; }
@@ -1308,7 +1170,6 @@ ul { list-style: none; }
   .cut.is-cutting .cut__blade,
   .cut.is-cutting .cut__layer { animation: none; }
   .btn { transition: none; }
-  .member__shot { transition: none; }
   .swatch, .dropzone { transition: none; }
   .pantone__chip { transition: none; }
   .pantone__chip:hover { transform: none; }

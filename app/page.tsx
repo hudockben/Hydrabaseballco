@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import Script from 'next/script';
 import Shop from './Shop';
 
@@ -112,134 +111,6 @@ const PANTONE_INKS: { id: string; name: string; hex: string }[] = [
   { id: '476-c', name: 'PANTONE 476 C', hex: '#4E3629' },
 ];
 
-/* The people behind the ball, in the order they show under "Front Office". A card
-   needs a name and a role and nothing else — every other field is simply left
-   off the card when it isn't set, so someone can go up with a name and a title
-   the day they start and gain a photo and a bio later.
-
-   `photo` is a file under public/images/team/ (see that folder's README). The
-   card layers the shot over an on-brand gradient the same way the ball shots
-   do, so a photo that hasn't landed yet shows the gradient rather than a
-   broken frame; with no `photo` at all the card shows the person's initials on
-   that gradient instead. Roster edits happen here and nowhere else. */
-type TeamMember = {
-  id: string;
-  name: string;
-  role: string;
-  /** Short credential lines under the role — playing and coaching years,
-      where they're from. One string, or a few for a stacked list. */
-  meta?: string | string[];
-  bio?: string;
-  /** Path under /images/team/, e.g. '/images/team/brandon-miller.jpg'. */
-  photo?: string;
-  email?: string;
-};
-
-const TEAM: TeamMember[] = [
-  {
-    id: 'brandon-miller',
-    name: 'Brandon Miller',
-    role: 'Founder & CEO',
-    meta: ['5 years of Division I baseball', '10 years of elite-level coaching'],
-    bio:
-      'A Big East title with St. John’s in 2018, then a graduate year at the College of ' +
-      'Charleston. Brandon pairs a lifetime in the game with a background in finance and ' +
-      'sales leadership, and built Hydra around what he has seen the game ask of players, ' +
-      'coaches, and programs — better baseball products, priced for the people who live it.',
-    photo: '/images/team/brandon-miller.jpg',
-  },
-  {
-    id: 'ben-hudock',
-    name: 'Ben Hudock',
-    role: 'Co-Owner · President of Technology & Accounting',
-    meta: ['4 years of Division II baseball', '12 years of elite-level coaching'],
-    bio:
-      'Two Class 4A state titles in Pennsylvania. Ben runs Hydra’s technology, accounting, ' +
-      'and operations: a software engineer’s toolkit and a coach’s read on what programs ' +
-      'actually need, pointed at the systems behind the ball.',
-    photo: '/images/team/ben-hudock.jpg',
-  },
-  {
-    id: 'colleen-melville',
-    name: 'Colleen Melville',
-    role: 'Investor · Director of Operations & Compliance',
-    meta: ['Inventory & supplier coordination', 'Compliance & administration'],
-    bio:
-      'Colleen is an investor in Hydra Baseball Co. and oversees key operational functions ' +
-      'across the business, including inventory reorders, supplier coordination, compliance, ' +
-      'and administrative operations. She helps ensure Hydra stays organized, stocked, and ' +
-      'prepared as the company continues to grow.',
-    photo: '/images/team/colleen-melville.jpg',
-  },
-  {
-    id: 'ari-heinemann',
-    name: 'Ari Heinemann',
-    role: 'Director of Finance',
-    meta: ['MBA in Finance', 'Financial strategy & investment planning'],
-    bio:
-      'Ari runs Hydra’s day-to-day finances — budgeting, forecasting, cash flow — and ' +
-      'shapes the investment strategy behind its growth: the work that lets a young ' +
-      'company scale at a pace it can carry.',
-    photo: '/images/team/ari-heinemann.jpg',
-  },
-  {
-    id: 'bill-miller',
-    name: 'Bill Miller',
-    role: 'Head of Logistics & Operations',
-    meta: ['40+ years of business ownership', 'Logistics, inventory & fulfillment'],
-    bio:
-      'Bill brings more than 40 years of business ownership and operational experience to ' +
-      'Hydra. He oversees logistics, inventory, and fulfillment, helping to ensure Hydra ' +
-      'remains efficient and reliable.',
-    photo: '/images/team/bill-miller.jpg',
-  },
-  {
-    id: 'caleb-cawley',
-    name: 'Caleb Cawley',
-    role: 'Director of Marketing & Media',
-    meta: ['15+ years of video production', '5+ years in professional marketing'],
-    bio:
-      'Promotions manager for a television station in a top-five U.S. media market, with a ' +
-      'B.S. in Cinema, Television & Media Production. Caleb leads Hydra’s media, content, ' +
-      'and brand development — the video, digital content, and creative campaigns that ' +
-      'bring the brand to life, and the storytelling that carries it as the company grows ' +
-      'across the baseball industry.',
-    photo: '/images/team/caleb-cawley.jpg',
-  },
-  {
-    id: 'noel-miller',
-    name: 'Noel Miller',
-    role: 'Social Media Manager · Product Development',
-    meta: ['Master in Organizational Leadership', 'Brand strategy & creative development'],
-    bio:
-      'Noel runs Hydra’s social presence and helps drive what comes next — new baseballs, ' +
-      'merchandise, product concepts. Brand strategy and creative development behind all of ' +
-      'it: how Hydra looks, how it feels, and how it reaches the next generation of players.',
-    photo: '/images/team/noel-miller.jpg',
-  },
-  {
-    id: 'paul-laudati',
-    name: 'Paul Laudati',
-    role: 'West Coast Territory Leader',
-    meta: ['Baseball operations · Data & analytics', 'Program logistics'],
-    bio:
-      'Paul opens the West Coast for Hydra. He works in data and analytics in professional ' +
-      'baseball, and spent four years in baseball operations at St. John’s — where the cost, ' +
-      'the inventory, and the durability of a program’s baseballs were his to manage, which ' +
-      'is the read Hydra wants on what a program needs from its supplier.',
-    photo: '/images/team/paul-laudati.jpg',
-  },
-];
-
-/* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
-   BM and a single name is just its first letter. */
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '';
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
-  return (parts[0][0] + last).toUpperCase();
-}
-
 /* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
   return (
@@ -272,7 +143,6 @@ export default function HomePage() {
             {/* Desktop has the black Shop button; this is for the phone menu, where that button is hidden. */}
             <a href="#shop" className="site-nav__mobile">Shop</a>
             <a href="#team-orders">Team Orders</a>
-            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 
@@ -1053,67 +923,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Front Office ===== */}
-      <section className="office" id="front-office">
-        <div className="container">
-          <div className="office__head reveal">
-            <span className="eyebrow eyebrow--red">Front Office</span>
-            <h2 className="section-title office__title">The People Behind The Ball</h2>
-            <span className="office__rule" aria-hidden="true"></span>
-            <p className="office__lead">
-              Hydra is run by players. When you order a run, these are the people you&rsquo;re
-              dealing with &mdash; no call center, no middlemen.
-            </p>
-          </div>
-
-          {TEAM.length > 0 ? (
-            /* One person is a founder's card, not a lone column in a grid —
-               the modifier lays that first card out sideways and drops off on
-               its own the moment a second person lands. */
-            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
-              {TEAM.map((member) => (
-                <li className="member" key={member.id}>
-                  {/* The shot rides in on a custom property so the gradient
-                      underneath it stays in the stylesheet — a photo that 404s
-                      falls back to it instead of leaving a hole. */}
-                  <span
-                    className="member__shot"
-                    role="img"
-                    aria-label={`${member.name}, ${member.role}`}
-                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
-                  >
-                    {member.photo ? null : (
-                      <span className="member__initials" aria-hidden="true">
-                        {initials(member.name)}
-                      </span>
-                    )}
-                  </span>
-                  <div className="member__body">
-                    <h3 className="member__name">{member.name}</h3>
-                    <p className="member__role">{member.role}</p>
-                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
-                      (line) => (
-                        <p className="member__meta" key={line}>
-                          {line}
-                        </p>
-                      ),
-                    )}
-                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
-                    {member.email ? (
-                      <a className="member__email" href={`mailto:${member.email}`}>
-                        {member.email}
-                      </a>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="office__empty reveal">Roster coming soon&hellip;</p>
-          )}
-        </div>
-      </section>
-
       {/* ===== Footer ===== */}
       <footer className="footer" id="contact">
         <div className="container footer__grid">
@@ -1134,7 +943,6 @@ export default function HomePage() {
             <a href="#apparel">Apparel</a>
             <a href="#shop">Shop</a>
             <a href="#team-orders">Team Orders</a>
-            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 

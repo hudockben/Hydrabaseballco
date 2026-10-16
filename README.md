@@ -14,10 +14,7 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
   **customize** (drop a team logo onto a real ball photo) → the Hydra
-  difference → apparel → **front office** → team orders. The front-office roster — name,
-  role, bio, headshot — is the `TEAM` list at the top of `app/page.tsx`, and
-  headshots go in `public/images/team/`; someone with no photo yet shows their
-  initials. Photos drop into `public/images/`
+  difference → apparel → team orders. Photos drop into `public/images/`
   (see `public/images/README.md`); on-brand gradient fallbacks render until then.
 - **Admin area** (`/admin`, password-protected):
   - **Find Prospects** — search free/public data sources by type + location and
