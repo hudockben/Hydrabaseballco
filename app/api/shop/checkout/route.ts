@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MAX_ONLINE_QTY } from '@/lib/shop';
+import { MAX_ONLINE_QTY, SHOP_OPEN } from '@/lib/shop';
 import { loadShippingRateIds, loadShopProducts } from '@/lib/shop-server';
 import { stripe, stripeConfigured } from '@/lib/stripe';
 
@@ -11,6 +11,11 @@ export const dynamic = 'force-dynamic';
  * and nobody can check out at a price they typed themselves.
  */
 export async function POST(req: NextRequest) {
+  // Hiding the card isn't enough on its own: a tab opened before the shop
+  // closed still has one, and anyone can POST here directly.
+  if (!SHOP_OPEN) {
+    return NextResponse.json({ error: 'Online ordering isn’t open yet. Reach out through Team Orders.' }, { status: 503 });
+  }
   if (!stripeConfigured()) return NextResponse.json({ error: 'Checkout is not set up yet.' }, { status: 503 });
   const body = await req.json().catch(() => ({}));
   const productId = String(body.productId ?? '');

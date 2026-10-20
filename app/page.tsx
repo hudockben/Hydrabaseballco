@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { SHOP_OPEN } from '@/lib/shop';
 import Shop from './Shop';
 
 /* ---- Inline icons (stroke = currentColor) ---- */
@@ -141,12 +142,13 @@ export default function HomePage() {
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             {/* Desktop has the black Shop button; this is for the phone menu, where that button is hidden. */}
-            <a href="#shop" className="site-nav__mobile">Shop</a>
+            {SHOP_OPEN && <a href="#shop" className="site-nav__mobile">Shop</a>}
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>
 
-          <a href="#shop" className="btn btn--dark btn--header">
+          {/* With the shop closed it goes where it went before there was one: the inquiry form. */}
+          <a href={SHOP_OPEN ? '#shop' : '#team-orders'} className="btn btn--dark btn--header">
             Shop / Inquire
           </a>
 
@@ -786,7 +788,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Shop (Stripe) ===== */}
+      {/* ===== Shop (Stripe) — only its #shop anchor while SHOP_OPEN is false ===== */}
       <Shop />
 
       {/* ===== Team Orders / Inquiry ===== */}
@@ -941,7 +943,7 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
-            <a href="#shop">Shop</a>
+            {SHOP_OPEN && <a href="#shop">Shop</a>}
             <a href="#team-orders">Team Orders</a>
             <a href="#contact">Contact</a>
           </nav>

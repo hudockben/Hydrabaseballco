@@ -69,8 +69,15 @@ Copy `.env.example` and set these in **Vercel → Settings → Environment Varia
 ## Online store (Stripe)
 
 The homepage has a **Shop** section (above Team Orders) with Stripe Checkout
-embedded right in the page. Products and prices are managed in **Stripe**, not
-in the admin:
+embedded right in the page.
+
+**Open/closed switch:** `SHOP_OPEN` in `lib/shop.ts`. While it's `false` the
+section is left off the page, the Shop links come out of the phone menu and the
+footer, the header's **Shop / Inquire** button goes to Team Orders, and the shop
+API won't list products or start a checkout. Nothing in Stripe changes, so
+setting it to `true` and pushing reopens the store as it was.
+
+Products and prices are managed in **Stripe**, not in the admin:
 
 1. Set the three `STRIPE_*` env vars in Vercel and redeploy. A restricted key
    needs **Checkout Sessions: Write**, **Products: Read**, **Prices: Read** and

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { totalFor, type ShopProduct } from '@/lib/shop';
+import { SHOP_OPEN, totalFor, type ShopProduct } from '@/lib/shop';
 
 /** Balls at which the card suggests asking for bulk pricing: 10 dozen. */
 const BULK_BALLS = 120;
@@ -43,8 +43,9 @@ function loadStripeJs(): Promise<void> {
 /**
  * "Buy Now": the active products in the Stripe dashboard, at their Stripe
  * prices, paid through Stripe's checkout embedded in the page. Renders only
- * its #shop anchor until Stripe keys are set and a product exists in Stripe,
- * so the section can ship before the store is ready to open.
+ * its #shop anchor while SHOP_OPEN (lib/shop.ts) is false, or until Stripe
+ * keys are set and a product exists in Stripe, so the section can ship before
+ * the store is ready to open.
  */
 export default function Shop() {
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -59,6 +60,7 @@ export default function Shop() {
   const checkoutRef = useRef<EmbeddedCheckout | null>(null);
 
   useEffect(() => {
+    if (!SHOP_OPEN) return; // closed: never ask for the catalog, so only the anchor renders
     fetch('/api/shop/products')
       .then((r) => r.json())
       .then((d) => {
@@ -72,8 +74,8 @@ export default function Shop() {
     return () => checkoutRef.current?.destroy();
   }, []);
 
-  // With nothing to sell (no Stripe keys or products), leave just the anchor so
-  // the header's Shop links still land somewhere rather than nowhere.
+  // Closed, or nothing to sell (no Stripe keys or products): leave just the
+  // anchor so a Shop link still lands somewhere — right above Team Orders.
   if (!pk || products.length === 0) return <span id="shop" aria-hidden="true" />;
 
   const product = products.find((p) => p.id === productId) ?? products[0];
