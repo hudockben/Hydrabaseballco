@@ -6,7 +6,7 @@ Reads
 
 and writes
 
-  public/images/logos/<id>.png         trimmed to the mark, 96px tall
+  public/images/logos/<id>.png         trimmed to the mark, 108px tall
 
 Logos arrive however a school or league happened to hand them over: a
 transparent PNG cut to the mark, or a small JPEG with the mark floating in a
@@ -21,8 +21,8 @@ knock-out eating into white that belongs to the logo — the baseball in the
 middle of the North Shore and MSBL marks, the lettering around the North Shore
 ring.
 
-The strip draws a logo no taller than 30px (see logoSize() in app/page.tsx),
-so 96px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
+The strip draws a logo no taller than 36px (see logoSize() in app/page.tsx),
+so 108px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
 square with a mark 57px tall, and that stays its height — still about two
 device pixels per CSS pixel at the size it's drawn.
 
@@ -46,7 +46,7 @@ SRC_DIR = 'public/images/logos/src'
 OUT_DIR = 'public/images/logos'
 
 # Three times the tallest the strip ever draws a logo.
-OUT_H = 96
+OUT_H = 108
 
 # How far a pixel has to sit from the background colour to count as the logo.
 # JPEG ringing around a mark on white reaches about 10; the palest ink in these

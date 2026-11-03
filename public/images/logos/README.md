@@ -28,7 +28,7 @@ To take one off the strip, delete its line from `CLIENTS`.
 | | |
 |---|---|
 | **Format** | A PNG with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A logo on any other colour brings that colour along as a box. |
-| **Size** | ~100px tall or more. The strip never draws a logo taller than 30px, and the tool writes 96px for sharp 3x screens; it won't scale a smaller file up. |
+| **Size** | ~100px tall or more. The strip never draws a logo taller than 36px, and the tool writes 108px for sharp 3x screens; it won't scale a smaller file up. |
 | **Shape** | Any. A wide wordmark is drawn shorter than a round crest so the two carry about the same weight — `logoSize()` in `app/page.tsx`. |
 
 ## What's here

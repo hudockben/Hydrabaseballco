@@ -98,19 +98,19 @@ const IconPlay = (
    the width and height for this list; they're the file's own pixels, there to
    give logoSize() the shape. See public/images/logos/README.md to add one. */
 const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
-  { name: 'Georgetown', logo: 'georgetown', width: 96, height: 96 },
-  { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 97, height: 96 },
-  { name: 'High Point', logo: 'high-point', width: 96, height: 96 },
-  { name: 'SoCal MSBL', logo: 'socal-msbl', width: 123, height: 96 },
-  { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 92, height: 96 },
+  { name: 'Georgetown', logo: 'georgetown', width: 108, height: 108 },
+  { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 109, height: 108 },
+  { name: 'High Point', logo: 'high-point', width: 108, height: 108 },
+  { name: 'SoCal MSBL', logo: 'socal-msbl', width: 138, height: 108 },
+  { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 103, height: 108 },
   { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
-  { name: 'Siena', logo: 'siena', width: 201, height: 96 },
+  { name: 'Siena', logo: 'siena', width: 226, height: 108 },
 ];
 
 /* A logo is drawn to about the same amount of ink as the others, not the same
    height: a round crest runs the full LOGO_H and a wide wordmark comes in
    shorter, so Siena's doesn't outweigh the crests either side of it. */
-const LOGO_H = 30;
+const LOGO_H = 36;
 function logoSize({ width, height }: { width: number; height: number }) {
   const h = Math.min(LOGO_H, Math.round(LOGO_H * (width / height) ** -0.35));
   return { width: Math.round((h * width) / height), height: h };

@@ -26,7 +26,7 @@
   --body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --shadow: 0 30px 70px -32px rgba(0, 0, 0, 0.45);
   --header-h: 76px;
-  --ticker-h: 46px;   /* the "Trusted By" strip under the nav row, its hairline included */
+  --ticker-h: 52px;   /* the "Trusted By" strip under the nav row, its hairline included */
 }
 
 /* ---------- Reset ---------- */
@@ -305,7 +305,7 @@ ul { list-style: none; }
    to the left and starting over. At the end of a run every set stands exactly
    where the one before it began, so the loop has no seam. The window they
    show through is never wider than about 1080px (the header's row, less the
-   label and the button) and one set of today's seven runs about 1340px, so two
+   label and the button) and one set of today's seven runs about 1400px, so two
    sets would keep it full; the third covers a list half that long. The run
    time scales with the number of logos (--ticker-count, set on the section
    from the list in page.tsx), so adding one doesn't speed the rest up. */
@@ -356,7 +356,7 @@ ul { list-style: none; }
   padding-left: var(--ticker-gap);
   animation: ticker-run calc(var(--ticker-count, 7) * 5.5s) linear infinite;
 }
-.ticker__item { flex: none; display: flex; align-items: center; gap: 10px; }
+.ticker__item { flex: none; display: flex; align-items: center; gap: 12px; }
 /* Drawn at the width and height page.tsx gives it; the global max-width would
    let a squeezed row shrink it. */
 .ticker__logo { flex: none; max-width: none; }
