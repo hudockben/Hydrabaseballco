@@ -94,10 +94,11 @@ const IconPlay = (
 
 /* Schools and organizations Hydra has supplied, in the order the "Trusted By"
    ticker runs them: a college, then one of the rest — a high school, team,
-   league, tournament or shop — and round again. Each logo is trimmed to its
-   mark by tools/make-logos.py, which prints the width and height for this
-   list; they're the file's own pixels, there to give logoSize() the shape.
-   See public/images/logos/README.md to add one. */
+   league, tournament or shop — and round again. There's one more college than
+   the rest, so the last, Rutgers, meets Georgetown where the loop comes round.
+   Each logo is trimmed to its mark by tools/make-logos.py, which prints the
+   width and height for this list; they're the file's own pixels, there to give
+   logoSize() the shape. See public/images/logos/README.md to add one. */
 const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
   { name: 'Georgetown', logo: 'georgetown', width: 119, height: 120 },
   { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 121, height: 120 },
@@ -111,6 +112,7 @@ const CLIENTS: { name: string; logo: string; width: number; height: number }[] =
   { name: 'Music City Classic', logo: 'music-city-classic', width: 105, height: 120 },
   { name: 'College of Charleston', logo: 'college-of-charleston', width: 144, height: 120 },
   { name: 'Bristol Blues', logo: 'bristol-blues', width: 223, height: 120 },
+  { name: 'Rutgers', logo: 'rutgers', width: 281, height: 120 },
 ];
 
 /* A logo is drawn to about the same amount of ink as the others, not the same

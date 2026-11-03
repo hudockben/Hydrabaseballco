@@ -80,6 +80,7 @@ LOGOS = {
     'music-city-classic': 'music-city-classic.jpg',
     'college-of-charleston': 'college-of-charleston.png',
     'bristol-blues': 'bristol-blues.png',
+    'rutgers': 'rutgers.webp',
 }
 
 # Lockups the strip takes the mark from, as a box in the file's own pixels;

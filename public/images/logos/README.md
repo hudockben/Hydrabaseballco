@@ -29,7 +29,7 @@ To take one off the strip, delete its line from `CLIENTS`.
 
 | | |
 |---|---|
-| **Format** | A PNG with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. A logo on any other colour brings that colour along as a box. |
+| **Format** | A PNG or WebP with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. A logo on any other colour brings that colour along as a box. |
 | **Size** | ~100px tall or more. The strip never draws a logo taller than 40px, and the tool writes 120px for sharp 3x screens; it won't scale a smaller file up. |
 | **Shape** | Any. A wide wordmark is drawn shorter than a round crest so the two carry about the same weight — `logoSize()` in `app/page.tsx`. |
 
@@ -49,3 +49,4 @@ To take one off the strip, delete its line from `CLIENTS`.
 | `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |
 | `college-of-charleston.png` | College of Charleston | Transparent: the "C" with "Charleston" scripted across it. |
 | `bristol-blues.png` | Bristol Blues | Transparent script wordmark. Arrived as `bristol blue.png`. |
+| `rutgers.png` | Rutgers | 2000 × 853 WebP, transparent: the script wordmark. |
