@@ -10,10 +10,10 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 ## What's here
 
 - **Public landing page** (`/`) — the marketing site, "By Players For Players."
-  Ordered so the product leads: hero → a **Trusted By** ticker (the logos of
-  the schools and organizations Hydra has supplied, scrolling past on a slim
-  strip that pins under the header once the page scrolls up to it — see
-  `public/images/logos/README.md` to add one) → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
+  Under the nav, as part of the fixed header, a **Trusted By** ticker runs the
+  logos of the schools and organizations Hydra has supplied (see
+  `public/images/logos/README.md` to add one).
+  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
   specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
   **customize** (drop a team logo onto a real ball photo) → the Hydra

@@ -196,6 +196,56 @@ export default function HomePage() {
             <span></span>
           </button>
         </div>
+
+        {/* ===== Trusted By ticker ===== */}
+        {/* The schools and organizations Hydra has supplied, running right to
+            left on a strip under the nav row. It's part of the fixed header,
+            so it's on screen from the first paint to the footer — see .ticker
+            in styles.css. The list is drawn three times so another copy is
+            always coming in behind the one going out; only the first is read
+            out, the other two are aria-hidden. The logos' alt is empty because
+            the name beside each one already says who it is. */}
+        <section
+          className="ticker"
+          id="ticker"
+          aria-labelledby="tickerLabel"
+          style={{ '--ticker-count': CLIENTS.length } as CSSProperties}
+        >
+          <div className="ticker__inner">
+            <span className="ticker__label" id="tickerLabel">
+              Trusted By
+            </span>
+            <div className="ticker__viewport">
+              {[0, 1, 2].map((copy) => (
+                <ul className="ticker__set" key={copy} aria-hidden={copy > 0 || undefined}>
+                  {CLIENTS.map((client) => (
+                    <li className="ticker__item" key={client.logo}>
+                      <img
+                        className="ticker__logo"
+                        src={`/images/logos/${client.logo}.png`}
+                        alt=""
+                        {...logoSize(client)}
+                      />
+                      <span className="ticker__name">{client.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
+            {/* Hovering holds the strip still; this button does the same for
+                touch and keyboard. script.js toggles .is-paused and aria-pressed. */}
+            <button
+              type="button"
+              className="ticker__toggle"
+              id="tickerToggle"
+              aria-pressed="false"
+              aria-label="Pause the logos"
+            >
+              {IconPause}
+              {IconPlay}
+            </button>
+          </div>
+        </section>
       </header>
 
       {/* ===== Hero ===== */}
@@ -252,56 +302,6 @@ export default function HomePage() {
               </a>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ===== Trusted By ticker ===== */}
-      {/* The schools and organizations Hydra has supplied, running right to
-          left. It starts out under the hero and, once the page scrolls it up
-          to the header, stays pinned there for the rest of the page — see
-          .ticker in styles.css. The list is drawn three times so another copy
-          is always coming in behind the one going out; only the first is read
-          out, the other two are aria-hidden. The logos' alt is empty because
-          the name beside each one already says who it is. */}
-      <section
-        className="ticker"
-        id="ticker"
-        aria-labelledby="tickerLabel"
-        style={{ '--ticker-count': CLIENTS.length } as CSSProperties}
-      >
-        <div className="ticker__inner">
-          <span className="ticker__label" id="tickerLabel">
-            Trusted By
-          </span>
-          <div className="ticker__viewport">
-            {[0, 1, 2].map((copy) => (
-              <ul className="ticker__set" key={copy} aria-hidden={copy > 0 || undefined}>
-                {CLIENTS.map((client) => (
-                  <li className="ticker__item" key={client.logo}>
-                    <img
-                      className="ticker__logo"
-                      src={`/images/logos/${client.logo}.png`}
-                      alt=""
-                      {...logoSize(client)}
-                    />
-                    <span className="ticker__name">{client.name}</span>
-                  </li>
-                ))}
-              </ul>
-            ))}
-          </div>
-          {/* Hovering holds the strip still; this button does the same for
-              touch and keyboard. script.js toggles .is-paused and aria-pressed. */}
-          <button
-            type="button"
-            className="ticker__toggle"
-            id="tickerToggle"
-            aria-pressed="false"
-            aria-label="Pause the logos"
-          >
-            {IconPause}
-            {IconPlay}
-          </button>
         </div>
       </section>
 

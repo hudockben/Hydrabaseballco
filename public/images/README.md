@@ -44,7 +44,7 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | `tray-plus.jpg` | _Currently unused_ | `hero-6.jpg` with the front-centre ball swapped for the A1492+, and the phone screenshot's black bands cropped off. Built by `tools/make-tray-plus.py`. Held the `.difference__media` panel until the baskets photo took it. |
 | `team/*.jpg` | _Currently unused_ | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). Built from `team/src/` by `tools/make-headshots.py`, which cuts each person out of whatever they were photographed against and sets them all on one studio sweep. See `team/README.md`. Ran the "Front Office" section until it was taken off the page; the `TEAM` roster in `app/page.tsx` that listed them went with it. |
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
-| `logos/*.png` | The "Trusted By" ticker under the hero | One per school or organization Hydra has supplied, trimmed to the mark by `tools/make-logos.py` from what arrived in `logos/src/`. The page lists them in `CLIENTS` in `app/page.tsx`. See `logos/README.md`. |
+| `logos/*.png` | The "Trusted By" ticker under the nav | One per school or organization Hydra has supplied, trimmed to the mark by `tools/make-logos.py` from what arrived in `logos/src/`. The page lists them in `CLIENTS` in `app/page.tsx`. See `logos/README.md`. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
 tools/make-ball-blank.py` from the repo root), and the lockup it prints comes

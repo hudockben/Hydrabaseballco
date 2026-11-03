@@ -26,7 +26,7 @@
   --body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --shadow: 0 30px 70px -32px rgba(0, 0, 0, 0.45);
   --header-h: 76px;
-  --ticker-h: 46px;   /* the "Trusted By" strip pinned under the header */
+  --ticker-h: 46px;   /* the "Trusted By" strip under the nav row, its hairline included */
 }
 
 /* ---------- Reset ---------- */
@@ -34,8 +34,8 @@
 *::before,
 *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Every section a link jumps to sits below the ticker, so by the time the page
-   lands there the strip is pinned under the header — both come off the top. */
+/* The fixed header is the nav row plus the ticker under it, so a link that
+   jumps to a section lands it below both. */
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + var(--ticker-h)); }
 
 body {
@@ -199,7 +199,8 @@ ul { list-style: none; }
   min-height: 88vh;
   display: flex;
   align-items: center;
-  padding: calc(var(--header-h) + 40px) 0 80px;
+  /* Clears the fixed header — the nav row and the ticker under it. */
+  padding: calc(var(--header-h) + var(--ticker-h) + 40px) 0 80px;
   color: var(--text-inv);
   background-color: #0b0b0d;
   /* Dark base behind the photo slideshow (also the fallback if images are absent) */
@@ -295,10 +296,10 @@ ul { list-style: none; }
 
 /* ---------- Trusted By ticker ----------
    The schools and organizations Hydra has supplied, on a slim strip under the
-   hero. position: sticky holds it at the foot of the header once the page has
-   scrolled it up that far, so from there on it rides along under the header;
-   the header's hairline is the line between the two. The strip is white
-   because three of the logos came on white squares, which vanish on it.
+   nav row. It's the second row of the fixed header, so it's on screen from the
+   first paint all the way down the page: a hairline above it, the header's own
+   bottom line below. White, like the header, which also suits the three logos
+   that came on white squares — they vanish into it.
 
    The logos travel as three identical sets, each sliding its own full width
    to the left and starting over. At the end of a run every set stands exactly
@@ -311,16 +312,13 @@ ul { list-style: none; }
 .ticker {
   --ticker-gap: 48px;    /* space before each logo */
   --ticker-fade: 44px;   /* how far in from each end the logos fade */
-  position: sticky;
-  top: var(--header-h);
-  z-index: 50;
-  background: #fff;
-  border-bottom: 1px solid var(--line);
+  height: var(--ticker-h);
+  border-top: 1px solid var(--line);
 }
 .ticker__inner {
   /* The header's row width, so the label lines up under the Hydra logo. */
   max-width: 1280px;
-  height: var(--ticker-h);
+  height: 100%;
   margin: 0 auto;
   padding: 0 28px;
   display: flex;
@@ -1216,6 +1214,9 @@ ul { list-style: none; }
     transform: translateY(-130%);
     transition: transform .32s ease;
     margin-left: 0;
+    /* Drops down over the ticker. Its fading mask and moving logos each paint
+       as a layer of their own, which would otherwise land on top of the menu. */
+    z-index: 1;
   }
   .site-nav.is-open { transform: translateY(0); }
   .site-nav a { padding: 14px 28px; }

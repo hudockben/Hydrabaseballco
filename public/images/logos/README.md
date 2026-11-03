@@ -1,9 +1,9 @@
 # "Trusted By" logos
 
-The logos in the ticker under the hero — the schools and organizations Hydra
+The logos in the ticker under the nav — the schools and organizations Hydra
 has supplied. The strip runs them right to left with each one's name beside
-it, and once the page scrolls it up to the header it stays pinned there for
-the rest of the page; see `.ticker` in `public/styles.css`.
+it, and it's part of the fixed header, so it stays on screen the whole way down
+the page; see `.ticker` in `public/styles.css`.
 
 ## Adding one
 
