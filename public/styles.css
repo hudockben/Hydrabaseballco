@@ -305,7 +305,7 @@ ul { list-style: none; }
    to the left and starting over. At the end of a run every set stands exactly
    where the one before it began, so the loop has no seam. The window they
    show through is never wider than about 1080px (the header's row, less the
-   label and the button) and one set of today's eight runs about 1590px, so two
+   label and the button) and one set of today's ten runs about 1940px, so two
    sets would keep it full; the third covers a list half that long. The run
    time scales with the number of logos (--ticker-count, set on the section
    from the list in page.tsx), so adding one doesn't speed the rest up. */

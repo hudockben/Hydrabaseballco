@@ -23,8 +23,13 @@ ring.
 
 A logo that came as a lockup — a mark with the name set out beside it — can be
 cut down to the mark first (MARK_ONLY below). The strip prints the name next to
-every logo anyway, and a wide lockup drawn at the strip's height leaves its mark
-a fraction of the size of the crests around it.
+every logo anyway, and a lockup drawn at the strip's height leaves its mark a
+fraction of the size of the crests around it.
+
+A one-colour logo that came reversed out of a dark field — white on black — is
+redrawn dark on a clear ground (REVERSED below), the way a one-colour mark is
+printed on anything light; left as it came, it would sit on the white strip as
+a black box.
 
 The strip draws a logo no taller than 36px (see logoSize() in app/page.tsx),
 so 108px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
@@ -71,16 +76,29 @@ LOGOS = {
     'berrys-athletic-supply': 'berrys-athletic-supply.jpg',
     'siena': 'siena.png',
     'highlands': 'highlands.jpg',
+    'lipscomb': 'lipscomb.png',
+    'music-city-classic': 'music-city-classic.jpg',
 }
 
 # Lockups the strip takes the mark from, as a box in the file's own pixels;
-# trim() then tightens it to the mark. Highlands is the ram with "HIGHLANDS
-# GOLDEN RAMS" set in two lines beside it, 4.5:1 overall. Whole, the ram would
-# come out 21px tall and the gold lettering about 8px; the box ends halfway
-# across the gap between the two.
+# trim() then tightens it to the mark. Each box ends halfway across the gap
+# between the mark and the name.
 MARK_ONLY = {
+    # The ram with "HIGHLANDS GOLDEN RAMS" in two lines beside it, 4.5:1
+    # overall. Whole, the ram would come out 21px tall and the lettering 8px.
     'highlands': (0, 0, 157, 123),
+    # The MCC monogram over "MUSIC CITY CLASSIC" in two lines. Whole, the
+    # lettering would come out about 6px tall.
+    'music-city-classic': (0, 0, 400, 234),
 }
+
+# One-colour marks that came reversed out of a dark field, to be redrawn in
+# REVERSED_INK on transparent: brightness becomes opacity. Below the low end
+# of LEVELS is the field, JPEG noise included; above the high end is solid
+# mark; in between is the mark's soft edge.
+REVERSED = {'music-city-classic'}
+REVERSED_INK = (17, 17, 20)  # --ink in public/styles.css, near the strip's text
+LEVELS = (32, 224)
 
 
 def trim(im):
@@ -106,11 +124,23 @@ def trim(im):
     return im.crop(box), alpha.min() < 255
 
 
+def reverse(im):
+    """A light one-colour mark on a dark field, as REVERSED_INK on transparent."""
+    lum = np.asarray(im.convert('L')).astype(float)
+    lo, hi = LEVELS
+    out = np.zeros(lum.shape + (4,), np.uint8)
+    out[..., :3] = REVERSED_INK
+    out[..., 3] = (np.clip((lum - lo) / (hi - lo), 0, 1) * 255).round()
+    return Image.fromarray(out, 'RGBA')
+
+
 def main():
     for logo_id, src in LOGOS.items():
         im = Image.open(os.path.join(SRC_DIR, src)).convert('RGBA')
         if logo_id in MARK_ONLY:
             im = im.crop(MARK_ONLY[logo_id])
+        if logo_id in REVERSED:
+            im = reverse(im)
         mark, cut_out = trim(im)
         if mark.height > OUT_H:
             width = round(mark.width * OUT_H / mark.height)

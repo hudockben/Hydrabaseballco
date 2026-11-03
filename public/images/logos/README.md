@@ -29,7 +29,7 @@ To take one off the strip, delete its line from `CLIENTS`.
 
 | | |
 |---|---|
-| **Format** | A PNG with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A logo on any other colour brings that colour along as a box. |
+| **Format** | A PNG with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. A logo on any other colour brings that colour along as a box. |
 | **Size** | ~100px tall or more. The strip never draws a logo taller than 36px, and the tool writes 108px for sharp 3x screens; it won't scale a smaller file up. |
 | **Shape** | Any. A wide wordmark is drawn shorter than a round crest so the two carry about the same weight — `logoSize()` in `app/page.tsx`. |
 
@@ -45,3 +45,5 @@ To take one off the strip, delete its line from `CLIENTS`.
 | `berrys-athletic-supply.png` | Berry's Athletic Supply | 220px JPEG on white, the mark only 57px tall of it. Sharp enough at the size it's drawn; a bigger file would still be an upgrade. |
 | `siena.png` | Siena | Transparent wordmark. |
 | `highlands.png` | Highlands HS | 560 × 123 JPEG on white: the ram, with "HIGHLANDS GOLDEN RAMS" in two lines beside it. The strip takes the ram alone (`MARK_ONLY`) — whole, it would come out 21px tall. |
+| `lipscomb.png` | Lipscomb | 479 × 417 PNG on white: the bison over the "L". |
+| `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |
