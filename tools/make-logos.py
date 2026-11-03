@@ -21,6 +21,11 @@ knock-out eating into white that belongs to the logo — the baseball in the
 middle of the North Shore and MSBL marks, the lettering around the North Shore
 ring.
 
+A logo that came as a lockup — a mark with the name set out beside it — can be
+cut down to the mark first (MARK_ONLY below). The strip prints the name next to
+every logo anyway, and a wide lockup drawn at the strip's height leaves its mark
+a fraction of the size of the crests around it.
+
 The strip draws a logo no taller than 36px (see logoSize() in app/page.tsx),
 so 108px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
 square with a mark 57px tall, and that stays its height — still about two
@@ -28,7 +33,7 @@ device pixels per CSS pixel at the size it's drawn.
 
 Each file is saved as a 256-colour PNG. These are flat-colour marks, so the
 palette is indistinguishable from full colour even at 3x, at about a third of
-the bytes — the strip sits on the first screen, so all seven load up front.
+the bytes — the strip sits on the first screen, so every logo loads up front.
 
 Needs pillow and numpy.
 
@@ -65,6 +70,16 @@ LOGOS = {
     'cal-state-bakersfield': 'cal-state-bakersfield.png',
     'berrys-athletic-supply': 'berrys-athletic-supply.jpg',
     'siena': 'siena.png',
+    'highlands': 'highlands.jpg',
+}
+
+# Lockups the strip takes the mark from, as a box in the file's own pixels;
+# trim() then tightens it to the mark. Highlands is the ram with "HIGHLANDS
+# GOLDEN RAMS" set in two lines beside it, 4.5:1 overall. Whole, the ram would
+# come out 21px tall and the gold lettering about 8px; the box ends halfway
+# across the gap between the two.
+MARK_ONLY = {
+    'highlands': (0, 0, 157, 123),
 }
 
 
@@ -94,6 +109,8 @@ def trim(im):
 def main():
     for logo_id, src in LOGOS.items():
         im = Image.open(os.path.join(SRC_DIR, src)).convert('RGBA')
+        if logo_id in MARK_ONLY:
+            im = im.crop(MARK_ONLY[logo_id])
         mark, cut_out = trim(im)
         if mark.height > OUT_H:
             width = round(mark.width * OUT_H / mark.height)

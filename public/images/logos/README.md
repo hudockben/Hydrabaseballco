@@ -17,7 +17,9 @@ the page; see `.ticker` in `public/styles.css`.
    ```
 
    It trims every logo to its mark, writes `<id>.png` here, and prints each
-   one's width and height.
+   one's width and height. If the logo is a lockup — a mark with the name set
+   out beside it — give its mark's box in `MARK_ONLY` too, and the strip shows
+   the mark at full size rather than the whole lockup shrunk to fit.
 3. Add a line to `CLIENTS` in `app/page.tsx`: the name the strip shows beside
    the logo, the id, and the width and height the tool printed. Its place in
    that list is its place in the ticker. The ticker's speed doesn't change as
@@ -42,3 +44,4 @@ To take one off the strip, delete its line from `CLIENTS`.
 | `cal-state-bakersfield.png` | Cal State Bakersfield | Transparent, with a white keyline. |
 | `berrys-athletic-supply.png` | Berry's Athletic Supply | 220px JPEG on white, the mark only 57px tall of it. Sharp enough at the size it's drawn; a bigger file would still be an upgrade. |
 | `siena.png` | Siena | Transparent wordmark. |
+| `highlands.png` | Highlands HS | 560 × 123 JPEG on white: the ram, with "HIGHLANDS GOLDEN RAMS" in two lines beside it. The strip takes the ram alone (`MARK_ONLY`) — whole, it would come out 21px tall. |

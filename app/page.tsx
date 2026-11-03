@@ -93,8 +93,8 @@ const IconPlay = (
 );
 
 /* Schools and organizations Hydra has supplied, in the order the "Trusted By"
-   ticker runs them: the colleges taken in turn with the teams, leagues and
-   shops. Each logo is trimmed to its mark by tools/make-logos.py, which prints
+   ticker runs them: the colleges taken in turn with the high school, teams,
+   leagues and shops. Each logo is trimmed to its mark by tools/make-logos.py, which prints
    the width and height for this list; they're the file's own pixels, there to
    give logoSize() the shape. See public/images/logos/README.md to add one. */
 const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
@@ -105,6 +105,7 @@ const CLIENTS: { name: string; logo: string; width: number; height: number }[] =
   { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 103, height: 108 },
   { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
   { name: 'Siena', logo: 'siena', width: 226, height: 108 },
+  { name: 'Highlands HS', logo: 'highlands', width: 119, height: 108 },
 ];
 
 /* A logo is drawn to about the same amount of ink as the others, not the same
