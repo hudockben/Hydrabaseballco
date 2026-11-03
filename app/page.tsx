@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import type { CSSProperties } from 'react';
 import { SHOP_OPEN } from '@/lib/shop';
 import Shop from './Shop';
 
@@ -77,6 +78,43 @@ const IconUpload = (
     <path d="M4.6 14.2v4a2 2 0 0 0 2 2h10.8a2 2 0 0 0 2-2v-4" />
   </svg>
 );
+/* Filled rather than stroked: the ticker draws these at 10px, where a 1.5
+   stroke is a smudge. */
+const IconPause = (
+  <svg className="ticker__pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <rect x="5.5" y="4" width="4.5" height="16" rx="1.2" />
+    <rect x="14" y="4" width="4.5" height="16" rx="1.2" />
+  </svg>
+);
+const IconPlay = (
+  <svg className="ticker__play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M7 5.2v13.6a1.2 1.2 0 0 0 1.8 1l10.6-6.8a1.2 1.2 0 0 0 0-2L8.8 4.2A1.2 1.2 0 0 0 7 5.2z" />
+  </svg>
+);
+
+/* Schools and organizations Hydra has supplied, in the order the "Trusted By"
+   ticker runs them: the colleges taken in turn with the teams, leagues and
+   shops. Each logo is trimmed to its mark by tools/make-logos.py, which prints
+   the width and height for this list; they're the file's own pixels, there to
+   give logoSize() the shape. See public/images/logos/README.md to add one. */
+const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
+  { name: 'Georgetown', logo: 'georgetown', width: 96, height: 96 },
+  { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 97, height: 96 },
+  { name: 'High Point', logo: 'high-point', width: 96, height: 96 },
+  { name: 'SoCal MSBL', logo: 'socal-msbl', width: 123, height: 96 },
+  { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 92, height: 96 },
+  { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
+  { name: 'Siena', logo: 'siena', width: 201, height: 96 },
+];
+
+/* A logo is drawn to about the same amount of ink as the others, not the same
+   height: a round crest runs the full LOGO_H and a wide wordmark comes in
+   shorter, so Siena's doesn't outweigh the crests either side of it. */
+const LOGO_H = 30;
+function logoSize({ width, height }: { width: number; height: number }) {
+  const h = Math.min(LOGO_H, Math.round(LOGO_H * (width / height) ** -0.35));
+  return { width: Math.round((h * width) / height), height: h };
+}
 
 /* Stamp inks offered on a custom run, in the order they appear under the ball.
    A run is stamped in one of these and nothing else — there is no full-colour
@@ -214,6 +252,56 @@ export default function HomePage() {
               </a>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ===== Trusted By ticker ===== */}
+      {/* The schools and organizations Hydra has supplied, running right to
+          left. It starts out under the hero and, once the page scrolls it up
+          to the header, stays pinned there for the rest of the page — see
+          .ticker in styles.css. The list is drawn three times so another copy
+          is always coming in behind the one going out; only the first is read
+          out, the other two are aria-hidden. The logos' alt is empty because
+          the name beside each one already says who it is. */}
+      <section
+        className="ticker"
+        id="ticker"
+        aria-labelledby="tickerLabel"
+        style={{ '--ticker-count': CLIENTS.length } as CSSProperties}
+      >
+        <div className="ticker__inner">
+          <span className="ticker__label" id="tickerLabel">
+            Trusted By
+          </span>
+          <div className="ticker__viewport">
+            {[0, 1, 2].map((copy) => (
+              <ul className="ticker__set" key={copy} aria-hidden={copy > 0 || undefined}>
+                {CLIENTS.map((client) => (
+                  <li className="ticker__item" key={client.logo}>
+                    <img
+                      className="ticker__logo"
+                      src={`/images/logos/${client.logo}.png`}
+                      alt=""
+                      {...logoSize(client)}
+                    />
+                    <span className="ticker__name">{client.name}</span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+          {/* Hovering holds the strip still; this button does the same for
+              touch and keyboard. script.js toggles .is-paused and aria-pressed. */}
+          <button
+            type="button"
+            className="ticker__toggle"
+            id="tickerToggle"
+            aria-pressed="false"
+            aria-label="Pause the logos"
+          >
+            {IconPause}
+            {IconPlay}
+          </button>
         </div>
       </section>
 

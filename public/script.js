@@ -21,6 +21,19 @@
     });
   }
 
+  /* Trusted By ticker — the scrolling is all CSS (see .ticker in styles.css).
+     This is its pause button, for anyone who can't hover the strip to hold it
+     still: on a phone, or from the keyboard. .is-paused stops every copy of the
+     logos at once, so they stay in step. */
+  var ticker = document.getElementById('ticker');
+  var tickerToggle = document.getElementById('tickerToggle');
+  if (ticker && tickerToggle) {
+    tickerToggle.addEventListener('click', function () {
+      var paused = ticker.classList.toggle('is-paused');
+      tickerToggle.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    });
+  }
+
   /* Reveal-on-scroll animations */
   var revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
