@@ -6,7 +6,7 @@ Reads
 
 and writes
 
-  public/images/logos/<id>.png         trimmed to the mark, 108px tall
+  public/images/logos/<id>.png         trimmed to the mark, 120px tall
 
 Logos arrive however a school or league happened to hand them over: a
 transparent PNG cut to the mark, or a small JPEG with the mark floating in a
@@ -31,8 +31,8 @@ redrawn dark on a clear ground (REVERSED below), the way a one-colour mark is
 printed on anything light; left as it came, it would sit on the white strip as
 a black box.
 
-The strip draws a logo no taller than 36px (see logoSize() in app/page.tsx),
-so 108px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
+The strip draws a logo no taller than 40px (see logoSize() in app/page.tsx),
+so 120px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
 square with a mark 57px tall, and that stays its height — still about two
 device pixels per CSS pixel at the size it's drawn.
 
@@ -56,7 +56,7 @@ SRC_DIR = 'public/images/logos/src'
 OUT_DIR = 'public/images/logos'
 
 # Three times the tallest the strip ever draws a logo.
-OUT_H = 108
+OUT_H = 120
 
 # How far a pixel has to sit from the background colour to count as the logo.
 # JPEG ringing around a mark on white reaches about 10; the palest ink in these
@@ -87,10 +87,10 @@ LOGOS = {
 # between the mark and the name.
 MARK_ONLY = {
     # The ram with "HIGHLANDS GOLDEN RAMS" in two lines beside it, 4.5:1
-    # overall. Whole, the ram would come out 21px tall and the lettering 8px.
+    # overall. Whole, the ram would come out 24px tall and the lettering 9px.
     'highlands': (0, 0, 157, 123),
     # The MCC monogram over "MUSIC CITY CLASSIC" in two lines. Whole, the
-    # lettering would come out about 6px tall.
+    # lettering would come out about 7px tall.
     'music-city-classic': (0, 0, 400, 234),
 }
 

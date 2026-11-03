@@ -78,7 +78,7 @@ const IconUpload = (
     <path d="M4.6 14.2v4a2 2 0 0 0 2 2h10.8a2 2 0 0 0 2-2v-4" />
   </svg>
 );
-/* Filled rather than stroked: the ticker draws these at 10px, where a 1.5
+/* Filled rather than stroked: the ticker draws these at 11px, where a 1.5
    stroke is a smudge. */
 const IconPause = (
   <svg className="ticker__pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -94,28 +94,29 @@ const IconPlay = (
 
 /* Schools and organizations Hydra has supplied, in the order the "Trusted By"
    ticker runs them: a college, then one of the rest — a high school, team,
-   league, tournament or shop — and round again. Each logo is trimmed to its mark by tools/make-logos.py, which prints
-   the width and height for this list; they're the file's own pixels, there to
-   give logoSize() the shape. See public/images/logos/README.md to add one. */
+   league, tournament or shop — and round again. Each logo is trimmed to its
+   mark by tools/make-logos.py, which prints the width and height for this
+   list; they're the file's own pixels, there to give logoSize() the shape.
+   See public/images/logos/README.md to add one. */
 const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
-  { name: 'Georgetown', logo: 'georgetown', width: 108, height: 108 },
-  { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 109, height: 108 },
-  { name: 'High Point', logo: 'high-point', width: 108, height: 108 },
-  { name: 'SoCal MSBL', logo: 'socal-msbl', width: 138, height: 108 },
-  { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 103, height: 108 },
+  { name: 'Georgetown', logo: 'georgetown', width: 119, height: 120 },
+  { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 121, height: 120 },
+  { name: 'High Point', logo: 'high-point', width: 120, height: 120 },
+  { name: 'SoCal MSBL', logo: 'socal-msbl', width: 154, height: 120 },
+  { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 115, height: 120 },
   { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
-  { name: 'Siena', logo: 'siena', width: 226, height: 108 },
-  { name: 'Highlands HS', logo: 'highlands', width: 119, height: 108 },
-  { name: 'Lipscomb', logo: 'lipscomb', width: 124, height: 108 },
-  { name: 'Music City Classic', logo: 'music-city-classic', width: 94, height: 108 },
-  { name: 'College of Charleston', logo: 'college-of-charleston', width: 130, height: 108 },
-  { name: 'Bristol Blues', logo: 'bristol-blues', width: 200, height: 108 },
+  { name: 'Siena', logo: 'siena', width: 251, height: 120 },
+  { name: 'Highlands HS', logo: 'highlands', width: 132, height: 120 },
+  { name: 'Lipscomb', logo: 'lipscomb', width: 138, height: 120 },
+  { name: 'Music City Classic', logo: 'music-city-classic', width: 105, height: 120 },
+  { name: 'College of Charleston', logo: 'college-of-charleston', width: 144, height: 120 },
+  { name: 'Bristol Blues', logo: 'bristol-blues', width: 223, height: 120 },
 ];
 
 /* A logo is drawn to about the same amount of ink as the others, not the same
    height: a round crest runs the full LOGO_H and a wide wordmark comes in
    shorter, so Siena's doesn't outweigh the crests either side of it. */
-const LOGO_H = 36;
+const LOGO_H = 40;
 function logoSize({ width, height }: { width: number; height: number }) {
   const h = Math.min(LOGO_H, Math.round(LOGO_H * (width / height) ** -0.35));
   return { width: Math.round((h * width) / height), height: h };

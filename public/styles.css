@@ -26,7 +26,7 @@
   --body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --shadow: 0 30px 70px -32px rgba(0, 0, 0, 0.45);
   --header-h: 76px;
-  --ticker-h: 52px;   /* the "Trusted By" strip under the nav row, its hairline included */
+  --ticker-h: 58px;   /* the "Trusted By" strip under the nav row, its hairline included */
 }
 
 /* ---------- Reset ---------- */
@@ -305,13 +305,14 @@ ul { list-style: none; }
    to the left and starting over. At the end of a run every set stands exactly
    where the one before it began, so the loop has no seam. The window they
    show through is never wider than about 1080px (the header's row, less the
-   label and the button) and one set of today's twelve runs about 2380px, so two
+   label and the button) and one set of today's twelve runs about 2630px, so two
    sets would keep it full; the third covers a list half that long. The run
    time scales with the number of logos (--ticker-count, set on the section
-   from the list in page.tsx), so adding one doesn't speed the rest up. */
+   from the list in page.tsx), so adding one doesn't speed the rest up — 6s a
+   logo comes to about 36px a second. */
 .ticker {
-  --ticker-gap: 48px;    /* space before each logo */
-  --ticker-fade: 44px;   /* how far in from each end the logos fade */
+  --ticker-gap: 52px;    /* space before each logo */
+  --ticker-fade: 48px;   /* how far in from each end the logos fade */
   height: var(--ticker-h);
   border-top: 1px solid var(--line);
 }
@@ -331,7 +332,7 @@ ul { list-style: none; }
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   line-height: 1.15;
   color: var(--red);
 }
@@ -354,9 +355,9 @@ ul { list-style: none; }
      the gap is the wider of the two — instead of on a logo half faded out. */
   gap: var(--ticker-gap);
   padding-left: var(--ticker-gap);
-  animation: ticker-run calc(var(--ticker-count, 7) * 5.5s) linear infinite;
+  animation: ticker-run calc(var(--ticker-count, 12) * 6s) linear infinite;
 }
-.ticker__item { flex: none; display: flex; align-items: center; gap: 12px; }
+.ticker__item { flex: none; display: flex; align-items: center; gap: 14px; }
 /* Drawn at the width and height page.tsx gives it; the global max-width would
    let a squeezed row shrink it. */
 .ticker__logo { flex: none; max-width: none; }
@@ -365,7 +366,7 @@ ul { list-style: none; }
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   line-height: 1;
   color: var(--text);
   white-space: nowrap;
@@ -381,8 +382,8 @@ ul { list-style: none; }
 .ticker.is-paused .ticker__set { animation-play-state: paused; }
 .ticker__toggle {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -395,7 +396,7 @@ ul { list-style: none; }
 }
 .ticker__toggle:hover { color: var(--text); border-color: #cbc3b2; }
 .ticker__toggle:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.ticker__toggle svg { width: 10px; height: 10px; }
+.ticker__toggle svg { width: 11px; height: 11px; }
 .ticker__play,
 .ticker__toggle[aria-pressed="true"] .ticker__pause { display: none; }
 .ticker__toggle[aria-pressed="true"] .ticker__play { display: block; }
@@ -1259,9 +1260,9 @@ ul { list-style: none; }
   /* A phone keeps the strip as tall as it is anywhere — it's already slim —
      and gives the logos more of its width: tighter edges, and the label
      stacked on two lines, half as wide as it is on one. */
-  .ticker { --ticker-gap: 36px; --ticker-fade: 28px; }
+  .ticker { --ticker-gap: 40px; --ticker-fade: 30px; }
   .ticker__inner { padding: 0 16px; gap: 12px; }
-  .ticker__label { width: min-content; font-size: 0.64rem; letter-spacing: 0.18em; }
+  .ticker__label { width: min-content; font-size: 0.7rem; letter-spacing: 0.18em; }
   .feature-grid { grid-template-columns: 1fr; gap: 24px; }
   /* The two runs stay side by side under the inks shot — they read as a pair,
      and at this width stacking them would push the customizer well off the
