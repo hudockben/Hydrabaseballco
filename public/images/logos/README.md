@@ -46,4 +46,6 @@ To take one off the strip, delete its line from `CLIENTS`.
 | `siena.png` | Siena | Transparent wordmark. |
 | `highlands.png` | Highlands HS | 560 × 123 JPEG on white: the ram, with "HIGHLANDS GOLDEN RAMS" in two lines beside it. The strip takes the ram alone (`MARK_ONLY`) — whole, it would come out 21px tall. |
 | `lipscomb.png` | Lipscomb | 479 × 417 PNG on white: the bison over the "L". |
+| `college-of-charleston.png` | College of Charleston | Transparent: the "C" with "Charleston" scripted across it. |
+| `bristol-blues.png` | Bristol Blues | Transparent script wordmark. Arrived as `bristol blue.png`. |
 | `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |

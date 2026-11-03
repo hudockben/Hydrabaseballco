@@ -78,6 +78,8 @@ LOGOS = {
     'highlands': 'highlands.jpg',
     'lipscomb': 'lipscomb.png',
     'music-city-classic': 'music-city-classic.jpg',
+    'college-of-charleston': 'college-of-charleston.png',
+    'bristol-blues': 'bristol-blues.png',
 }
 
 # Lockups the strip takes the mark from, as a box in the file's own pixels;

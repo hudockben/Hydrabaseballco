@@ -108,6 +108,8 @@ const CLIENTS: { name: string; logo: string; width: number; height: number }[] =
   { name: 'Highlands HS', logo: 'highlands', width: 119, height: 108 },
   { name: 'Lipscomb', logo: 'lipscomb', width: 124, height: 108 },
   { name: 'Music City Classic', logo: 'music-city-classic', width: 94, height: 108 },
+  { name: 'College of Charleston', logo: 'college-of-charleston', width: 130, height: 108 },
+  { name: 'Bristol Blues', logo: 'bristol-blues', width: 200, height: 108 },
 ];
 
 /* A logo is drawn to about the same amount of ink as the others, not the same
