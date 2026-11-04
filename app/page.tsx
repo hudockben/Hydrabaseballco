@@ -94,11 +94,13 @@ const IconPlay = (
 
 /* Schools and organizations Hydra has supplied, in the order the "Trusted By"
    ticker runs them: a college, then one of the rest — a high school, team,
-   league, tournament or shop — and round again. There's one more college than
-   the rest, so the last, Rutgers, meets Georgetown where the loop comes round.
-   Each logo is trimmed to its mark by tools/make-logos.py, which prints the
-   width and height for this list; they're the file's own pixels, there to give
-   logoSize() the shape. See public/images/logos/README.md to add one. */
+   league, tournament or shop — and round again. There are two more colleges
+   than the rest, so two pairs of colleges run back to back, half the loop
+   apart: Siena and Pepperdine in the middle, and the last, Rutgers, with
+   Georgetown where the loop comes round. Each logo is trimmed to its mark by
+   tools/make-logos.py, which prints the width and height for this list; they're
+   the file's own pixels, there to give logoSize() the shape. See
+   public/images/logos/README.md to add one. */
 const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
   { name: 'Georgetown', logo: 'georgetown', width: 119, height: 120 },
   { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 121, height: 120 },
@@ -107,6 +109,7 @@ const CLIENTS: { name: string; logo: string; width: number; height: number }[] =
   { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 115, height: 120 },
   { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
   { name: 'Siena', logo: 'siena', width: 251, height: 120 },
+  { name: 'Pepperdine', logo: 'pepperdine', width: 113, height: 120 },
   { name: 'Highlands HS', logo: 'highlands', width: 132, height: 120 },
   { name: 'Lipscomb', logo: 'lipscomb', width: 138, height: 120 },
   { name: 'Music City Classic', logo: 'music-city-classic', width: 105, height: 120 },

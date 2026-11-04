@@ -31,6 +31,12 @@ redrawn dark on a clear ground (REVERSED below), the way a one-colour mark is
 printed on anything light; left as it came, it would sit on the white strip as
 a black box.
 
+A logo that came with a transparency checkerboard saved into it — the grey and
+white squares an image site draws behind a cut-out, flattened into the file —
+has its grey squares turned white first (CHECKERED below), leaving it on plain
+white like the logos that came that way; left as it came, it would sit on the
+strip in a faint checked box.
+
 The strip draws a logo no taller than 40px (see logoSize() in app/page.tsx),
 so 120px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
 square with a mark 57px tall, and that stays its height — still about two
@@ -75,6 +81,7 @@ LOGOS = {
     'cal-state-bakersfield': 'cal-state-bakersfield.png',
     'berrys-athletic-supply': 'berrys-athletic-supply.jpg',
     'siena': 'siena.png',
+    'pepperdine': 'pepperdine.png',
     'highlands': 'highlands.jpg',
     'lipscomb': 'lipscomb.png',
     'music-city-classic': 'music-city-classic.jpg',
@@ -102,6 +109,25 @@ MARK_ONLY = {
 REVERSED = {'music-city-classic'}
 REVERSED_INK = (17, 17, 20)  # --ink in public/styles.css, near the strip's text
 LEVELS = (32, 224)
+
+# Logos that came with a transparency checkerboard saved into them: opaque, with
+# grey and white squares where the background should be clear. Every pixel of
+# the squares' grey is turned white. Where the logo's soft edge met a grey square
+# rather than a white one, that ring a pixel wide stays a shade darker — nothing
+# at the size the strip draws it.
+CHECKERED = {'pepperdine'}
+
+
+def flatten_checks(im):
+    """A logo on a transparency checkerboard, on plain white instead."""
+    a = np.array(im)
+    # The border is all squares, so its two commonest colours are the white and
+    # the grey, and the grey is the darker. A PNG keeps it one exact colour.
+    rim = np.concatenate([a[0, :, :3], a[-1, :, :3], a[:, 0, :3], a[:, -1, :3]])
+    colours, counts = np.unique(rim, axis=0, return_counts=True)
+    grey = min(colours[np.argsort(counts)[-2:]], key=lambda c: int(c.sum()))
+    a[(a[..., :3] == grey).all(axis=2), :3] = 255
+    return Image.fromarray(a, 'RGBA')
 
 
 def trim(im):
@@ -140,6 +166,8 @@ def reverse(im):
 def main():
     for logo_id, src in LOGOS.items():
         im = Image.open(os.path.join(SRC_DIR, src)).convert('RGBA')
+        if logo_id in CHECKERED:
+            im = flatten_checks(im)
         if logo_id in MARK_ONLY:
             im = im.crop(MARK_ONLY[logo_id])
         if logo_id in REVERSED:

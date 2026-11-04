@@ -29,7 +29,7 @@ To take one off the strip, delete its line from `CLIENTS`.
 
 | | |
 |---|---|
-| **Format** | A PNG or WebP with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. A logo on any other colour brings that colour along as a box. |
+| **Format** | A PNG or WebP with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. One that came with a transparency checkerboard saved into it — grey and white squares where it should be clear — goes in `CHECKERED`, which turns the grey squares white. A logo on any other colour brings that colour along as a box. |
 | **Size** | ~100px tall or more. The strip never draws a logo taller than 40px, and the tool writes 120px for sharp 3x screens; it won't scale a smaller file up. |
 | **Shape** | Any. A wide wordmark is drawn shorter than a round crest so the two carry about the same weight — `logoSize()` in `app/page.tsx`. |
 
@@ -44,6 +44,7 @@ To take one off the strip, delete its line from `CLIENTS`.
 | `cal-state-bakersfield.png` | Cal State Bakersfield | Transparent, with a white keyline. |
 | `berrys-athletic-supply.png` | Berry's Athletic Supply | 220px JPEG on white, the mark only 57px tall of it. Sharp enough at the size it's drawn; a bigger file would still be an upgrade. |
 | `siena.png` | Siena | Transparent wordmark. |
+| `pepperdine.png` | Pepperdine | 900 × 639 PNG: the "P", navy with an orange outline, on a transparency checkerboard saved into the file — 20px squares of white and light grey. The tool turns the grey squares white (`CHECKERED`); left in, they'd show on the strip as a faint checked box behind the "P". |
 | `highlands.png` | Highlands HS | 560 × 123 JPEG on white: the ram, with "HIGHLANDS GOLDEN RAMS" in two lines beside it. The strip takes the ram alone (`MARK_ONLY`) — whole, it would come out 24px tall. |
 | `lipscomb.png` | Lipscomb | 479 × 417 PNG on white: the bison over the "L". |
 | `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |
