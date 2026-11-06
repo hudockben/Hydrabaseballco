@@ -93,28 +93,27 @@ const IconPlay = (
 );
 
 /* Schools and organizations Hydra has supplied, in the order the "Trusted By"
-   ticker runs them: a college, then one of the rest — a high school, team,
-   league, tournament or shop — and round again. There are two more colleges
-   than the rest, so two pairs of colleges run back to back, half the loop
-   apart: Siena and Pepperdine in the middle, and the last, Rutgers, with
+   ticker runs them. There are twice as many colleges as the rest — a high
+   school, league, tournament and shop — so every third logo is one of the rest
+   and the two between are colleges: Georgetown, SoCal MSBL, then High Point and
+   Cal State Bakersfield, and so on round to Rutgers, which pairs with
    Georgetown where the loop comes round. Each logo is trimmed to its mark by
    tools/make-logos.py, which prints the width and height for this list; they're
    the file's own pixels, there to give logoSize() the shape. See
-   public/images/logos/README.md to add one. */
+   public/images/logos/README.md to add one, or to put back the North Shore
+   Navigators or the Bristol Blues — off the strip for now, their files kept. */
 const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
   { name: 'Georgetown', logo: 'georgetown', width: 119, height: 120 },
-  { name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 121, height: 120 },
-  { name: 'High Point', logo: 'high-point', width: 120, height: 120 },
   { name: 'SoCal MSBL', logo: 'socal-msbl', width: 154, height: 120 },
+  { name: 'High Point', logo: 'high-point', width: 120, height: 120 },
   { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 115, height: 120 },
   { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
   { name: 'Siena', logo: 'siena', width: 251, height: 120 },
   { name: 'Pepperdine', logo: 'pepperdine', width: 113, height: 120 },
   { name: 'Highlands HS', logo: 'highlands', width: 132, height: 120 },
   { name: 'Lipscomb', logo: 'lipscomb', width: 138, height: 120 },
-  { name: 'Music City Classic', logo: 'music-city-classic', width: 105, height: 120 },
   { name: 'College of Charleston', logo: 'college-of-charleston', width: 144, height: 120 },
-  { name: 'Bristol Blues', logo: 'bristol-blues', width: 223, height: 120 },
+  { name: 'Music City Classic', logo: 'music-city-classic', width: 105, height: 120 },
   { name: 'Rutgers', logo: 'rutgers', width: 281, height: 120 },
 ];
 

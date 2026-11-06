@@ -298,18 +298,18 @@ ul { list-style: none; }
    The schools and organizations Hydra has supplied, on a slim strip under the
    nav row. It's the second row of the fixed header, so it's on screen from the
    first paint all the way down the page: a hairline above it, the header's own
-   bottom line below. White, like the header, which also suits the three logos
-   that came on white squares — they vanish into it.
+   bottom line below. White, like the header, which also suits the logos that
+   came on white squares — they vanish into it.
 
    The logos travel as three identical sets, each sliding its own full width
    to the left and starting over. At the end of a run every set stands exactly
    where the one before it began, so the loop has no seam. The window they
    show through is never wider than about 1080px (the header's row, less the
-   label and the button) and one set of today's fourteen runs about 3000px, so two
+   label and the button) and one set of today's twelve runs about 2510px, so two
    sets would keep it full; the third covers a list half that long. The run
    time scales with the number of logos (--ticker-count, set on the section
    from the list in page.tsx), so adding one doesn't speed the rest up — 6s a
-   logo comes to about 36px a second. */
+   logo comes to about 35px a second. */
 .ticker {
   --ticker-gap: 52px;    /* space before each logo */
   --ticker-fade: 48px;   /* how far in from each end the logos fade */

@@ -25,7 +25,9 @@ the page; see `.ticker` in `public/styles.css`.
    that list is its place in the ticker. The ticker's speed doesn't change as
    the list grows — the loop's run time scales with the count.
 
-To take one off the strip, delete its line from `CLIENTS`.
+To take one off the strip, delete its line from `CLIENTS` and move its row
+below to **Off the strip**. Leave its files and its `LOGOS` entry in the tool,
+so putting it back is just its line again.
 
 | | |
 |---|---|
@@ -38,16 +40,31 @@ To take one off the strip, delete its line from `CLIENTS`.
 | File | Name on the strip | As it arrived |
 |------|-------------------|---------------|
 | `georgetown.png` | Georgetown | The "G", transparent. |
-| `north-shore-navigators.png` | North Shore Navigators | 400px JPEG on white. |
-| `high-point.png` | High Point | Transparent, on its own white disc. |
 | `socal-msbl.png` | SoCal MSBL | 185 × 144 PNG on white — the MSBL/MABL of Southern California mark. |
+| `high-point.png` | High Point | Transparent, on its own white disc. |
 | `cal-state-bakersfield.png` | Cal State Bakersfield | Transparent, with a white keyline. |
 | `berrys-athletic-supply.png` | Berry's Athletic Supply | 220px JPEG on white, the mark only 57px tall of it. Sharp enough at the size it's drawn; a bigger file would still be an upgrade. |
 | `siena.png` | Siena | Transparent wordmark. |
 | `pepperdine.png` | Pepperdine | 900 × 639 PNG: the "P", navy with an orange outline, on a transparency checkerboard saved into the file — 20px squares of white and light grey. The tool turns the grey squares white (`CHECKERED`); left in, they'd show on the strip as a faint checked box behind the "P". |
 | `highlands.png` | Highlands HS | 560 × 123 JPEG on white: the ram, with "HIGHLANDS GOLDEN RAMS" in two lines beside it. The strip takes the ram alone (`MARK_ONLY`) — whole, it would come out 24px tall. |
 | `lipscomb.png` | Lipscomb | 479 × 417 PNG on white: the bison over the "L". |
-| `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |
 | `college-of-charleston.png` | College of Charleston | Transparent: the "C" with "Charleston" scripted across it. |
-| `bristol-blues.png` | Bristol Blues | Transparent script wordmark. Arrived as `bristol blue.png`. |
+| `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |
 | `rutgers.png` | Rutgers | 2000 × 853 WebP, transparent: the script wordmark. |
+
+## Off the strip
+
+Supplied, and still cut by the tool, but taken off the strip for now. Their
+files stay here and in `src/` so either can go back on: paste its line into
+`CLIENTS` in a slot that keeps the order the comment there describes, and
+move its row back up.
+
+| File | Name on the strip | As it arrived |
+|------|-------------------|---------------|
+| `north-shore-navigators.png` | North Shore Navigators | 400px JPEG on white. |
+| `bristol-blues.png` | Bristol Blues | Transparent script wordmark. Arrived as `bristol blue.png`. |
+
+```ts
+{ name: 'North Shore Navigators', logo: 'north-shore-navigators', width: 121, height: 120 },
+{ name: 'Bristol Blues', logo: 'bristol-blues', width: 223, height: 120 },
+```
