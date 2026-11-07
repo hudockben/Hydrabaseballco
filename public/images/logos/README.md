@@ -17,9 +17,11 @@ the page; see `.ticker` in `public/styles.css`.
    ```
 
    It trims every logo to its mark, writes `<id>.png` here, and prints each
-   one's width and height. If the logo is a lockup — a mark with the name set
-   out beside it — give its mark's box in `MARK_ONLY` too, and the strip shows
-   the mark at full size rather than the whole lockup shrunk to fit.
+   one's width and height. An SVG goes in as it came — the tool draws it out
+   first, with cairosvg (`pip install cairosvg`). If the logo is a lockup — a
+   mark with the name set out beside it — give its mark's box in `MARK_ONLY`
+   too, and the strip shows the mark at full size rather than the whole lockup
+   shrunk to fit.
 3. Add a line to `CLIENTS` in `app/page.tsx`: the name the strip shows beside
    the logo, the id, and the width and height the tool printed. Its place in
    that list is its place in the ticker. The ticker's speed doesn't change as
@@ -31,7 +33,7 @@ so putting it back is just its line again.
 
 | | |
 |---|---|
-| **Format** | A PNG or WebP with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. One that came with a transparency checkerboard saved into it — grey and white squares where it should be clear — goes in `CHECKERED`, which turns the grey squares white. A logo on any other colour brings that colour along as a box. |
+| **Format** | An SVG, a PNG or WebP with a transparent background, or anything on white — the strip is white, so a white box disappears into it. A one-colour logo reversed out of a dark field (white on black) goes in `REVERSED` in the tool, which redraws it dark on clear. One that came with a transparency checkerboard saved into it — grey and white squares where it should be clear — goes in `CHECKERED`, which turns the grey squares white. A logo on any other colour brings that colour along as a box. |
 | **Size** | ~100px tall or more. The strip never draws a logo taller than 40px, and the tool writes 120px for sharp 3x screens; it won't scale a smaller file up. |
 | **Shape** | Any. A wide wordmark is drawn shorter than a round crest so the two carry about the same weight — `logoSize()` in `app/page.tsx`. |
 
@@ -42,6 +44,7 @@ so putting it back is just its line again.
 | `georgetown.png` | Georgetown | The "G", transparent. |
 | `socal-msbl.png` | SoCal MSBL | 185 × 144 PNG on white — the MSBL/MABL of Southern California mark. |
 | `high-point.png` | High Point | Transparent, on its own white disc. |
+| `nc-state.png` | NC State | SVG, as `NC_State_Wolfpack_logo.svg`: the wolf head in the red "NC STATE" cap, inside a black outline. The tool draws it out 960px tall, then trims and scales it like the rest. |
 | `cal-state-bakersfield.png` | Cal State Bakersfield | Transparent, with a white keyline. |
 | `berrys-athletic-supply.png` | Berry's Athletic Supply | 220px JPEG on white, the mark only 57px tall of it. Sharp enough at the size it's drawn; a bigger file would still be an upgrade. |
 | `siena.png` | Siena | Transparent wordmark. |

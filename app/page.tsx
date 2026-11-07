@@ -93,11 +93,13 @@ const IconPlay = (
 );
 
 /* Schools and organizations Hydra has supplied, in the order the "Trusted By"
-   ticker runs them. There are twice as many colleges as the rest — a high
-   school, league, tournament and shop — so every third logo is one of the rest
-   and the two between are colleges: Georgetown, SoCal MSBL, then High Point and
-   Cal State Bakersfield, and so on round to Rutgers, which pairs with
-   Georgetown where the loop comes round. Each logo is trimmed to its mark by
+   ticker runs them. There are nine colleges to four of the rest — a high
+   school, league, tournament and shop — so the four are spaced out through the
+   colleges, two between each and three in one place: Georgetown, SoCal MSBL,
+   then High Point, NC State and Cal State Bakersfield, and so on round to
+   Rutgers, which pairs with Georgetown where the loop comes round. NC State
+   sits in the three, between the purple and the blue, away from the other red
+   marks (Berry's, Charleston, Rutgers). Each logo is trimmed to its mark by
    tools/make-logos.py, which prints the width and height for this list; they're
    the file's own pixels, there to give logoSize() the shape. See
    public/images/logos/README.md to add one, or to put back the North Shore
@@ -106,6 +108,7 @@ const CLIENTS: { name: string; logo: string; width: number; height: number }[] =
   { name: 'Georgetown', logo: 'georgetown', width: 119, height: 120 },
   { name: 'SoCal MSBL', logo: 'socal-msbl', width: 154, height: 120 },
   { name: 'High Point', logo: 'high-point', width: 120, height: 120 },
+  { name: 'NC State', logo: 'nc-state', width: 86, height: 120 },
   { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 115, height: 120 },
   { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
   { name: 'Siena', logo: 'siena', width: 251, height: 120 },

@@ -46,13 +46,18 @@ Each file is saved as a 256-colour PNG. These are flat-colour marks, so the
 palette is indistinguishable from full colour even at 3x, at about a third of
 the bytes — the strip sits on the first screen, so every logo loads up front.
 
-Needs pillow and numpy.
+A logo that came as an SVG is drawn out as pixels first, at eight times the
+strip's 120px, and then trimmed and scaled down like the rest; PIL can't read
+an SVG itself.
+
+Needs pillow and numpy, and cairosvg for the SVGs (pip install cairosvg).
 
     python3 tools/make-logos.py            # from the repo root
 
 It prints each logo's size for the CLIENTS list in app/page.tsx.
 """
 
+import io
 import os
 
 import numpy as np
@@ -72,6 +77,10 @@ INK = 24
 # Margin kept around a mark trimmed off a background, for its soft edge.
 PAD = 2
 
+# How tall an SVG is drawn before it's trimmed: well over OUT_H, so its mark is
+# scaled down to size like every other logo's.
+SVG_H = 8 * OUT_H
+
 # id -> the file as it arrived. The ids are the file names the page asks for.
 LOGOS = {
     'georgetown': 'georgetown.png',
@@ -88,6 +97,7 @@ LOGOS = {
     'college-of-charleston': 'college-of-charleston.png',
     'bristol-blues': 'bristol-blues.png',
     'rutgers': 'rutgers.webp',
+    'nc-state': 'nc-state.svg',
 }
 
 # Lockups the strip takes the mark from, as a box in the file's own pixels;
@@ -116,6 +126,14 @@ LEVELS = (32, 224)
 # rather than a white one, that ring a pixel wide stays a shade darker — nothing
 # at the size the strip draws it.
 CHECKERED = {'pepperdine'}
+
+
+def load(path):
+    """The logo as it arrived, as RGBA pixels; an SVG drawn SVG_H tall on clear."""
+    if path.endswith('.svg'):
+        import cairosvg  # only needed for an SVG
+        return Image.open(io.BytesIO(cairosvg.svg2png(url=path, output_height=SVG_H))).convert('RGBA')
+    return Image.open(path).convert('RGBA')
 
 
 def flatten_checks(im):
@@ -165,7 +183,7 @@ def reverse(im):
 
 def main():
     for logo_id, src in LOGOS.items():
-        im = Image.open(os.path.join(SRC_DIR, src)).convert('RGBA')
+        im = load(os.path.join(SRC_DIR, src))
         if logo_id in CHECKERED:
             im = flatten_checks(im)
         if logo_id in MARK_ONLY:
