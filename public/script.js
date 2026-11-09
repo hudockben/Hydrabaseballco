@@ -232,13 +232,25 @@
   var yearEl = document.getElementById('year');
   if (yearEl) { yearEl.textContent = String(new Date().getFullYear()); }
 
+  /* What the custom ball preview (further down) hands the Team Orders form
+     when someone presses "Add To My Order": the line describing their mockup,
+     and a promise of the files that go with it. Null until then, and again
+     after "Start over". */
+  var orderArt = null;
+
   /* Team Orders form — submit to the form-to-email service so every inquiry
      lands in the inbox. If that request fails, fall back to a pre-filled
-     email so a submission is never lost. */
+     email so a submission is never lost. An inquiry carrying a mocked-up logo
+     is posted as a regular form instead, because that is the route FormSubmit
+     documents for file attachments; FormSubmit then sends the visitor back
+     here with ?inquiry=sent. */
   var ordersForm = document.getElementById('ordersForm');
   if (ordersForm) {
     var ORDERS_ENDPOINT = 'https://formsubmit.co/ajax/info@hydrabaseballco.com';
+    var ORDERS_FORM_ACTION = 'https://formsubmit.co/info@hydrabaseballco.com';
     var CONTACT_EMAIL = 'info@hydrabaseballco.com';
+    var submitBtn = ordersForm.querySelector('button[type="submit"]');
+    var submitLabel = submitBtn ? submitBtn.textContent : '';
 
     var labels = {
       name: 'Name', email: 'Email', phone: 'Phone',
@@ -268,26 +280,105 @@
         '<p class="orders__thanks">Thanks — your request is in. We&rsquo;ll be in touch shortly.</p>';
     }
 
-    ordersForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (!ordersForm.checkValidity()) { ordersForm.reportValidity(); return; }
+    function resetButton() {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitLabel; }
+    }
 
+    /* Back from FormSubmit after an inquiry that went with attachments. */
+    if (/[?&]inquiry=sent(?:&|$)/.test(window.location.search)) {
+      showThanks();
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+      }
+    }
+
+    /* The Back button from FormSubmit can restore this page exactly as it was
+       left, button still reading "Sending…". */
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) { resetButton(); }
+    });
+
+    /* Inputs a post with attachments added — dropped before any other try, so
+       a second attempt never carries the first one's files twice. */
+    function clearArtInputs() {
+      var old = ordersForm.querySelectorAll('[data-order-art]');
+      for (var i = 0; i < old.length; i++) { old[i].parentNode.removeChild(old[i]); }
+    }
+
+    /* Post the form the regular way, the artwork riding along in file inputs.
+       Returns false, having changed nothing, when this browser can't put a
+       file into a form (no DataTransfer), so the caller can send the inquiry
+       without it. */
+    function postWithFiles(files) {
+      if (!files.length || typeof window.DataTransfer !== 'function') { return false; }
+      var added = [];
+      try {
+        for (var i = 0; i < files.length; i++) {
+          var dt = new window.DataTransfer();
+          dt.items.add(files[i].file);
+          var input = document.createElement('input');
+          input.type = 'file';
+          input.name = files[i].field;
+          input.files = dt.files;
+          if (!input.files || input.files.length !== 1) { return false; }
+          added.push(input);
+        }
+      } catch (err) {
+        return false;
+      }
+      var next = document.createElement('input');
+      next.type = 'hidden';
+      next.name = '_next';
+      next.value = window.location.origin + window.location.pathname + '?inquiry=sent#team-orders';
+      added.push(next);
+
+      clearArtInputs();
+      for (var j = 0; j < added.length; j++) {
+        added[j].setAttribute('data-order-art', '');
+        added[j].style.display = 'none';
+        ordersForm.appendChild(added[j]);
+      }
+      ordersForm.action = ORDERS_FORM_ACTION;
+      ordersForm.method = 'post';
+      ordersForm.enctype = 'multipart/form-data';
+      ordersForm.submit();
+      return true;
+    }
+
+    function sendInBackground() {
+      clearArtInputs();
       var data = new FormData(ordersForm);
-      var btn = ordersForm.querySelector('button[type="submit"]');
-      var label = btn ? btn.textContent : '';
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-
-      var reset = function () { if (btn) { btn.disabled = false; btn.textContent = label; } };
-
-      if (!('fetch' in window)) { mailtoFallback(data); reset(); return; }
+      if (!('fetch' in window)) { mailtoFallback(data); resetButton(); return; }
 
       fetch(ORDERS_ENDPOINT, {
         method: 'POST',
         headers: { 'Accept': 'application/json' },
         body: data
       })
-        .then(function (r) { return r.ok ? showThanks() : (mailtoFallback(data), reset()); })
-        .catch(function () { mailtoFallback(data); reset(); });
+        .then(function (r) { return r.ok ? showThanks() : (mailtoFallback(data), resetButton()); })
+        .catch(function () { mailtoFallback(data); resetButton(); });
+    }
+
+    ordersForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!ordersForm.checkValidity()) { ordersForm.reportValidity(); return; }
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
+
+      var art = orderArt;
+      if (!art) { sendInBackground(); return; }
+
+      /* The email's "logo" line says what came with it, so a file that didn't
+         make it is something we know to ask for. */
+      var logoField = document.getElementById('ordersLogo');
+      var withoutFiles = function () {
+        if (logoField) { logoField.value = art.summary + ' — the logo file didn’t come through, so ask for it'; }
+        sendInBackground();
+      };
+      art.packed.then(function (packed) {
+        if (logoField) { logoField.value = art.summary + packed.note; }
+        if (!postWithFiles(packed.files)) { withoutFiles(); }
+      }, withoutFiles);
     });
   }
 
@@ -296,7 +387,9 @@
      out (tools/make-ball-blank.py), so a mark lands on bare leather while the
      seams, the grain and the light stay exactly as they were shot. Everything
      else about the ball is the photograph. The artwork is read and composited
-     entirely in the browser; the file is never sent anywhere. */
+     entirely in the browser. It only leaves the page if the customer presses
+     "Add To My Order" and then sends the Team Orders form, which attaches the
+     logo file and a snapshot of the mockup to that inquiry. */
   var stage = document.getElementById('ballStage');
   if (stage && stage.getContext && stage.getContext('2d') && window.FileReader) {
     var ctx = stage.getContext('2d');
@@ -371,6 +464,9 @@
        radius at the centre of the sphere (see the projection note below). */
     var logoImg = null, logoSrcW = 0, logoSrcH = 0, logoName = '';
     var logoData = null, logoW = 0, logoH = 0;
+    /* The file exactly as the customer chose it — what "Add To My Order" sends,
+       since a print run is set up from their artwork, not from our preview. */
+    var logoFile = null;
     var posX = PLACEMENTS.panel.x, posY = PLACEMENTS.panel.y, widthU = 0.55;
     var ink = DEFAULT_INK, knockout = false;
     /* What the last knockout pass did, so the tick box can say whether there
@@ -993,6 +1089,7 @@
           logoSrcH = img.naturalHeight || 512;
           logoImg = img;
           logoName = file.name || 'logo';
+          logoFile = file;
 
           /* JPGs can't carry transparency, so a flat backdrop is a near
              certainty — key it out up front rather than making them find it. */
@@ -1009,7 +1106,7 @@
           prepareLogo();
           /* prepareLogo has already explained why if it bailed — don't follow
              it with a "loaded" message and a panel of dead controls. */
-          if (!logoData) { logoImg = null; return; }
+          if (!logoData) { logoImg = null; logoFile = null; return; }
           queueDraw();
 
           if (controls) { controls.hidden = false; }
@@ -1177,6 +1274,99 @@
       queueDraw();
     });
 
+    /* ---- What goes with the order -------------------------------------- */
+    /* FormSubmit takes 10 MB of files per inquiry; this leaves room for the
+       rest of the form. A logo that won't fit beside the mockup goes as a
+       smaller copy, and failing that is left for us to ask for. */
+    var FILE_BUDGET = 9 * 1024 * 1024;
+
+    function canvasBlob(canvas, type, quality) {
+      return new Promise(function (resolve) {
+        if (!canvas.toBlob) { resolve(null); return; }
+        try {
+          canvas.toBlob(function (blob) { resolve(blob || null); }, type, quality);
+        } catch (err) {
+          resolve(null); /* a canvas the browser treats as tainted */
+        }
+      });
+    }
+
+    /* The ball as it stands, minus the dashed outline shown while placing.
+       toBlob copies the canvas the moment it is called, so the outline can
+       come straight back. */
+    function snapshotMockup() {
+      var entry = photos[placement];
+      if (!logoData || !entry || !entry.ready) { return Promise.resolve(null); }
+      var wasGuide = guideOn;
+      guideOn = false;
+      renderLogoLayer();
+      compose();
+      var shot = canvasBlob(stage, 'image/jpeg', 0.9);
+      guideOn = wasGuide;
+      queueDraw();
+      return shot;
+    }
+
+    /* The artwork redrawn with its longest side at 2000px. A JPEG stays a
+       JPEG; anything else becomes a PNG so a clear background stays clear. */
+    function smallerLogo(file) {
+      if (!logoImg || !logoSrcW || !logoSrcH) { return Promise.resolve(null); }
+      var s = Math.min(1, 2000 / Math.max(logoSrcW, logoSrcH));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(logoSrcW * s));
+      c.height = Math.max(1, Math.round(logoSrcH * s));
+      var cc = c.getContext('2d');
+      if (!cc) { return Promise.resolve(null); }
+      cc.drawImage(logoImg, 0, 0, c.width, c.height);
+      return canvasBlob(c, /jpe?g/i.test(file.type || '') ? 'image/jpeg' : 'image/png', 0.92);
+    }
+
+    function megabytes(bytes) { return (bytes / 1048576).toFixed(1) + ' MB'; }
+
+    /* Resolves to { files: [{ field, file }], note }. The note ends the
+       email's "logo" line, saying what is attached. */
+    function packArt() {
+      var file = logoFile;
+      var base = (logoName || 'logo').replace(/\.[^.]*$/, '') || 'logo';
+      return snapshotMockup().then(function (mock) {
+        var room = FILE_BUDGET - (mock ? mock.size : 0);
+        var logo;
+        if (!file) {
+          logo = Promise.resolve(null);
+        } else if (file.size <= room) {
+          logo = Promise.resolve(file);
+        } else {
+          logo = smallerLogo(file).then(function (blob) {
+            if (!blob || blob.size > room) { return null; }
+            var ext = blob.type === 'image/jpeg' ? 'jpg' : 'png';
+            return new File([blob], base + '-smaller.' + ext, { type: blob.type });
+          });
+        }
+        return logo.then(function (sent) {
+          var files = [], listed = [];
+          if (sent) {
+            files.push({ field: 'attachment', file: sent });
+            listed.push(sent === file
+              ? 'logo file'
+              : 'smaller copy of the logo (original ' + megabytes(file.size) + ')');
+          }
+          if (mock) {
+            files.push({
+              field: 'mockup',
+              file: new File([mock], base + '-mockup.jpg', { type: 'image/jpeg' })
+            });
+            listed.push('mockup');
+          }
+          var note = listed.length ? ' — attached: ' + listed.join(', ') : '';
+          if (file && !sent) {
+            note += (note ? '; ' : ' — ') + 'the logo file (' + megabytes(file.size) +
+              ') was too big to attach, so ask for it';
+          }
+          return { files: files, note: note };
+        });
+      });
+    }
+
     /* ---- Actions ------------------------------------------------------- */
     if (downloadBtn) {
       downloadBtn.addEventListener('click', function () {
@@ -1200,18 +1390,20 @@
 
     if (attachBtn) {
       attachBtn.addEventListener('click', function () {
+        var summary = 'Mocked up on site: ' + (logoName || 'team logo') +
+          ' (' + (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
+          INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
         var field = document.getElementById('ordersLogo');
-        if (field) {
-          field.value = 'Mocked up on site: ' + (logoName || 'team logo') +
-            ' (' + (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
-            INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
-        }
+        if (field) { field.value = summary; }
+        /* Packed now, so the email shows exactly what was added — later
+           tweaks need another press. */
+        orderArt = window.Promise ? { summary: summary, packed: packArt() } : null;
         var msg = ordersForm ? ordersForm.querySelector('textarea[name="message"]') : null;
         if (msg && msg.value.indexOf('custom logo') === -1) {
           msg.value = (msg.value ? msg.value.replace(/\s+$/, '') + '\n\n' : '') +
             'We’d like a quote on custom logo baseballs — I mocked ours up on the site.';
         }
-        say('Added to your team order below. Download the mockup and attach it to your reply so we can match the artwork.');
+        say('Added to your team order below. Your logo file and this mockup will be attached when you send it.');
         var target = document.getElementById('team-orders');
         /* Plain scrollIntoView so the page's scroll-behavior (and its
            reduced-motion override) stays in charge. */
@@ -1224,6 +1416,8 @@
         logoImg = null;
         logoData = null;
         logoName = '';
+        logoFile = null;
+        orderArt = null;
         setPlacement('panel');
         posX = PLACEMENTS.panel.x; posY = PLACEMENTS.panel.y; widthU = 0.55;
         knockout = false;

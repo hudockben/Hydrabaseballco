@@ -17,7 +17,11 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
   **customize** (drop a team logo onto a real ball photo) → the Hydra
-  difference → apparel → team orders. Photos drop into `public/images/`
+  difference → apparel → team orders. When a customer presses
+  **Add To My Order** on their mockup, the Team Orders inquiry email arrives with
+  their logo file and a snapshot of the mockup attached (FormSubmit allows 10 MB
+  of files per inquiry, so a logo too big to fit is sent as a smaller copy, and
+  the email's "logo" line says what's attached). Photos drop into `public/images/`
   (see `public/images/README.md`); on-brand gradient fallbacks render until then.
 - **Admin area** (`/admin`, password-protected):
   - **Find Prospects** — search free/public data sources by type + location and

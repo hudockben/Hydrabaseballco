@@ -704,7 +704,7 @@ export default function HomePage() {
               ball, photographed, with your logo on the open panel or up in the horseshoe. Every run
               is stamped in a single Pantone ink, so picking one restamps the whole ball &mdash;
               your mark and ours alike. It all happens right here in your browser &mdash; your
-              artwork never leaves this page.
+              artwork only comes to us if you add it to your order.
             </p>
           </div>
 
