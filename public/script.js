@@ -256,6 +256,7 @@
       name: 'Name', email: 'Email', phone: 'Phone',
       team: 'Team / organization', state: 'State', zip: 'Zip code',
       level: 'Level of play', quantity: 'Approx. # of baseballs',
+      referral: 'Heard about us from',
       logo: 'Custom logo', message: 'Message'
     };
 

@@ -991,6 +991,18 @@ export default function HomePage() {
               placeholder="Approx. # of baseballs"
               aria-label="Approximate number of baseballs"
             />
+            <select name="referral" aria-label="How did you hear about us?" defaultValue="" required>
+              <option value="" disabled>
+                How&rsquo;d you hear about us?
+              </option>
+              <option>Social media</option>
+              <option>From a friend</option>
+              <option>Another coach or program</option>
+              <option>Google / online search</option>
+              <option>Tournament or event</option>
+              <option>Email or call from Hydra</option>
+              <option>Other</option>
+            </select>
             <textarea
               name="message"
               rows={4}

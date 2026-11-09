@@ -1124,6 +1124,8 @@ ul { list-style: none; }
 .orders__form select:invalid { color: #9a9aa0; } /* show placeholder color until chosen */
 .orders__form textarea { resize: vertical; min-height: 112px; line-height: 1.5; }
 .orders__form textarea { grid-column: 1 / -1; }
+/* The odd one out of the paired fields, so it takes the whole row */
+.orders__form select[name="referral"] { grid-column: 1 / -1; }
 .orders__form .btn { grid-column: 1 / -1; justify-self: start; }
 /* Honeypot — hidden from real users */
 .orders__honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
