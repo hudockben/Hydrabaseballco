@@ -860,6 +860,7 @@ ul { list-style: none; }
 .customizer__status.is-error { color: #ff8f8f; }
 
 .controls { margin-top: 18px; display: flex; flex-direction: column; gap: 20px; }
+.control--model { margin-bottom: 18px; } /* the ball picker, above the upload box */
 .controls[hidden] { display: none; }
 .control { display: flex; flex-direction: column; gap: 10px; }
 .control__label {
@@ -985,6 +986,9 @@ ul { list-style: none; }
 
 .control__check { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--muted-inv); font-size: 0.92rem; }
 .control__check input { width: 17px; height: 17px; accent-color: var(--red); cursor: pointer; }
+/* Set by script.js when the artwork's background is white or clear: there is nothing to remove */
+.control__check.is-disabled,
+.control__check.is-disabled input { opacity: 0.55; cursor: not-allowed; }
 
 .controls__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .controls__actions .btn { padding: 12px 22px; font-size: 0.84rem; }

@@ -16,7 +16,9 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   Ordered so the product leads: hero → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
   specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
-  **customize** (drop a team logo onto a real ball photo) → the Hydra
+  **customize** (pick the A1492 or the A1592 and drop a team logo onto a real
+  photo of it; **Remove background** lifts a card, gradient or photo backdrop
+  off the artwork, and is greyed out when there's nothing that would print) → the Hydra
   difference → apparel → team orders. When a customer presses
   **Add To My Order** on their mockup, the Team Orders inquiry email arrives with
   their logo file and a snapshot of the mockup attached (FormSubmit allows 10 MB

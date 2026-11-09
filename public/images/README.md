@@ -41,6 +41,9 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
 | `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
 | `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
+| `ball-1592-blank.jpg` | The customizer, when the A1592 is picked | `a1592.jpg` with the A1592 / COMPETITION SERIES panel retouched out, cropped square around the ball and scaled to the stage's 900px. The photo is 16:9 with the ball filling its height, so the A1592 sits bigger in the frame than the A1492 — there is nothing above or below it to show. The Hydra wordmark stays. Built by `tools/make-ball-1592.py`. |
+| `ball-1592-blank-horseshoe.jpg` | Same, A1592 with the logo on the horseshoe | The wordmark cleared and the `HYDRA / A1592` lockup printed on the panel, as the A1492's horseshoe blank does. |
+| `panel-lockup-1592.png` | Printed into `ball-1592-blank-horseshoe.jpg` | `HYDRA / A1592`: the wordmark off `public/logo.png` over the model mark lifted off `a1592.jpg`. Not served to the browser. |
 | `baskets.jpg` | "The Hydra Difference", and the hero's first slide | Baskets of finished A1492s on the production floor, straight off the phone. Portrait: it fills the hero panel almost exactly, and the shorter Difference panel crops to the middle band — the lower basket, filled edge to edge. Replaced the `tray-plus.jpg` composite in the panel and `hero-6.jpg` in the rotation. |
 | `tray-plus.jpg` | _Currently unused_ | `hero-6.jpg` with the front-centre ball swapped for the A1492+, and the phone screenshot's black bands cropped off. Built by `tools/make-tray-plus.py`. Held the `.difference__media` panel until the baskets photo took it. |
 | `team/*.jpg` | _Currently unused_ | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). Built from `team/src/` by `tools/make-headshots.py`, which cuts each person out of whatever they were photographed against and sets them all on one studio sweep. See `team/README.md`. Ran the "Front Office" section until it was taken off the page; the `TEAM` roster in `app/page.tsx` that listed them went with it. |
@@ -65,11 +68,17 @@ out of artwork already in the repo rather than a font: the wordmark off
 back off the sphere. Drop a real vector export in as `panel-lockup.png` instead
 and `make-ball-blank.py` will print that.
 
-Re-run both after replacing `ball.jpg` — and if the new shot frames the ball
-differently, re-measure the ball circle, the two print spots and `PRINT_BOXES`
-in `public/script.js`. That last one is where the customizer looks for the
-printing already on the ball — the wordmark, the model mark or lockup, and the
-specs line — so it can restamp it in the Pantone ink a team picks. A box that no
-longer sits over its printing simply leaves that printing black.
+The A1592's three files come from `tools/make-ball-1592.py`, which loads those
+two tools and runs their own clearing, stamping and lockup code on `a1592.jpg`
+with that photo's measurements, then crops the square the stage shows. It prints
+the numbers the customizer needs for that ball at the end.
+
+Re-run the tools after replacing `ball.jpg` or `a1592.jpg` — and if the new shot
+frames the ball differently, re-measure that ball's entry in `MODELS` in
+`public/script.js`: the ball circle, the two print spots and `print`. That last
+one is where the customizer looks for the printing already on the ball — the
+wordmark, the model mark or lockup, and the A1492's specs line — so it can
+restamp it in the Pantone ink a team picks. A box that no longer sits over its
+printing simply leaves that printing black.
 
 If a file is missing, an on-brand gradient fallback renders in its place.

@@ -45,6 +45,8 @@ GAP = 0.25
 MODEL_H = 0.62
 RULE_GAP = 0.16
 SCALE = 2.0                          # output is this many logo.png pixels
+# The stretch of the flattened ball, in decal units, that holds the panel.
+WINDOW = (-0.45, 0.55, -0.10, 0.42)
 
 
 def coverage(rgba):
@@ -75,11 +77,12 @@ def resize(cov, w, h):
     return np.asarray(im.resize((max(1, int(round(w))), max(1, int(round(h)))), Image.LANCZOS)).astype(np.float32) / 255.0
 
 
-def unproject(cov, x0, y0):
+def unproject(cov, x0, y0, window=None):
     """A decal off the sphere. A screen point r radii from the centre sits
     asin(r) radians of arc away, so sampling the photo at sin(r) walks the
     artwork back to the flat it was printed from."""
-    fx0, fx1, fy0, fy1, px = -0.45, 0.55, -0.10, 0.42, 1400.0
+    fx0, fx1, fy0, fy1 = window or WINDOW
+    px = 1400.0
     w, h = int((fx1 - fx0) * px), int((fy1 - fy0) * px)
     fx = fx0 + (np.arange(w) + 0.5) / px
     fy = fy0 + (np.arange(h) + 0.5) / px
@@ -143,50 +146,58 @@ def deslant(cov):
     return trim(out)
 
 
-logo = np.asarray(Image.open(LOGO).convert('RGBA')).astype(np.float32)
-lx0, lx1, ly0, ly1 = WORDMARK
-hydra = trim(coverage(logo[ly0:ly1 + 1, lx0:lx1 + 1]))
-rule_l = trim(coverage(logo[RULE_L[2]:RULE_L[3], RULE_L[0]:RULE_L[1] + 1]))
-rule_r = trim(coverage(logo[RULE_R[2]:RULE_R[3], RULE_R[0]:RULE_R[1] + 1]))
-print('wordmark %dx%d, rules %dx%d and %dx%d'
-      % (hydra.shape[1], hydra.shape[0], rule_l.shape[1], rule_l.shape[0],
-         rule_r.shape[1], rule_r.shape[0]))
+def build(ball=BALL, panel_box=PANEL_BOX, window=None, dest=OUT):
+    """Write the lockup for the model printed on `ball`'s panel. The ball's
+    fit is read from BALL_CX, BALL_CY and BALL_R, which the 1592 tool sets."""
+    logo = np.asarray(Image.open(LOGO).convert('RGBA')).astype(np.float32)
+    lx0, lx1, ly0, ly1 = WORDMARK
+    hydra = trim(coverage(logo[ly0:ly1 + 1, lx0:lx1 + 1]))
+    rule_l = trim(coverage(logo[RULE_L[2]:RULE_L[3], RULE_L[0]:RULE_L[1] + 1]))
+    rule_r = trim(coverage(logo[RULE_R[2]:RULE_R[3], RULE_R[0]:RULE_R[1] + 1]))
+    print('wordmark %dx%d, rules %dx%d and %dx%d'
+          % (hydra.shape[1], hydra.shape[0], rule_l.shape[1], rule_l.shape[0],
+             rule_r.shape[1], rule_r.shape[0]))
 
-photo = np.asarray(Image.open(BALL).convert('RGB')).astype(np.float32)
-px0, px1, py0, py1 = PANEL_BOX
-region = photo[py0:py1, px0:px1]
-lum = 0.299 * region[..., 0] + 0.587 * region[..., 1] + 0.114 * region[..., 2]
-closed = morph(morph(lum, 20, True), 20, False)
-# Coverage, not the tool's hard mask: these glyphs are becoming artwork, so
-# their edges have to keep the softness they were printed with.
-depth = closed - lum
-cov = np.clip(depth / np.maximum(closed * 0.95, 1), 0, 1) * np.clip((depth - 18) / 20.0, 0, 1)
-cov[(region[..., 0] - region[..., 1]) > 22] = 0     # red seam thread is not ink
-model = deslant(trim(lines(unproject(cov, px0, py0))[0]))
-print('model mark %dx%d' % (model.shape[1], model.shape[0]))
+    photo = np.asarray(Image.open(ball).convert('RGB')).astype(np.float32)
+    px0, px1, py0, py1 = panel_box
+    region = photo[py0:py1, px0:px1]
+    lum = 0.299 * region[..., 0] + 0.587 * region[..., 1] + 0.114 * region[..., 2]
+    closed = morph(morph(lum, 20, True), 20, False)
+    # Coverage, not the tool's hard mask: these glyphs are becoming artwork, so
+    # their edges have to keep the softness they were printed with.
+    depth = closed - lum
+    cov = np.clip(depth / np.maximum(closed * 0.95, 1), 0, 1) * np.clip((depth - 18) / 20.0, 0, 1)
+    cov[(region[..., 0] - region[..., 1]) > 22] = 0     # red seam thread is not ink
+    model = deslant(trim(lines(unproject(cov, px0, py0, window))[0]))
+    print('model mark %dx%d' % (model.shape[1], model.shape[0]))
 
-# Lay it out: the wordmark, then the model between the rules on one line the
-# width of the wordmark, the way public/logo.png sets its own second line.
-hw = int(round(hydra.shape[1] * SCALE))
-hh = int(round(hydra.shape[0] * SCALE))
-mh = int(round(hh * MODEL_H))
-mw = int(round(model.shape[1] * mh / model.shape[0]))
-gap = int(round(hh * GAP))
-rgap = int(round(hh * RULE_GAP))
-rw = (hw - mw - 2 * rgap) // 2
-rh_l = max(1, int(round(rule_l.shape[0] * rw / rule_l.shape[1])))
-rh_r = max(1, int(round(rule_r.shape[0] * rw / rule_r.shape[1])))
+    # Lay it out: the wordmark, then the model between the rules on one line the
+    # width of the wordmark, the way public/logo.png sets its own second line.
+    hw = int(round(hydra.shape[1] * SCALE))
+    hh = int(round(hydra.shape[0] * SCALE))
+    mh = int(round(hh * MODEL_H))
+    mw = int(round(model.shape[1] * mh / model.shape[0]))
+    gap = int(round(hh * GAP))
+    rgap = int(round(hh * RULE_GAP))
+    rw = (hw - mw - 2 * rgap) // 2
+    rh_l = max(1, int(round(rule_l.shape[0] * rw / rule_l.shape[1])))
+    rh_r = max(1, int(round(rule_r.shape[0] * rw / rule_r.shape[1])))
 
-sheet = np.zeros((hh + gap + mh, hw), np.float32)
-sheet[:hh] = resize(hydra, hw, hh)
-line = np.zeros((mh, hw), np.float32)
-line[:, (hw - mw) // 2:(hw - mw) // 2 + mw] = resize(model, mw, mh)
-for piece, h_r, x in ((rule_l, rh_l, 0), (rule_r, rh_r, hw - rw)):
-    top = (mh - h_r) // 2
-    line[top:top + h_r, x:x + rw] = np.maximum(line[top:top + h_r, x:x + rw], resize(piece, rw, h_r))
-sheet[hh + gap:] = line
+    sheet = np.zeros((hh + gap + mh, hw), np.float32)
+    sheet[:hh] = resize(hydra, hw, hh)
+    line = np.zeros((mh, hw), np.float32)
+    line[:, (hw - mw) // 2:(hw - mw) // 2 + mw] = resize(model, mw, mh)
+    for piece, h_r, x in ((rule_l, rh_l, 0), (rule_r, rh_r, hw - rw)):
+        top = (mh - h_r) // 2
+        line[top:top + h_r, x:x + rw] = np.maximum(line[top:top + h_r, x:x + rw], resize(piece, rw, h_r))
+    sheet[hh + gap:] = line
 
-out = np.zeros(sheet.shape + (4,), np.uint8)
-out[..., 3] = np.clip(sheet * 255, 0, 255)
-Image.fromarray(out).save(OUT)
-print('wrote %-34s %dx%d' % (OUT, out.shape[1], out.shape[0]))
+    out = np.zeros(sheet.shape + (4,), np.uint8)
+    out[..., 3] = np.clip(sheet * 255, 0, 255)
+    Image.fromarray(out).save(dest)
+    print('wrote %-34s %dx%d' % (dest, out.shape[1], out.shape[0]))
+
+
+# Guarded so tools/make-ball-1592.py can build the A1592's lockup.
+if __name__ == '__main__':
+    build()

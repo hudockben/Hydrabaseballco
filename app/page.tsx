@@ -700,8 +700,8 @@ export default function HomePage() {
             </h2>
             <span className="customizer__rule" aria-hidden="true"></span>
             <p className="customizer__lead">
-              Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
-              ball, photographed, with your logo on the open panel or up in the horseshoe. Every run
+              Drop in your program&rsquo;s mark and see it printed on a real A1492 or A1592 &mdash; the
+              same balls, photographed, with your logo on the open panel or up in the horseshoe. Every run
               is stamped in a single Pantone ink, so picking one restamps the whole ball &mdash;
               your mark and ours alike. It all happens right here in your browser &mdash; your
               artwork only comes to us if you add it to your order.
@@ -727,6 +727,22 @@ export default function HomePage() {
             </div>
 
             <div className="customizer__panel">
+              {/* Outside the controls below so the ball can be picked before
+                  a logo is in; script.js swaps the photo it prints onto. */}
+              <div className="control control--model">
+                <span className="control__label" id="modelLabel">
+                  Ball
+                </span>
+                <div className="swatches" role="group" aria-labelledby="modelLabel">
+                  <button type="button" className="swatch is-active" data-model="a1492" aria-pressed="true">
+                    A1492
+                  </button>
+                  <button type="button" className="swatch" data-model="a1592" aria-pressed="false">
+                    A1592
+                  </button>
+                </div>
+              </div>
+
               <div className="dropzone" id="logoDrop">
                 <input
                   type="file"
