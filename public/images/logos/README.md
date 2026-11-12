@@ -50,6 +50,7 @@ so putting it back is just its line again.
 | `siena.png` | Siena | Transparent wordmark. |
 | `pepperdine.png` | Pepperdine | 900 × 639 PNG: the "P", navy with an orange outline, on a transparency checkerboard saved into the file — 20px squares of white and light grey. The tool turns the grey squares white (`CHECKERED`); left in, they'd show on the strip as a faint checked box behind the "P". |
 | `highlands.png` | Highlands HS | 560 × 123 JPEG on white: the ram, with "HIGHLANDS GOLDEN RAMS" in two lines beside it. The strip takes the ram alone (`MARK_ONLY`) — whole, it would come out 24px tall. |
+| `minnesota.png` | Minnesota | 2048 × 1152 PNG, transparent: the maroon block M with its gold keyline, over "UNIVERSITY OF MINNESOTA" in two lines. The strip takes the M alone (`MARK_ONLY`) — whole, it would come out 13px tall. |
 | `lipscomb.png` | Lipscomb | 479 × 417 PNG on white: the bison over the "L". |
 | `college-of-charleston.png` | College of Charleston | Transparent: the "C" with "Charleston" scripted across it. |
 | `music-city-classic.png` | Music City Classic | 400px JPEG, white on black: the MCC monogram over "MUSIC CITY CLASSIC". The strip takes the monogram alone (`MARK_ONLY`), redrawn in near-black on clear (`REVERSED`) so it doesn't sit on the strip as a black square. |

@@ -98,6 +98,7 @@ LOGOS = {
     'bristol-blues': 'bristol-blues.png',
     'rutgers': 'rutgers.webp',
     'nc-state': 'nc-state.svg',
+    'minnesota': 'minnesota.png',
 }
 
 # Lockups the strip takes the mark from, as a box in the file's own pixels;
@@ -110,6 +111,9 @@ MARK_ONLY = {
     # The MCC monogram over "MUSIC CITY CLASSIC" in two lines. Whole, the
     # lettering would come out about 7px tall.
     'music-city-classic': (0, 0, 400, 234),
+    # The block M over "UNIVERSITY OF MINNESOTA" in two lines. Whole, the M
+    # would come out 13px tall and the lettering about 7px.
+    'minnesota': (0, 0, 2048, 522),
 }
 
 # One-colour marks that came reversed out of a dark field, to be redrawn in
