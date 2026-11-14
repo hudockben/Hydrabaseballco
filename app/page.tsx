@@ -384,11 +384,25 @@ export default function HomePage() {
                 loading="lazy"
               />
             </figure>
+            {/* Artwork rather than a photo — flat on white — so the card is
+                white too, not the grass green the photos load over. */}
+            <figure className="balls__photo balls__photo--art">
+              <img
+                src="/images/a1292-a1392.png"
+                alt="The Hydra A1292 Classic Series and A1392 Select Series balls side by side"
+                width={2144}
+                height={1206}
+                loading="lazy"
+              />
+            </figure>
             </div>
 
             <div className="balls__models">
+              {/* Best to most basic. The badge follows the leather: ink for
+                  Grade A, red for Grade B, outlined for Grade C. Each model's
+                  last line leads with its leather grade and wool content, so
+                  the five read as a ladder down the list. */}
               <ul className="grades__list balls__list">
-                {/* Top of the line, so it leads the list and wears the ink badge. */}
                 <li className="grade">
                   <span className="grade__badge grade__badge--top">A1592</span>
                   <div>
@@ -399,8 +413,8 @@ export default function HomePage() {
                       demand.
                     </p>
                     <p className="grade__feats">
-                      Grade A full-grain cowhide &middot; Premium gray wool windings &middot; Cushioned
-                      cork center &middot; COR and compression tested
+                      Grade A full-grain cowhide &middot; 85% premium gray wool windings &middot;
+                      Cushioned cork center &middot; COR and compression tested
                     </p>
                   </div>
                 </li>
@@ -412,6 +426,7 @@ export default function HomePage() {
                       Equivalent to a high school game ball &mdash; commonly used for high school
                       competition and college practice.
                     </p>
+                    <p className="grade__feats">Grade B leather cover &middot; 50% wool windings</p>
                   </div>
                 </li>
                 <li className="grade">
@@ -419,6 +434,21 @@ export default function HomePage() {
                   <div>
                     <h3 className="grade__name">Premium Leather Everyday Practice Ball</h3>
                     <p className="grade__desc">Built for everyday practice and play.</p>
+                    <p className="grade__feats">Grade C leather cover &middot; 50% wool windings</p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain">A1392</span>
+                  <div>
+                    <h3 className="grade__name">Select Series</h3>
+                    <p className="grade__feats">Grade C leather cover &middot; 30% wool windings</p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain">A1292</span>
+                  <div>
+                    <h3 className="grade__name">Classic Series</h3>
+                    <p className="grade__feats">Grade C leather cover &middot; 15% wool windings</p>
                   </div>
                 </li>
               </ul>

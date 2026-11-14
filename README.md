@@ -13,8 +13,9 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   Under the nav, as part of the fixed header, a **Trusted By** ticker runs the
   logos of the schools and organizations Hydra has supplied (see
   `public/images/logos/README.md` to add one).
-  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
-  specs, plus a cutaway that opens the ball on scroll to show the leather,
+  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — A1592,
+  A1492+, A1492, A1392 and A1292, each with its leather grade and wool content —
+  and specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
   **customize** (pick the A1492 or the A1592 and drop a team logo onto a real
   photo of it; **Remove background** lifts a card, gradient or photo backdrop
