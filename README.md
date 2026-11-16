@@ -24,8 +24,10 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
   **Add To My Order** on their mockup, the Team Orders inquiry email arrives with
   their logo file and a snapshot of the mockup attached (FormSubmit allows 10 MB
   of files per inquiry, so a logo too big to fit is sent as a smaller copy, and
-  the email's "logo" line says what's attached). Photos drop into `public/images/`
-  (see `public/images/README.md`); on-brand gradient fallbacks render until then.
+  the email's "logo" line says what's attached), and the form's **Model** dropdown
+  is set to the ball they mocked up unless they've already picked one. Photos
+  drop into `public/images/` (see `public/images/README.md`); on-brand gradient
+  fallbacks render until then.
 - **Admin area** (`/admin`, password-protected):
   - **Find Prospects** — search free/public data sources by type + location and
     save leads.
