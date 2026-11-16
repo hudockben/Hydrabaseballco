@@ -1,0 +1,214 @@
+"""Cut the logos for the "Trusted By" ticker down to what the strip needs.
+
+Reads
+
+  public/images/logos/src/<id>.<ext>   the logo as it arrived
+
+and writes
+
+  public/images/logos/<id>.png         trimmed to the mark, 120px tall
+
+Logos arrive however a school or league happened to hand them over: a
+transparent PNG cut to the mark, or a small JPEG with the mark floating in a
+white square. Drawn at a fixed height, the white square counts toward that
+height and the mark inside it comes out a fraction of the size of the rest, so
+each one is trimmed to its mark first. A logo that came cut out is trimmed to
+its opaque pixels; one that came on a background is trimmed to whatever differs
+from that background, plus a couple of pixels so the anti-aliased edge isn't
+clipped. The background itself is left on: the strip is white, and so is every
+background these came on, so it disappears on the page without the risk of a
+knock-out eating into white that belongs to the logo — the baseball in the
+middle of the North Shore and MSBL marks, the lettering around the North Shore
+ring.
+
+A logo that came as a lockup — a mark with the name set out beside it — can be
+cut down to the mark first (MARK_ONLY below). The strip prints the name next to
+every logo anyway, and a lockup drawn at the strip's height leaves its mark a
+fraction of the size of the crests around it.
+
+A one-colour logo that came reversed out of a dark field — white on black — is
+redrawn dark on a clear ground (REVERSED below), the way a one-colour mark is
+printed on anything light; left as it came, it would sit on the white strip as
+a black box.
+
+A logo that came with a transparency checkerboard saved into it — the grey and
+white squares an image site draws behind a cut-out, flattened into the file —
+has its grey squares turned white first (CHECKERED below), leaving it on plain
+white like the logos that came that way; left as it came, it would sit on the
+strip in a faint checked box.
+
+The strip draws a logo no taller than 40px (see logoSize() in app/page.tsx),
+so 120px covers a 3x screen. Nothing is scaled up: Berry's arrived at 220px
+square with a mark 57px tall, and that stays its height — still about two
+device pixels per CSS pixel at the size it's drawn.
+
+Each file is saved as a 256-colour PNG. These are flat-colour marks, so the
+palette is indistinguishable from full colour even at 3x, at about a third of
+the bytes — the strip sits on the first screen, so every logo loads up front.
+
+A logo that came as an SVG is drawn out as pixels first, at eight times the
+strip's 120px, and then trimmed and scaled down like the rest; PIL can't read
+an SVG itself.
+
+Needs pillow and numpy, and cairosvg for the SVGs (pip install cairosvg).
+
+    python3 tools/make-logos.py            # from the repo root
+
+It prints each logo's size for the CLIENTS list in app/page.tsx.
+"""
+
+import io
+import os
+
+import numpy as np
+from PIL import Image
+
+SRC_DIR = 'public/images/logos/src'
+OUT_DIR = 'public/images/logos'
+
+# Three times the tallest the strip ever draws a logo.
+OUT_H = 120
+
+# How far a pixel has to sit from the background colour to count as the logo.
+# JPEG ringing around a mark on white reaches about 10; the palest ink in these
+# logos is a long way past 24.
+INK = 24
+
+# Margin kept around a mark trimmed off a background, for its soft edge.
+PAD = 2
+
+# How tall an SVG is drawn before it's trimmed: well over OUT_H, so its mark is
+# scaled down to size like every other logo's.
+SVG_H = 8 * OUT_H
+
+# id -> the file as it arrived. The ids are the file names the page asks for.
+LOGOS = {
+    'georgetown': 'georgetown.png',
+    'north-shore-navigators': 'north-shore-navigators.jpg',
+    'high-point': 'high-point.png',
+    'socal-msbl': 'socal-msbl.png',
+    'cal-state-bakersfield': 'cal-state-bakersfield.png',
+    'berrys-athletic-supply': 'berrys-athletic-supply.jpg',
+    'siena': 'siena.png',
+    'pepperdine': 'pepperdine.png',
+    'highlands': 'highlands.jpg',
+    'lipscomb': 'lipscomb.png',
+    'music-city-classic': 'music-city-classic.jpg',
+    'college-of-charleston': 'college-of-charleston.png',
+    'bristol-blues': 'bristol-blues.png',
+    'rutgers': 'rutgers.webp',
+    'nc-state': 'nc-state.svg',
+    'minnesota': 'minnesota.png',
+}
+
+# Lockups the strip takes the mark from, as a box in the file's own pixels;
+# trim() then tightens it to the mark. Each box ends halfway across the gap
+# between the mark and the name.
+MARK_ONLY = {
+    # The ram with "HIGHLANDS GOLDEN RAMS" in two lines beside it, 4.5:1
+    # overall. Whole, the ram would come out 24px tall and the lettering 9px.
+    'highlands': (0, 0, 157, 123),
+    # The MCC monogram over "MUSIC CITY CLASSIC" in two lines. Whole, the
+    # lettering would come out about 7px tall.
+    'music-city-classic': (0, 0, 400, 234),
+    # The block M over "UNIVERSITY OF MINNESOTA" in two lines. Whole, the M
+    # would come out 13px tall and the lettering about 7px.
+    'minnesota': (0, 0, 2048, 522),
+}
+
+# One-colour marks that came reversed out of a dark field, to be redrawn in
+# REVERSED_INK on transparent: brightness becomes opacity. Below the low end
+# of LEVELS is the field, JPEG noise included; above the high end is solid
+# mark; in between is the mark's soft edge.
+REVERSED = {'music-city-classic'}
+REVERSED_INK = (17, 17, 20)  # --ink in public/styles.css, near the strip's text
+LEVELS = (32, 224)
+
+# Logos that came with a transparency checkerboard saved into them: opaque, with
+# grey and white squares where the background should be clear. Every pixel of
+# the squares' grey is turned white. Where the logo's soft edge met a grey square
+# rather than a white one, that ring a pixel wide stays a shade darker — nothing
+# at the size the strip draws it.
+CHECKERED = {'pepperdine'}
+
+
+def load(path):
+    """The logo as it arrived, as RGBA pixels; an SVG drawn SVG_H tall on clear."""
+    if path.endswith('.svg'):
+        import cairosvg  # only needed for an SVG
+        return Image.open(io.BytesIO(cairosvg.svg2png(url=path, output_height=SVG_H))).convert('RGBA')
+    return Image.open(path).convert('RGBA')
+
+
+def flatten_checks(im):
+    """A logo on a transparency checkerboard, on plain white instead."""
+    a = np.array(im)
+    # The border is all squares, so its two commonest colours are the white and
+    # the grey, and the grey is the darker. A PNG keeps it one exact colour.
+    rim = np.concatenate([a[0, :, :3], a[-1, :, :3], a[:, 0, :3], a[:, -1, :3]])
+    colours, counts = np.unique(rim, axis=0, return_counts=True)
+    grey = min(colours[np.argsort(counts)[-2:]], key=lambda c: int(c.sum()))
+    a[(a[..., :3] == grey).all(axis=2), :3] = 255
+    return Image.fromarray(a, 'RGBA')
+
+
+def trim(im):
+    """Crop to the mark, whether it came cut out or on a background."""
+    a = np.asarray(im).astype(int)
+    alpha = a[..., 3]
+    if alpha.min() < 255:
+        # Cut out already: the mark is whatever is opaque. A whisper of alpha
+        # left at the canvas edge by an export isn't part of it.
+        keep = alpha > 8
+        pad = 0
+    else:
+        # On a background: take its colour off the border, then keep whatever
+        # is far enough from it to be ink rather than compression noise.
+        rim = np.concatenate([a[0, :, :3], a[-1, :, :3], a[:, 0, :3], a[:, -1, :3]])
+        bg = np.median(rim, axis=0)
+        keep = np.abs(a[..., :3] - bg).max(axis=2) > INK
+        pad = PAD
+    ys, xs = np.nonzero(keep)
+    h, w = alpha.shape
+    box = (max(xs.min() - pad, 0), max(ys.min() - pad, 0),
+           min(xs.max() + 1 + pad, w), min(ys.max() + 1 + pad, h))
+    return im.crop(box), alpha.min() < 255
+
+
+def reverse(im):
+    """A light one-colour mark on a dark field, as REVERSED_INK on transparent."""
+    lum = np.asarray(im.convert('L')).astype(float)
+    lo, hi = LEVELS
+    out = np.zeros(lum.shape + (4,), np.uint8)
+    out[..., :3] = REVERSED_INK
+    out[..., 3] = (np.clip((lum - lo) / (hi - lo), 0, 1) * 255).round()
+    return Image.fromarray(out, 'RGBA')
+
+
+def main():
+    for logo_id, src in LOGOS.items():
+        im = load(os.path.join(SRC_DIR, src))
+        if logo_id in CHECKERED:
+            im = flatten_checks(im)
+        if logo_id in MARK_ONLY:
+            im = im.crop(MARK_ONLY[logo_id])
+        if logo_id in REVERSED:
+            im = reverse(im)
+        mark, cut_out = trim(im)
+        if mark.height > OUT_H:
+            width = round(mark.width * OUT_H / mark.height)
+            mark = mark.resize((width, OUT_H), Image.LANCZOS)
+        # Only fast octree quantises with alpha; median cut is the better
+        # palette where there's none to keep.
+        if cut_out:
+            mark = mark.quantize(256, Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
+        else:
+            mark = mark.convert('RGB').quantize(256, Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+        out = os.path.join(OUT_DIR, logo_id + '.png')
+        mark.save(out, 'PNG', optimize=True)
+        print(f"{out}  {mark.width}x{mark.height}  {os.path.getsize(out) // 1024}KB"
+              f"   -> {{ logo: '{logo_id}', width: {mark.width}, height: {mark.height} }}")
+
+
+if __name__ == '__main__':
+    main()

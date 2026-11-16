@@ -2,6 +2,16 @@
 // dashboard with a one-time default price is for sale on the site, at that
 // price. Volume pricing set on the price in Stripe applies as-is.
 
+/**
+ * The store's open/closed switch. While it's false the homepage leaves the Shop
+ * section out (keeping its #shop anchor, so old links land on Team Orders),
+ * drops the Shop links from the phone menu and footer, sends the header's
+ * Shop / Inquire button to Team Orders, and the shop API neither lists the
+ * catalog nor starts a checkout. Stripe is left as it is — keys, products,
+ * webhook — so reopening the store is setting this back to true.
+ */
+export const SHOP_OPEN = false;
+
 export interface ShopTier {
   upTo: number | null; // inclusive; null = no upper bound
   unitAmount: number; // cents per unit within this tier

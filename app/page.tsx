@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react';
 import Script from 'next/script';
+import type { CSSProperties } from 'react';
+import { SHOP_OPEN } from '@/lib/shop';
 import Shop from './Shop';
 
 /* ---- Inline icons (stroke = currentColor) ---- */
@@ -77,6 +78,59 @@ const IconUpload = (
     <path d="M4.6 14.2v4a2 2 0 0 0 2 2h10.8a2 2 0 0 0 2-2v-4" />
   </svg>
 );
+/* Filled rather than stroked: the ticker draws these at 11px, where a 1.5
+   stroke is a smudge. */
+const IconPause = (
+  <svg className="ticker__pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <rect x="5.5" y="4" width="4.5" height="16" rx="1.2" />
+    <rect x="14" y="4" width="4.5" height="16" rx="1.2" />
+  </svg>
+);
+const IconPlay = (
+  <svg className="ticker__play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M7 5.2v13.6a1.2 1.2 0 0 0 1.8 1l10.6-6.8a1.2 1.2 0 0 0 0-2L8.8 4.2A1.2 1.2 0 0 0 7 5.2z" />
+  </svg>
+);
+
+/* Schools and organizations Hydra has supplied, in the order the "Trusted By"
+   ticker runs them. There are ten colleges to four of the rest — a high
+   school, league, tournament and shop — so the four are spaced out through the
+   colleges, two between each and three in two places, across the loop from
+   each other: Georgetown, SoCal MSBL, then High Point, NC State and Cal State
+   Bakersfield, and so on round to Rutgers, which pairs with Georgetown where
+   the loop comes round. NC State and Minnesota sit in the threes, away from
+   the other red marks (Berry's, Charleston, Rutgers): NC State between the
+   purple and the blue, Minnesota's maroon between the Highlands ram's gold and
+   Lipscomb's purple. Each logo is trimmed to its mark by tools/make-logos.py,
+   which prints the width and height for this list; they're the file's own
+   pixels, there to give logoSize() the shape. See public/images/logos/README.md
+   to add one, or to put back the North Shore Navigators or the Bristol Blues —
+   off the strip for now, their files kept. */
+const CLIENTS: { name: string; logo: string; width: number; height: number }[] = [
+  { name: 'Georgetown', logo: 'georgetown', width: 119, height: 120 },
+  { name: 'SoCal MSBL', logo: 'socal-msbl', width: 154, height: 120 },
+  { name: 'High Point', logo: 'high-point', width: 120, height: 120 },
+  { name: 'NC State', logo: 'nc-state', width: 86, height: 120 },
+  { name: 'Cal State Bakersfield', logo: 'cal-state-bakersfield', width: 115, height: 120 },
+  { name: 'Berry’s Athletic Supply', logo: 'berrys-athletic-supply', width: 131, height: 61 },
+  { name: 'Siena', logo: 'siena', width: 251, height: 120 },
+  { name: 'Pepperdine', logo: 'pepperdine', width: 113, height: 120 },
+  { name: 'Highlands HS', logo: 'highlands', width: 132, height: 120 },
+  { name: 'Minnesota', logo: 'minnesota', width: 201, height: 120 },
+  { name: 'Lipscomb', logo: 'lipscomb', width: 138, height: 120 },
+  { name: 'College of Charleston', logo: 'college-of-charleston', width: 144, height: 120 },
+  { name: 'Music City Classic', logo: 'music-city-classic', width: 105, height: 120 },
+  { name: 'Rutgers', logo: 'rutgers', width: 281, height: 120 },
+];
+
+/* A logo is drawn to about the same amount of ink as the others, not the same
+   height: a round crest runs the full LOGO_H and a wide wordmark comes in
+   shorter, so Siena's doesn't outweigh the crests either side of it. */
+const LOGO_H = 40;
+function logoSize({ width, height }: { width: number; height: number }) {
+  const h = Math.min(LOGO_H, Math.round(LOGO_H * (width / height) ** -0.35));
+  return { width: Math.round((h * width) / height), height: h };
+}
 
 /* Stamp inks offered on a custom run, in the order they appear under the ball.
    A run is stamped in one of these and nothing else — there is no full-colour
@@ -112,122 +166,6 @@ const PANTONE_INKS: { id: string; name: string; hex: string }[] = [
   { id: '476-c', name: 'PANTONE 476 C', hex: '#4E3629' },
 ];
 
-/* The people behind the ball, in the order they show under "Front Office". A card
-   needs a name and a role and nothing else — every other field is simply left
-   off the card when it isn't set, so someone can go up with a name and a title
-   the day they start and gain a photo and a bio later.
-
-   `photo` is a file under public/images/team/ (see that folder's README). The
-   card layers the shot over an on-brand gradient the same way the ball shots
-   do, so a photo that hasn't landed yet shows the gradient rather than a
-   broken frame; with no `photo` at all the card shows the person's initials on
-   that gradient instead. Roster edits happen here and nowhere else. */
-type TeamMember = {
-  id: string;
-  name: string;
-  role: string;
-  /** Short credential lines under the role — playing and coaching years,
-      where they're from. One string, or a few for a stacked list. */
-  meta?: string | string[];
-  bio?: string;
-  /** Path under /images/team/, e.g. '/images/team/brandon-miller.jpg'. */
-  photo?: string;
-  email?: string;
-};
-
-const TEAM: TeamMember[] = [
-  {
-    id: 'brandon-miller',
-    name: 'Brandon Miller',
-    role: 'Founder & CEO',
-    meta: ['5 years of Division I baseball', '10 years of elite-level coaching'],
-    bio:
-      'A Big East title with St. John’s in 2018, then a graduate year at the College of ' +
-      'Charleston. Brandon pairs a lifetime in the game with a background in finance and ' +
-      'sales leadership, and built Hydra around what he has seen the game ask of players, ' +
-      'coaches, and programs — better baseball products, priced for the people who live it.',
-    photo: '/images/team/brandon-miller.jpg',
-  },
-  {
-    id: 'ben-hudock',
-    name: 'Ben Hudock',
-    role: 'Co-Owner · President of Technology & Accounting',
-    meta: ['4 years of Division II baseball', '12 years of elite-level coaching'],
-    bio:
-      'Two Class 4A state titles in Pennsylvania. Ben runs Hydra’s technology, accounting, ' +
-      'and operations: a software engineer’s toolkit and a coach’s read on what programs ' +
-      'actually need, pointed at the systems behind the ball.',
-    photo: '/images/team/ben-hudock.jpg',
-  },
-  {
-    id: 'ari-heinemann',
-    name: 'Ari Heinemann',
-    role: 'Director of Finance',
-    meta: ['MBA in Finance', 'Financial strategy & investment planning'],
-    bio:
-      'Ari runs Hydra’s day-to-day finances — budgeting, forecasting, cash flow — and ' +
-      'shapes the investment strategy behind its growth: the work that lets a young ' +
-      'company scale at a pace it can carry.',
-    photo: '/images/team/ari-heinemann.jpg',
-  },
-  {
-    id: 'bill-miller',
-    name: 'Bill Miller',
-    role: 'Head of Logistics & Operations',
-    meta: ['40+ years of business ownership', 'Logistics, inventory & fulfillment'],
-    bio:
-      'Bill brings more than 40 years of business ownership and operational experience to ' +
-      'Hydra. He oversees logistics, inventory, and fulfillment, helping to ensure Hydra ' +
-      'remains efficient and reliable.',
-    photo: '/images/team/bill-miller.jpg',
-  },
-  {
-    id: 'caleb-cawley',
-    name: 'Caleb Cawley',
-    role: 'Director of Marketing & Media',
-    meta: ['15+ years of video production', '5+ years in professional marketing'],
-    bio:
-      'Promotions manager for a television station in a top-five U.S. media market, with a ' +
-      'B.S. in Cinema, Television & Media Production. Caleb leads Hydra’s media, content, ' +
-      'and brand development — the video, digital content, and creative campaigns that ' +
-      'bring the brand to life, and the storytelling that carries it as the company grows ' +
-      'across the baseball industry.',
-    photo: '/images/team/caleb-cawley.jpg',
-  },
-  {
-    id: 'noel-miller',
-    name: 'Noel Miller',
-    role: 'Social Media Manager · Product Development',
-    meta: ['Master in Organizational Leadership', 'Brand strategy & creative development'],
-    bio:
-      'Noel runs Hydra’s social presence and helps drive what comes next — new baseballs, ' +
-      'merchandise, product concepts. Brand strategy and creative development behind all of ' +
-      'it: how Hydra looks, how it feels, and how it reaches the next generation of players.',
-    photo: '/images/team/noel-miller.jpg',
-  },
-  {
-    id: 'paul-laudati',
-    name: 'Paul Laudati',
-    role: 'West Coast Territory Leader',
-    meta: ['Baseball operations · Data & analytics', 'Program logistics'],
-    bio:
-      'Paul opens the West Coast for Hydra. He works in data and analytics in professional ' +
-      'baseball, and spent four years in baseball operations at St. John’s — where the cost, ' +
-      'the inventory, and the durability of a program’s baseballs were his to manage, which ' +
-      'is the read Hydra wants on what a program needs from its supplier.',
-    photo: '/images/team/paul-laudati.jpg',
-  },
-];
-
-/* Initials for a card with no photo yet: first and last, so "Brandon Miller" is
-   BM and a single name is just its first letter. */
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '';
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
-  return (parts[0][0] + last).toUpperCase();
-}
-
 /* Brand logo (home-plate H emblem + wordmark) used in the header and footer */
 function Brand({ variant = 'header' }: { variant?: 'header' | 'footer' }) {
   return (
@@ -258,13 +196,13 @@ export default function HomePage() {
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
             {/* Desktop has the black Shop button; this is for the phone menu, where that button is hidden. */}
-            <a href="#shop" className="site-nav__mobile">Shop</a>
+            {SHOP_OPEN && <a href="#shop" className="site-nav__mobile">Shop</a>}
             <a href="#team-orders">Team Orders</a>
-            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 
-          <a href="#shop" className="btn btn--dark btn--header">
+          {/* With the shop closed it goes where it went before there was one: the inquiry form. */}
+          <a href={SHOP_OPEN ? '#shop' : '#team-orders'} className="btn btn--dark btn--header">
             Shop / Inquire
           </a>
 
@@ -274,6 +212,56 @@ export default function HomePage() {
             <span></span>
           </button>
         </div>
+
+        {/* ===== Trusted By ticker ===== */}
+        {/* The schools and organizations Hydra has supplied, running right to
+            left on a strip under the nav row. It's part of the fixed header,
+            so it's on screen from the first paint to the footer — see .ticker
+            in styles.css. The list is drawn three times so another copy is
+            always coming in behind the one going out; only the first is read
+            out, the other two are aria-hidden. The logos' alt is empty because
+            the name beside each one already says who it is. */}
+        <section
+          className="ticker"
+          id="ticker"
+          aria-labelledby="tickerLabel"
+          style={{ '--ticker-count': CLIENTS.length } as CSSProperties}
+        >
+          <div className="ticker__inner">
+            <span className="ticker__label" id="tickerLabel">
+              Trusted By
+            </span>
+            <div className="ticker__viewport">
+              {[0, 1, 2].map((copy) => (
+                <ul className="ticker__set" key={copy} aria-hidden={copy > 0 || undefined}>
+                  {CLIENTS.map((client) => (
+                    <li className="ticker__item" key={client.logo}>
+                      <img
+                        className="ticker__logo"
+                        src={`/images/logos/${client.logo}.png`}
+                        alt=""
+                        {...logoSize(client)}
+                      />
+                      <span className="ticker__name">{client.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
+            {/* Hovering holds the strip still; this button does the same for
+                touch and keyboard. script.js toggles .is-paused and aria-pressed. */}
+            <button
+              type="button"
+              className="ticker__toggle"
+              id="tickerToggle"
+              aria-pressed="false"
+              aria-label="Pause the logos"
+            >
+              {IconPause}
+              {IconPlay}
+            </button>
+          </div>
+        </section>
       </header>
 
       {/* ===== Hero ===== */}
@@ -396,11 +384,25 @@ export default function HomePage() {
                 loading="lazy"
               />
             </figure>
+            {/* Artwork rather than a photo — flat on white — so the card is
+                white too, not the grass green the photos load over. */}
+            <figure className="balls__photo balls__photo--art">
+              <img
+                src="/images/a1292-a1392.png"
+                alt="The Hydra A1292 Classic Series and A1392 Select Series balls side by side"
+                width={2144}
+                height={1206}
+                loading="lazy"
+              />
+            </figure>
             </div>
 
             <div className="balls__models">
+              {/* Best to most basic. The badge follows the leather: ink for
+                  Grade A, red for Grade B, outlined for Grade C. Each model's
+                  last line leads with its leather grade and wool content, so
+                  the five read as a ladder down the list. */}
               <ul className="grades__list balls__list">
-                {/* Top of the line, so it leads the list and wears the ink badge. */}
                 <li className="grade">
                   <span className="grade__badge grade__badge--top">A1592</span>
                   <div>
@@ -411,8 +413,8 @@ export default function HomePage() {
                       demand.
                     </p>
                     <p className="grade__feats">
-                      Grade A full-grain cowhide &middot; Premium gray wool windings &middot; Cushioned
-                      cork center &middot; COR and compression tested
+                      Grade A full-grain cowhide &middot; 85% premium gray wool windings &middot;
+                      Cushioned cork center &middot; COR and compression tested
                     </p>
                   </div>
                 </li>
@@ -424,6 +426,7 @@ export default function HomePage() {
                       Equivalent to a high school game ball &mdash; commonly used for high school
                       competition and college practice.
                     </p>
+                    <p className="grade__feats">Grade B leather cover &middot; 50% wool windings</p>
                   </div>
                 </li>
                 <li className="grade">
@@ -431,6 +434,21 @@ export default function HomePage() {
                   <div>
                     <h3 className="grade__name">Premium Leather Everyday Practice Ball</h3>
                     <p className="grade__desc">Built for everyday practice and play.</p>
+                    <p className="grade__feats">Grade C leather cover &middot; 50% wool windings</p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain">A1392</span>
+                  <div>
+                    <h3 className="grade__name">Select Series</h3>
+                    <p className="grade__feats">Grade C leather cover &middot; 30% wool windings</p>
+                  </div>
+                </li>
+                <li className="grade">
+                  <span className="grade__badge grade__badge--plain">A1292</span>
+                  <div>
+                    <h3 className="grade__name">Classic Series</h3>
+                    <p className="grade__feats">Grade C leather cover &middot; 15% wool windings</p>
                   </div>
                 </li>
               </ul>
@@ -715,11 +733,11 @@ export default function HomePage() {
             </h2>
             <span className="customizer__rule" aria-hidden="true"></span>
             <p className="customizer__lead">
-              Drop in your program&rsquo;s mark and see it printed on a real A1492 &mdash; the same
-              ball, photographed, with your logo on the open panel or up in the horseshoe. Every run
+              Drop in your program&rsquo;s mark and see it printed on a real A1492 or A1592 &mdash; the
+              same balls, photographed, with your logo on the open panel or up in the horseshoe. Every run
               is stamped in a single Pantone ink, so picking one restamps the whole ball &mdash;
               your mark and ours alike. It all happens right here in your browser &mdash; your
-              artwork never leaves this page.
+              artwork only comes to us if you add it to your order.
             </p>
           </div>
 
@@ -742,6 +760,22 @@ export default function HomePage() {
             </div>
 
             <div className="customizer__panel">
+              {/* Outside the controls below so the ball can be picked before
+                  a logo is in; script.js swaps the photo it prints onto. */}
+              <div className="control control--model">
+                <span className="control__label" id="modelLabel">
+                  Ball
+                </span>
+                <div className="swatches" role="group" aria-labelledby="modelLabel">
+                  <button type="button" className="swatch is-active" data-model="a1492" aria-pressed="true">
+                    A1492
+                  </button>
+                  <button type="button" className="swatch" data-model="a1592" aria-pressed="false">
+                    A1592
+                  </button>
+                </div>
+              </div>
+
               <div className="dropzone" id="logoDrop">
                 <input
                   type="file"
@@ -904,7 +938,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Shop (Stripe) ===== */}
+      {/* ===== Shop (Stripe) — only its #shop anchor while SHOP_OPEN is false ===== */}
       <Shop />
 
       {/* ===== Team Orders / Inquiry ===== */}
@@ -1006,6 +1040,34 @@ export default function HomePage() {
               placeholder="Approx. # of baseballs"
               aria-label="Approximate number of baseballs"
             />
+            {/* The Hydra Lineup, best to most basic, each named as it is there.
+                Each ball's value is its bare model number, so the inquiry email
+                reads "A1592" and "Add To My Order" can pick the ball it mocked up
+                by its name in script.js's MODELS — keep those names matching. */}
+            <select name="model" aria-label="Which model are you interested in?" defaultValue="" required>
+              <option value="" disabled>
+                Model you&rsquo;re interested in
+              </option>
+              <option value="A1592">A1592 &mdash; Competition Series</option>
+              <option value="A1492+">A1492+ &mdash; Premium Leather Game Ball</option>
+              <option value="A1492">A1492 &mdash; Premium Leather Everyday Practice Ball</option>
+              <option value="A1392">A1392 &mdash; Select Series</option>
+              <option value="A1292">A1292 &mdash; Classic Series</option>
+              <option>More than one model</option>
+              <option>Not sure &mdash; help me choose</option>
+            </select>
+            <select name="referral" aria-label="How did you hear about us?" defaultValue="" required>
+              <option value="" disabled>
+                How&rsquo;d you hear about us?
+              </option>
+              <option>Social media</option>
+              <option>From a friend</option>
+              <option>Another coach or program</option>
+              <option>Google / online search</option>
+              <option>Tournament or event</option>
+              <option>Email or call from Hydra</option>
+              <option>Other</option>
+            </select>
             <textarea
               name="message"
               rows={4}
@@ -1041,67 +1103,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Front Office ===== */}
-      <section className="office" id="front-office">
-        <div className="container">
-          <div className="office__head reveal">
-            <span className="eyebrow eyebrow--red">Front Office</span>
-            <h2 className="section-title office__title">The People Behind The Ball</h2>
-            <span className="office__rule" aria-hidden="true"></span>
-            <p className="office__lead">
-              Hydra is run by players. When you order a run, these are the people you&rsquo;re
-              dealing with &mdash; no call center, no middlemen.
-            </p>
-          </div>
-
-          {TEAM.length > 0 ? (
-            /* One person is a founder's card, not a lone column in a grid —
-               the modifier lays that first card out sideways and drops off on
-               its own the moment a second person lands. */
-            <ul className={`office__grid${TEAM.length === 1 ? ' office__grid--solo' : ''} reveal`}>
-              {TEAM.map((member) => (
-                <li className="member" key={member.id}>
-                  {/* The shot rides in on a custom property so the gradient
-                      underneath it stays in the stylesheet — a photo that 404s
-                      falls back to it instead of leaving a hole. */}
-                  <span
-                    className="member__shot"
-                    role="img"
-                    aria-label={`${member.name}, ${member.role}`}
-                    style={member.photo ? ({ '--shot': `url('${member.photo}')` } as CSSProperties) : undefined}
-                  >
-                    {member.photo ? null : (
-                      <span className="member__initials" aria-hidden="true">
-                        {initials(member.name)}
-                      </span>
-                    )}
-                  </span>
-                  <div className="member__body">
-                    <h3 className="member__name">{member.name}</h3>
-                    <p className="member__role">{member.role}</p>
-                    {(Array.isArray(member.meta) ? member.meta : member.meta ? [member.meta] : []).map(
-                      (line) => (
-                        <p className="member__meta" key={line}>
-                          {line}
-                        </p>
-                      ),
-                    )}
-                    {member.bio ? <p className="member__bio">{member.bio}</p> : null}
-                    {member.email ? (
-                      <a className="member__email" href={`mailto:${member.email}`}>
-                        {member.email}
-                      </a>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="office__empty reveal">Roster coming soon&hellip;</p>
-          )}
-        </div>
-      </section>
-
       {/* ===== Footer ===== */}
       <footer className="footer" id="contact">
         <div className="container footer__grid">
@@ -1120,9 +1121,8 @@ export default function HomePage() {
             <a href="#about">About</a>
             <a href="#customize">Customize</a>
             <a href="#apparel">Apparel</a>
-            <a href="#shop">Shop</a>
+            {SHOP_OPEN && <a href="#shop">Shop</a>}
             <a href="#team-orders">Team Orders</a>
-            <a href="#front-office">Front Office</a>
             <a href="#contact">Contact</a>
           </nav>
 

@@ -1,8 +1,9 @@
 # Front office photos
 
-Headshots for the **Front Office** section on the landing page. The card's
-`photo` points at a file here — the roster itself is the `TEAM` list at the top
-of `app/page.tsx`, and that list is the only place it's edited.
+Headshots for the **Front Office** section, which has been taken off the
+landing page — nothing on the site uses these right now. The section, and the
+`TEAM` roster in `app/page.tsx` whose cards pointed at these files, are in git
+history if it comes back.
 
 ## Adding someone
 

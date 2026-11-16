@@ -21,6 +21,19 @@
     });
   }
 
+  /* Trusted By ticker — the scrolling is all CSS (see .ticker in styles.css).
+     This is its pause button, for anyone who can't hover the strip to hold it
+     still: on a phone, or from the keyboard. .is-paused stops every copy of the
+     logos at once, so they stay in step. */
+  var ticker = document.getElementById('ticker');
+  var tickerToggle = document.getElementById('tickerToggle');
+  if (ticker && tickerToggle) {
+    tickerToggle.addEventListener('click', function () {
+      var paused = ticker.classList.toggle('is-paused');
+      tickerToggle.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    });
+  }
+
   /* Reveal-on-scroll animations */
   var revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
@@ -219,18 +232,31 @@
   var yearEl = document.getElementById('year');
   if (yearEl) { yearEl.textContent = String(new Date().getFullYear()); }
 
+  /* What the custom ball preview (further down) hands the Team Orders form
+     when someone presses "Add To My Order": the line describing their mockup,
+     and a promise of the files that go with it. Null until then, and again
+     after "Start over". */
+  var orderArt = null;
+
   /* Team Orders form — submit to the form-to-email service so every inquiry
      lands in the inbox. If that request fails, fall back to a pre-filled
-     email so a submission is never lost. */
+     email so a submission is never lost. An inquiry carrying a mocked-up logo
+     is posted as a regular form instead, because that is the route FormSubmit
+     documents for file attachments; FormSubmit then sends the visitor back
+     here with ?inquiry=sent. */
   var ordersForm = document.getElementById('ordersForm');
   if (ordersForm) {
     var ORDERS_ENDPOINT = 'https://formsubmit.co/ajax/info@hydrabaseballco.com';
+    var ORDERS_FORM_ACTION = 'https://formsubmit.co/info@hydrabaseballco.com';
     var CONTACT_EMAIL = 'info@hydrabaseballco.com';
+    var submitBtn = ordersForm.querySelector('button[type="submit"]');
+    var submitLabel = submitBtn ? submitBtn.textContent : '';
 
     var labels = {
       name: 'Name', email: 'Email', phone: 'Phone',
       team: 'Team / organization', state: 'State', zip: 'Zip code',
       level: 'Level of play', quantity: 'Approx. # of baseballs',
+      model: 'Model', referral: 'Heard about us from',
       logo: 'Custom logo', message: 'Message'
     };
 
@@ -255,26 +281,105 @@
         '<p class="orders__thanks">Thanks — your request is in. We&rsquo;ll be in touch shortly.</p>';
     }
 
-    ordersForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      if (!ordersForm.checkValidity()) { ordersForm.reportValidity(); return; }
+    function resetButton() {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitLabel; }
+    }
 
+    /* Back from FormSubmit after an inquiry that went with attachments. */
+    if (/[?&]inquiry=sent(?:&|$)/.test(window.location.search)) {
+      showThanks();
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+      }
+    }
+
+    /* The Back button from FormSubmit can restore this page exactly as it was
+       left, button still reading "Sending…". */
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) { resetButton(); }
+    });
+
+    /* Inputs a post with attachments added — dropped before any other try, so
+       a second attempt never carries the first one's files twice. */
+    function clearArtInputs() {
+      var old = ordersForm.querySelectorAll('[data-order-art]');
+      for (var i = 0; i < old.length; i++) { old[i].parentNode.removeChild(old[i]); }
+    }
+
+    /* Post the form the regular way, the artwork riding along in file inputs.
+       Returns false, having changed nothing, when this browser can't put a
+       file into a form (no DataTransfer), so the caller can send the inquiry
+       without it. */
+    function postWithFiles(files) {
+      if (!files.length || typeof window.DataTransfer !== 'function') { return false; }
+      var added = [];
+      try {
+        for (var i = 0; i < files.length; i++) {
+          var dt = new window.DataTransfer();
+          dt.items.add(files[i].file);
+          var input = document.createElement('input');
+          input.type = 'file';
+          input.name = files[i].field;
+          input.files = dt.files;
+          if (!input.files || input.files.length !== 1) { return false; }
+          added.push(input);
+        }
+      } catch (err) {
+        return false;
+      }
+      var next = document.createElement('input');
+      next.type = 'hidden';
+      next.name = '_next';
+      next.value = window.location.origin + window.location.pathname + '?inquiry=sent#team-orders';
+      added.push(next);
+
+      clearArtInputs();
+      for (var j = 0; j < added.length; j++) {
+        added[j].setAttribute('data-order-art', '');
+        added[j].style.display = 'none';
+        ordersForm.appendChild(added[j]);
+      }
+      ordersForm.action = ORDERS_FORM_ACTION;
+      ordersForm.method = 'post';
+      ordersForm.enctype = 'multipart/form-data';
+      ordersForm.submit();
+      return true;
+    }
+
+    function sendInBackground() {
+      clearArtInputs();
       var data = new FormData(ordersForm);
-      var btn = ordersForm.querySelector('button[type="submit"]');
-      var label = btn ? btn.textContent : '';
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-
-      var reset = function () { if (btn) { btn.disabled = false; btn.textContent = label; } };
-
-      if (!('fetch' in window)) { mailtoFallback(data); reset(); return; }
+      if (!('fetch' in window)) { mailtoFallback(data); resetButton(); return; }
 
       fetch(ORDERS_ENDPOINT, {
         method: 'POST',
         headers: { 'Accept': 'application/json' },
         body: data
       })
-        .then(function (r) { return r.ok ? showThanks() : (mailtoFallback(data), reset()); })
-        .catch(function () { mailtoFallback(data); reset(); });
+        .then(function (r) { return r.ok ? showThanks() : (mailtoFallback(data), resetButton()); })
+        .catch(function () { mailtoFallback(data); resetButton(); });
+    }
+
+    ordersForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!ordersForm.checkValidity()) { ordersForm.reportValidity(); return; }
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
+
+      var art = orderArt;
+      if (!art) { sendInBackground(); return; }
+
+      /* The email's "logo" line says what came with it, so a file that didn't
+         make it is something we know to ask for. */
+      var logoField = document.getElementById('ordersLogo');
+      var withoutFiles = function () {
+        if (logoField) { logoField.value = art.summary + ' — the logo file didn’t come through, so ask for it'; }
+        sendInBackground();
+      };
+      art.packed.then(function (packed) {
+        if (logoField) { logoField.value = art.summary + packed.note; }
+        if (!postWithFiles(packed.files)) { withoutFiles(); }
+      }, withoutFiles);
     });
   }
 
@@ -283,37 +388,76 @@
      out (tools/make-ball-blank.py), so a mark lands on bare leather while the
      seams, the grain and the light stay exactly as they were shot. Everything
      else about the ball is the photograph. The artwork is read and composited
-     entirely in the browser; the file is never sent anywhere. */
+     entirely in the browser. It only leaves the page if the customer presses
+     "Add To My Order" and then sends the Team Orders form, which attaches the
+     logo file and a snapshot of the mockup to that inquiry. */
   var stage = document.getElementById('ballStage');
   if (stage && stage.getContext && stage.getContext('2d') && window.FileReader) {
     var ctx = stage.getContext('2d');
 
     /* ---- Geometry (internal pixels; CSS scales the canvas down) --------
-       The canvas is the retouched photo (1100x1100) at 900px wide. Its ball
-       comes from a least-squares fit of the limb — centre (545.5, 519.8),
-       radius 394.5 — and the cleared panel is centred at (565, 588). Both are
-       scaled by 900/1100 here. tools/make-ball-blank.py builds the photo. */
-    var W = 900, H = 900;
-    var CX = 446.3, CY = 425.3, R = 322.8;
-    var TAU = Math.PI * 2;
+       Each ball on offer is one photograph, retouched so the spot a mark
+       goes in is bare leather, drawn 900px square. Its numbers are measured
+       off that photo: the ball's centre and radius (a least-squares fit of the
+       limb), where a mark can go, and where the printing left on it sits.
 
-    /* Where a mark can go, in flat decal units, with the box it is fitted into
-       and the photo that has that spot cleared. The ball keeps the Hydra name
-       either way: printed in the horseshoe as it ships, or moved down onto the
-       panel as the HYDRA / A1492 lockup when a team takes the horseshoe — which
-       is retouched into the photo by tools/make-ball-blank.py, not drawn here.
-       Both spots were measured off the photo and mapped through the projection
-       below. */
-    var PLACEMENTS = {
-      panel: {
-        x: 0.05, y: 0.174, fitW: 0.8, fitH: 0.4,
-        src: '/images/ball-blank.jpg'
+       A1492: public/images/ball.jpg (1100x1100) at 900px — centre (545.5,
+       519.8) and radius 394.5 there, scaled by 900/1100 here. Its photos are
+       built by tools/make-ball-blank.py.
+       A1592: public/images/a1592.jpg, a square cropped around the ball and
+       scaled up to 900px, so the ball is bigger on the stage — that photo has
+       nothing above or below it to show. tools/make-ball-1592.py builds its
+       photos and prints these numbers.
+
+       Spots are in flat decal units (1 = the ball's radius at the centre of
+       the sphere), with the box a mark is fitted into and the photo that has
+       that spot cleared. The ball keeps the Hydra name either way: printed in
+       the horseshoe as it ships, or moved down onto the panel as the
+       HYDRA / model lockup when a team takes the horseshoe — retouched into the
+       photo by the tools, not drawn here. Both spots were measured off the
+       photo and mapped through the projection below. `print` is where the
+       printing left on the photos sits — see "The printing already on the
+       ball" below. */
+    var W = 900, H = 900;
+    var TAU = Math.PI * 2;
+    var MODELS = {
+      a1492: {
+        name: 'A1492',
+        cx: 446.3, cy: 425.3, r: 322.8,
+        spots: {
+          panel: { x: 0.05, y: 0.174, fitW: 0.8, fitH: 0.4, src: '/images/ball-blank.jpg' },
+          horseshoe: { x: 0.09, y: -0.95, fitW: 1.05, fitH: 0.66, src: '/images/ball-blank-horseshoe.jpg' }
+        },
+        print: [
+          [312, 630, 112, 262],   /* the Hydra wordmark, up in the horseshoe */
+          [308, 618, 404, 558],   /* between the seams: the model mark, or the
+                                     HYDRA / A1492 lockup that replaces it */
+          [302, 602, 643, 740]    /* the specs line along the bottom */
+        ]
       },
-      horseshoe: {
-        x: 0.09, y: -0.95, fitW: 1.05, fitH: 0.66,
-        src: '/images/ball-blank-horseshoe.jpg'
+      a1592: {
+        name: 'A1592',
+        cx: 450.4, cy: 454.2, r: 422.6,
+        spots: {
+          panel: { x: 0.07, y: 0.40, fitW: 0.9, fitH: 0.38, src: '/images/ball-1592-blank.jpg' },
+          horseshoe: { x: 0.044, y: -0.89, fitW: 1.0, fitH: 0.56, src: '/images/ball-1592-blank-horseshoe.jpg' }
+        },
+        print: [
+          [257, 673, 52, 233],    /* the Hydra wordmark */
+          [211, 730, 512, 676]    /* the model mark, or HYDRA / A1592 */
+        ]                         /* no specs line: the grass hides that side */
       }
     };
+
+    /* The ball on the stage, and the numbers everything below draws with. */
+    var model = 'a1492';
+    var CX, CY, R, PLACEMENTS;
+    function useModel(key) {
+      var m = MODELS[key];
+      CX = m.cx; CY = m.cy; R = m.r;
+      PLACEMENTS = m.spots;
+    }
+    useModel(model);
     var placement = 'panel';
 
     var hint = document.getElementById('ballHint');
@@ -328,6 +472,7 @@
     var resetBtn = document.getElementById('logoReset');
     var swatchEls = document.querySelectorAll('[data-ink]');
     var spotEls = document.querySelectorAll('.swatch[data-spot]');
+    var modelEls = document.querySelectorAll('.swatch[data-model]');
     var nudgeEls = document.querySelectorAll('[data-nudge]');
     var readout = document.getElementById('inkReadout');
 
@@ -358,11 +503,16 @@
        radius at the centre of the sphere (see the projection note below). */
     var logoImg = null, logoSrcW = 0, logoSrcH = 0, logoName = '';
     var logoData = null, logoW = 0, logoH = 0;
+    /* The file exactly as the customer chose it — what "Add To My Order" sends,
+       since a print run is set up from their artwork, not from our preview. */
+    var logoFile = null;
     var posX = PLACEMENTS.panel.x, posY = PLACEMENTS.panel.y, widthU = 0.55;
     var ink = DEFAULT_INK, knockout = false;
-    /* What the last knockout pass did, so the tick box can say whether there
-       was a background there at all — see the change handler below. */
-    var knockedPx = 0, knockedLum = -1, inkCoverage = 1;
+    /* The backdrop found behind the loaded artwork (see findBackdrop), worked
+       out once per file so swapping inks doesn't redo it; and how much ink the
+       last pass left standing, so a mark that would print as almost nothing
+       can be called out. */
+    var backdrop = null, inkCoverage = 1;
 
     function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
@@ -410,11 +560,12 @@
        from it is a leather mask: grass crosses in front of the ball along the
        bottom of the circle, and a printed mark must not paint over it. Grass is
        the one strongly green thing in the frame, so greenness keys it out —
-       white leather, black print and red seams all stay printable. */
+       white leather, black print and red seams all stay printable. Photos are
+       kept per ball and spot ("a1592:panel"), and each ball's mask on that
+       ball's entry in MODELS. */
     var photos = {};
-    var leather = null;
 
-    function buildLeatherMask(img) {
+    function buildLeatherMask(img, key) {
       var c = makeLayer();
       var cc = c.getContext('2d');
       if (!cc) { return; }
@@ -432,7 +583,7 @@
         /* <= 2 is leather or ink, >= 18 is grass, ramp across the edge. */
         m[i] = green <= 2 ? 255 : (green >= 18 ? 0 : Math.round((18 - green) * 255 / 16));
       }
-      leather = m;
+      MODELS[key].leather = m;
     }
 
     /* ---- The printing already on the ball ------------------------------
@@ -453,21 +604,15 @@
 
        Only the three spots that carry printing are searched. Elsewhere the
        lacing holes and the shadow between the stitches run just as dark as a
-       glyph, and recolouring those would be plainly wrong. Boxes are in canvas
-       pixels, measured off the photo like the placements above; a spot that
-       has been retouched out simply yields no ink. */
-    var PRINT_BOXES = [
-      [312, 630, 112, 262],   /* the Hydra wordmark, up in the horseshoe */
-      [308, 618, 404, 558],   /* between the seams: the model mark, or the
-                                 HYDRA / A1492 lockup that replaces it */
-      [302, 602, 643, 740]    /* the specs line along the bottom */
-    ];
+       glyph, and recolouring those would be plainly wrong. Boxes are each
+       ball's `print` in MODELS, in canvas pixels, measured off the photo like
+       the placements above; a spot that has been retouched out simply yields
+       no ink. */
     var PRINT_R = 16;             /* half the kernel — wider than any stroke */
     var PRINT_LO = 20;            /* below this the leather's own grain */
     var PRINT_HI = 42;            /* above it, ink */
     var PRINT_FLOOR = 0.95;       /* the printing reflects ~5% of its leather */
     var STAIN_R = 6, STAIN_MAX = 8;  /* how close to thread or grass is too close */
-    var LIMB2 = R * R * 0.9409;   /* (0.97R)^2 — inside the limb, off the edge */
 
     /* Grayscale dilation (grow) or erosion of a bw x bh patch, separable: once
        along the rows, once down the columns. That is what makes a 33px kernel
@@ -511,8 +656,12 @@
       if (!wc || !bc || !mc) { return; }
       wc.drawImage(entry.img, 0, 0, W, H);
 
-      for (var b = 0; b < PRINT_BOXES.length; b++) {
-        var box = PRINT_BOXES[b];
+      /* The photo's own ball — not necessarily the one on the stage, if it
+         landed after a switch. (0.97R)^2 keeps inside the limb, off the edge. */
+      var ball = MODELS[entry.model], boxes = ball.print;
+      var limb2 = ball.r * ball.r * 0.9409;
+      for (var b = 0; b < boxes.length; b++) {
+        var box = boxes[b];
         var x0 = box[0], y0 = box[2], bw = box[1] - box[0], bh = box[3] - box[2];
         var patch;
         try {
@@ -548,9 +697,9 @@
         var sumR = 0, sumG = 0, sumB = 0, sumL = 0;
         for (i = 0, o = 0; i < n; i++, o += 4) {
           var lit = paper[i];
-          var dx = x0 + (i % bw) + 0.5 - CX, dy = y0 + ((i / bw) | 0) + 0.5 - CY;
+          var dx = x0 + (i % bw) + 0.5 - ball.cx, dy = y0 + ((i / bw) | 0) + 0.5 - ball.cy;
           /* Lit leather, well inside the limb, clear of thread and grass. */
-          var onLeather = lit >= 60 && near[i] <= STAIN_MAX && dx * dx + dy * dy < LIMB2;
+          var onLeather = lit >= 60 && near[i] <= STAIN_MAX && dx * dx + dy * dy < limb2;
           var t = 0;
           if (onLeather) {
             var d = lit - lum[i];
@@ -603,24 +752,29 @@
       c.restore();
     }
 
-    /* Only the photo for the spot in use is fetched; the second one arrives
-       the first time somebody picks the horseshoe. The grass runs across both
-       identically, so the leather mask is built once from whichever lands. */
-    function loadPhoto(key) {
-      var entry = photos[key];
+    /* Only the photo for the ball and spot in use is fetched; the others
+       arrive the first time somebody picks them. A ball's two photos share
+       their grass, so its leather mask is built once from whichever lands. */
+    function photoFor(spot) { return photos[model + ':' + spot]; }
+
+    function loadPhoto(spot) {
+      var key = model, id = key + ':' + spot;
+      var entry = photos[id];
       if (entry) { return entry; }
       var img = new Image();
-      entry = photos[key] = { img: img, ready: false };
+      entry = photos[id] = { img: img, ready: false, model: key };
       img.onload = function () {
         entry.ready = true;
-        if (!leather) { buildLeatherMask(img); }
+        if (!MODELS[key].leather) { buildLeatherMask(img, key); }
         buildPrintLayers(entry);
-        compose();
+        /* A full redraw, not just a composite: the mark's layer is masked by
+           this ball's grass, which may only just have arrived. */
+        queueDraw();
       };
       img.onerror = function () {
         fail('The ball photo didn\u2019t load. Reload the page and try again.');
       };
-      img.src = PLACEMENTS[key].src;
+      img.src = MODELS[key].spots[spot].src;
       return entry;
     }
     loadPhoto('panel');
@@ -641,62 +795,244 @@
     var scratchCtx = scratch.getContext('2d');
 
     /* ---- Preparing the uploaded artwork -------------------------------- */
-    /* Lift a flat backdrop off the artwork. The colour is sampled from the
-       four corners rather than assumed white, so a mark sitting on a grey or
-       cream card keys out as cleanly as one on white — a fixed near-white
-       threshold leaves mid-greys half-opaque and the card still shows. Tone
-       doesn't come into it either: a mark on a navy or black card keys out the
-       same way, where a light-only rule used to leave the card and take the
-       light parts of the mark instead. If the corners disagree (a photo, a
-       busy edge) fall back to knocking back near-white pixels, which is the
-       best guess left. */
-    function knockBackdrop(img) {
-      var w = img.width, h = img.height, d = img.data;
-      var corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + w - 1) * 4];
-      var lo = [255, 255, 255], hi = [0, 0, 0], sum = [0, 0, 0];
-      var flat = true, i, ch, v;
+    /* "Remove background" takes away whatever reaches the edge of the artwork
+       through gentle colour changes: a flood fill from the edge that may step
+       to a neighbour whose colour is within STEP of its own. Colour is
+       smoothed first, so JPEG grain and the weave of a shirt in a phone photo
+       don't stop it. Steps that small follow a gradient card, or light falling
+       off across a photo, but never the edge of the mark. Keying out the one
+       colour sampled at the corners missed both, and took the mark itself
+       whenever the artwork ran out to the corners.
 
-      for (i = 0; i < corners.length && flat; i++) {
-        var o = corners[i];
-        if (d[o + 3] < 250) { flat = false; break; }
-        for (ch = 0; ch < 3; ch++) {
-          v = d[o + ch];
-          if (v < lo[ch]) { lo[ch] = v; }
-          if (v > hi[ch]) { hi[ch] = v; }
-          sum[ch] += v;
+       The fill starts only from edge pixels near the edge's commonest colour,
+       so a mark cropped tight against the edge isn't taken for backdrop where
+       it touches. And being a fill, it leaves whatever the mark encloses (the
+       white inside a letter, the badge a mark is reversed out of) in place.
+       The few pixels just inside the boundary are judged on their own raw
+       colour against the backdrop beside them, which clears the ring the
+       smoothing leaves and keeps the mark's edge anti-aliased.
+
+       Worked out once per file. Returns the alpha (0-255) the backdrop leaves
+       each pixel, whether there is anything worth removing (a white or clear
+       background never prints, so taking it away changes nothing), and
+       whether to take it away up front: yes for a light card or the surface a
+       logo was photographed on, no for a dark one — that is usually the badge
+       the mark is reversed out of, and lifting it would leave nothing to
+       print. */
+    var STEP = 14, DRIFT = 56, SPAN = 12, SEED = 48, NEAR = 30, FAR = 70, FEATHER = 3;
+
+    function inkOf(r, g, b) { return 1 - (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255; }
+
+    /* A 5x5 box blur of the colour, run over a ring of five rows. Weighted
+       by alpha, so the clear part of a PNG doesn't bleed its hidden colour
+       into the edge of the mark. */
+    function smoothColour(d, w, h) {
+      var R = 2, S = 2 * R + 1, out = new Uint8ClampedArray(w * h * 3);
+      var ring = new Float32Array(S * w * 4);
+      function rowSums(y) {
+        var yy = y < 0 ? 0 : (y >= h ? h - 1 : y);
+        var base = (((y % S) + S) % S) * w * 4;
+        for (var x = 0; x < w; x++) {
+          var r = 0, g = 0, b = 0, s = 0;
+          for (var k = x - R; k <= x + R; k++) {
+            var o = (yy * w + (k < 0 ? 0 : (k >= w ? w - 1 : k))) * 4, a = d[o + 3];
+            r += d[o] * a; g += d[o + 1] * a; b += d[o + 2] * a; s += a;
+          }
+          var j = base + x * 4;
+          ring[j] = r; ring[j + 1] = g; ring[j + 2] = b; ring[j + 3] = s;
+        }
+      }
+      for (var y = -R; y < R; y++) { rowSums(y); }
+      for (y = 0; y < h; y++) {
+        rowSums(y + R);
+        for (var x = 0; x < w; x++) {
+          var r = 0, g = 0, b = 0, s = 0;
+          for (var k = 0; k < S; k++) {
+            var j = (k * w + x) * 4;
+            r += ring[j]; g += ring[j + 1]; b += ring[j + 2]; s += ring[j + 3];
+          }
+          var o = (y * w + x) * 3;
+          if (s) { out[o] = r / s; out[o + 1] = g / s; out[o + 2] = b / s; }
+          else { out[o] = out[o + 1] = out[o + 2] = 255; }
+        }
+      }
+      return out;
+    }
+
+    function findBackdrop(img) {
+      var w = img.width, h = img.height, d = img.data, n = w * h;
+      var sm = smoothColour(d, w, h);
+      var bg = new Uint8Array(n), queue = new Int32Array(n), head = 0, tail = 0;
+      var depth = new Int32Array(n), anchor = new Int32Array(n);
+      var keep = new Uint8ClampedArray(n);
+      var p, q, i, k, x;
+      keep.fill(255);
+
+      function solid(p) { return d[p * 4 + 3] >= 16; }
+
+      /* The edge, and its commonest colour on a coarse 8x8x8 grid — clear
+         counts as a colour of its own. */
+      var edge = [];
+      for (x = 0; x < w; x++) { edge.push(x); if (h > 1) { edge.push((h - 1) * w + x); } }
+      for (k = 1; k < h - 1; k++) { edge.push(k * w); if (w > 1) { edge.push(k * w + w - 1); } }
+      var CLEAR = 512, counts = new Int32Array(513), keys = new Int32Array(edge.length);
+      for (i = 0; i < edge.length; i++) {
+        p = edge[i] * 3;
+        keys[i] = solid(edge[i])
+          ? ((sm[p] >> 5) << 6) | ((sm[p + 1] >> 5) << 3) | (sm[p + 2] >> 5)
+          : CLEAR;
+        counts[keys[i]]++;
+      }
+      var top = 0;
+      for (k = 1; k < 513; k++) { if (counts[k] > counts[top]) { top = k; } }
+      var cr = 0, cg = 0, cb = 0;
+      if (top !== CLEAR) {
+        for (i = 0; i < edge.length; i++) {
+          if (keys[i] !== top) { continue; }
+          p = edge[i] * 3;
+          cr += sm[p]; cg += sm[p + 1]; cb += sm[p + 2];
+        }
+        cr /= counts[top]; cg /= counts[top]; cb /= counts[top];
+      }
+      for (i = 0; i < edge.length; i++) {
+        p = edge[i];
+        if (bg[p]) { continue; }
+        var take;
+        if (top === CLEAR) {
+          take = !solid(p);
+        } else {
+          var er = sm[p * 3] - cr, eg = sm[p * 3 + 1] - cg, eb = sm[p * 3 + 2] - cb;
+          take = solid(p) && er * er + eg * eg + eb * eb <= SEED * SEED;
+        }
+        if (take) { bg[p] = 1; queue[tail++] = p; }
+      }
+
+      /* The fill. Clear pixels always join; a solid one joins from a solid
+         neighbour of nearly the same colour, never from a clear one — that
+         step is the mark's own edge. Small steps alone aren't enough: an
+         anti-aliased edge that fades over a few pixels is a run of small
+         steps, and the fill used to creep across it into the mark. So each
+         pixel is also held to an anchor up to SPAN steps back along its path
+         and may drift no more than DRIFT from it. A gradient or the light
+         across a photo changes a little over that distance; the edge of a
+         mark changes a lot. */
+      for (i = 0; i < tail; i++) { anchor[queue[i]] = queue[i]; }
+      function reach(p, q) {
+        if (bg[q]) { return; }
+        var an = anchor[p];
+        if (solid(q)) {
+          if (!solid(p)) { return; }
+          var a = p * 3, b = q * 3, c = an * 3;
+          var dr = sm[a] - sm[b], dg = sm[a + 1] - sm[b + 1], db = sm[a + 2] - sm[b + 2];
+          if (dr * dr + dg * dg + db * db > STEP * STEP) { return; }
+          dr = sm[c] - sm[b]; dg = sm[c + 1] - sm[b + 1]; db = sm[c + 2] - sm[b + 2];
+          if (dr * dr + dg * dg + db * db > DRIFT * DRIFT) { return; }
+        }
+        bg[q] = 1; queue[tail++] = q;
+        depth[q] = depth[p] + 1;
+        anchor[q] = depth[q] - depth[an] >= SPAN ? p : an;
+      }
+      while (head < tail) {
+        p = queue[head++]; x = p % w;
+        if (x > 0) { reach(p, p - 1); }
+        if (x < w - 1) { reach(p, p + 1); }
+        if (p >= w) { reach(p, p - w); }
+        if (p < n - w) { reach(p, p + w); }
+      }
+
+      /* The ring just inside, judged on raw colour against the backdrop
+         colour next to it, carried in a pixel at a time. */
+      var refc = new Uint8ClampedArray(n * 3), judged = new Uint8Array(n), front = [];
+      for (p = 0; p < n; p++) {
+        if (bg[p]) { keep[p] = 0; judged[p] = 1; }
+      }
+      for (p = 0; p < n; p++) {
+        if (bg[p]) { continue; }
+        x = p % w;
+        q = (x > 0 && bg[p - 1] && solid(p - 1)) ? p - 1
+          : (x < w - 1 && bg[p + 1] && solid(p + 1)) ? p + 1
+          : (p >= w && bg[p - w] && solid(p - w)) ? p - w
+          : (p < n - w && bg[p + w] && solid(p + w)) ? p + w : -1;
+        if (q >= 0) { front.push(p, q); }
+      }
+      for (k = 0; k < FEATHER && front.length; k++) {
+        var next = [];
+        for (i = 0; i < front.length; i += 2) {
+          p = front[i]; q = front[i + 1];
+          if (judged[p]) { continue; }
+          judged[p] = 1;
+          var src = bg[q] ? sm : refc, a3 = p * 3, q3 = q * 3, o = p * 4;
+          refc[a3] = src[q3]; refc[a3 + 1] = src[q3 + 1]; refc[a3 + 2] = src[q3 + 2];
+          var fr = d[o] - refc[a3], fg = d[o + 1] - refc[a3 + 1], fb = d[o + 2] - refc[a3 + 2];
+          var dist = Math.sqrt(fr * fr + fg * fg + fb * fb);
+          var t = dist <= NEAR ? 0 : (dist >= FAR ? 1 : (dist - NEAR) / (FAR - NEAR));
+          keep[p] = t * 255;
+          if (t < 0.5 && solid(p)) {
+            x = p % w;
+            if (x > 0 && !judged[p - 1]) { next.push(p - 1, p); }
+            if (x < w - 1 && !judged[p + 1]) { next.push(p + 1, p); }
+            if (p >= w && !judged[p - w]) { next.push(p - w, p); }
+            if (p < n - w && !judged[p + w]) { next.push(p + w, p); }
+          }
+        }
+        front = next;
+      }
+
+      /* Holes: the backdrop seen through the mark — inside an O, or a ring
+         — is the backdrop's colour but walled off from the edge, so the fill
+         never gets there, and on a grey card it would print as a tinted blob
+         in every counter. A patch near the backdrop's colour that doesn't
+         touch the backdrop and is lighter than whatever walls it in is a
+         hole, and goes too. Lighter, because a dark mark inside a dark frame
+         matches the frame just as well, and that one has to stay. */
+      if (top !== CLEAR) {
+        var seen = new Uint8Array(n);
+        var nearBack = function (p) {
+          var er = sm[p * 3] - cr, eg = sm[p * 3 + 1] - cg, eb = sm[p * 3 + 2] - cb;
+          return solid(p) && er * er + eg * eg + eb * eb <= SEED * SEED;
+        };
+        var lumAt = function (p) { return 255 * (1 - inkOf(sm[p * 3], sm[p * 3 + 1], sm[p * 3 + 2])); };
+        for (var s0 = 0; s0 < n; s0++) {
+          if (bg[s0] || seen[s0] || !nearBack(s0)) { continue; }
+          var qh = 0, qt = 0, inLum = 0, wallLum = 0, walls = 0, open = false;
+          seen[s0] = 1; queue[qt++] = s0;
+          while (qh < qt) {
+            p = queue[qh++]; inLum += lumAt(p); x = p % w;
+            var nb = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < n - w ? p + w : -1];
+            for (k = 0; k < 4; k++) {
+              q = nb[k];
+              if (q < 0) { continue; }
+              if (bg[q]) { open = true; continue; }
+              if (seen[q]) { continue; }
+              if (nearBack(q)) { seen[q] = 1; queue[qt++] = q; }
+              else if (solid(q)) { wallLum += lumAt(q); walls++; }
+            }
+          }
+          if (!open && walls && inLum / qt > wallLum / walls + 20) {
+            for (i = 0; i < qt; i++) { keep[queue[i]] = 0; }
+          }
         }
       }
 
-      var spread = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
-      var bg = [sum[0] / 4, sum[1] / 4, sum[2] / 4];
-      if (!flat || spread > 20) { knockWhite(img); return; }
-
-      var NEAR = 30, FAR = 70;
-      knockedLum = 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2];
-      for (i = 0; i < d.length; i += 4) {
-        if (!d[i + 3]) { continue; }
-        var dr = d[i] - bg[0], dg = d[i + 1] - bg[1], db = d[i + 2] - bg[2];
-        var dist = Math.sqrt(dr * dr + dg * dg + db * db);
-        if (dist <= NEAR) { d[i + 3] = 0; knockedPx++; }
-        else if (dist < FAR) { d[i + 3] = d[i + 3] * ((dist - NEAR) / (FAR - NEAR)); }
+      /* What it took, and what that leaves to print. */
+      var gone = 0, goneInk = 0, goneLight = 0, removed = 0, printsLeft = 0;
+      for (p = 0, o = 0; p < n; p++, o += 4) {
+        var al = d[o + 3] / 255;
+        if (!al) { continue; }
+        var ti = inkOf(d[o], d[o + 1], d[o + 2]), kf = keep[p] / 255, g = al * (1 - kf);
+        if (kf < 0.5) { removed++; }
+        gone += g; goneInk += ti * g; goneLight += (1 - ti) * g;
+        if (ti * al * kf >= 0.5) { printsLeft++; }
       }
-    }
-
-    /* Drop near-white pixels. Saturated light colours (a yellow mark, say)
-       are left alone. */
-    function knockWhite(img) {
-      var d = img.data, HI = 246, LO = 208, SAT = 30;
-      knockedLum = 255;
-      for (var i = 0; i < d.length; i += 4) {
-        if (!d[i + 3]) { continue; }
-        var r = d[i], g = d[i + 1], b = d[i + 2];
-        var mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
-        var mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
-        if (mx - mn > SAT) { continue; }
-        var lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        if (lum >= HI) { d[i + 3] = 0; knockedPx++; }
-        else if (lum > LO) { d[i + 3] = d[i + 3] * ((HI - lum) / (HI - LO)); }
-      }
+      /* 0.02 is about RGB 250: brighter than that never shows on the leather,
+         but the fake transparency checkerboard some downloaded logos carry
+         (white and RGB 240 squares) does, faintly. */
+      var removable = removed >= n * 0.005 && gone > 0 && goneInk / gone >= 0.02;
+      return {
+        keep: keep,
+        removable: removable,
+        suggest: removable && goneLight / gone >= 0.45 && printsLeft >= n * 0.005
+      };
     }
 
     /* Recolour to a one-colour stamp. Ink coverage follows the artwork's
@@ -706,20 +1042,21 @@
        (white here, which multiply passes straight through). */
     function inkify(img, rgb) {
       var d = img.data, ir = rgb[0], ig = rgb[1], ib = rgb[2];
-      /* Average coverage across what's left standing, so a mark that would
-         print as almost nothing — white artwork off a dark card — can be
-         called out rather than quietly vanishing into the leather. */
-      var cov = 0, weight = 0;
+      /* The share of the artwork that prints at half strength or more, so a mark
+         that would come out as almost nothing — white artwork lifted off a
+         dark card — can be called out rather than quietly vanishing into the
+         leather. A share of the whole raster, not an average over what's
+         standing, so the white inside a frame doesn't water a real mark down. */
+      var printed = 0;
       for (var i = 0; i < d.length; i += 4) {
         if (!d[i + 3]) { continue; }
-        var t = 1 - (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
-        var a = d[i + 3] / 255;
-        cov += t * a; weight += a;
+        var t = inkOf(d[i], d[i + 1], d[i + 2]);
+        if (t * d[i + 3] / 255 >= 0.5) { printed++; }
         d[i] = 255 + (ir - 255) * t;
         d[i + 1] = 255 + (ig - 255) * t;
         d[i + 2] = 255 + (ib - 255) * t;
       }
-      inkCoverage = weight ? cov / weight : 1;
+      inkCoverage = printed / (d.length / 4);
     }
 
     function prepareLogo() {
@@ -742,8 +1079,15 @@
         fail('Your browser won’t let this file be read pixel by pixel. Try a PNG or JPG.');
         return;
       }
-      knockedPx = 0; knockedLum = -1; inkCoverage = 1;
-      if (knockout) { knockBackdrop(img); }
+      /* Found on the artwork as it arrived, before anything is lifted. */
+      if (!backdrop) { backdrop = findBackdrop(img); }
+      if (knockout && backdrop.removable) {
+        var keep = backdrop.keep, px = img.data;
+        for (var p = 0, o = 3; p < keep.length; p++, o += 4) {
+          if (keep[p] < 255) { px[o] = px[o] * keep[p] / 255; }
+        }
+      }
+      inkCoverage = 1;
       var rgb = inkFor(ink);
       if (rgb) { inkify(img, rgb); }
       logoData = img;
@@ -778,9 +1122,32 @@
       queueDraw();
     }
 
+    /* Swap the ball. Positions and sizes are in decal units, fractions of
+       the ball's radius, and both balls are regulation size, so the mark
+       keeps its size and its offset from the middle of its spot: it lands on
+       the new ball where it sat on the old one, nudges and all. */
+    function setModel(next) {
+      if (!MODELS[next] || next === model) { return; }
+      var from = PLACEMENTS[placement];
+      model = next;
+      useModel(next);
+      var to = PLACEMENTS[placement];
+      posX = clamp(to.x + (posX - from.x), -1.2, 1.2);
+      posY = clamp(to.y + (posY - from.y), -1.2, 1.2);
+      loadPhoto(placement);
+      for (var i = 0; i < modelEls.length; i++) {
+        var on = modelEls[i].getAttribute('data-model') === next;
+        modelEls[i].classList.toggle('is-active', on);
+        modelEls[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      stage.setAttribute('aria-label', 'Preview of your logo on a Hydra ' + MODELS[next].name + ' baseball');
+      queueDraw();
+    }
+
     /* ---- Wrapping the artwork onto the sphere -------------------------- */
     function renderLogoLayer() {
       if (!logoCtx || !logoImage) { return; }
+      var leather = MODELS[model].leather;   /* this ball's grass, once it has landed */
       var dst = logoImage.data;
       dst.fill(0);
       if (!logoData) { logoCtx.putImageData(logoImage, 0, 0); return; }
@@ -858,11 +1225,15 @@
     }
 
     function compose() {
-      ctx.clearRect(0, 0, W, H);
-      /* While a newly-picked photo loads, the one already decoded stands in. */
-      var entry = photos[placement];
-      if (!entry || !entry.ready) { entry = photos.panel; }
+      /* While a newly-picked photo loads, the ball's panel photo stands in.
+         A newly-picked ball has neither yet, so the last frame stays up
+         rather than flashing an empty stage; its photo redraws on landing. */
+      var entry = photoFor(placement);
+      if (!entry || !entry.ready) { entry = photoFor('panel'); }
       var ready = Boolean(entry && entry.ready);
+      if (!ready && stage.getAttribute('data-drawn')) { return; }
+      ctx.clearRect(0, 0, W, H);
+      if (ready) { stage.setAttribute('data-drawn', '1'); }
       if (ready) { ctx.drawImage(entry.img, 0, 0, W, H); }
       /* The ball's own printing, lifted off its leather and stamped back down
          in the chosen ink — the same multiply the uploaded mark gets, so both
@@ -902,19 +1273,38 @@
     compose();
 
     /* ---- Status ------------------------------------------------------- */
-    /* What the last knockout pass is worth saying about. Three of these read
-       as "the tick box did nothing" without a word of explanation. */
+    /* What a press of "Remove background" did. */
     function knockNote() {
-      if (knockedPx < logoW * logoH * 0.005) {
-        return 'Nothing to remove — this artwork already has a clear background.';
-      }
-      if (inkCoverage < 0.15) {
-        return 'Background removed, but this mark is light on dark: one ink can’t print white onto the leather. Send a dark-on-light version.';
-      }
-      if (knockedLum >= 235) {
-        return 'White background removed — white prints straight through to the leather, so the ball looks the same either way.';
+      if (!knockout) { return 'Background left in place — it prints as part of the logo.'; }
+      if (inkCoverage < 0.005) {
+        return 'Background removed, but what’s left is too light to print: one ink can’t print white onto the leather. Send a dark-on-light version, or untick Remove background.';
       }
       return 'Background removed.';
+    }
+
+    /* What was decided about the background when the file came in. */
+    function loadNote() {
+      if (!backdrop || !backdrop.removable) {
+        return 'Nothing to remove — its background is white or clear, and that doesn’t print.';
+      }
+      return knockout
+        ? 'Background removed, so only the logo prints.'
+        : 'Its background will print too — tick Remove background to drop it.';
+    }
+
+    /* The tick box only offers what it can do: greyed out, with the reason,
+       when the background is white or clear — the leather looks the same
+       with or without it, which used to read as the box being broken. */
+    function syncKnockBox() {
+      if (!knockBox) { return; }
+      var can = Boolean(backdrop && backdrop.removable);
+      knockBox.checked = knockout;
+      knockBox.disabled = !can;
+      var label = knockBox.parentNode;
+      if (label && label.classList) {
+        label.classList.toggle('is-disabled', !can);
+        label.title = can ? '' : 'Nothing to remove: a white or clear background doesn’t print.';
+      }
     }
 
     function say(msg) {
@@ -980,11 +1370,11 @@
           logoSrcH = img.naturalHeight || 512;
           logoImg = img;
           logoName = file.name || 'logo';
+          logoFile = file;
 
-          /* JPGs can't carry transparency, so a flat backdrop is a near
-             certainty — key it out up front rather than making them find it. */
-          knockout = /jpe?g/i.test(file.type || '');
-          if (knockBox) { knockBox.checked = knockout; }
+          /* The background is measured afresh for every file, below. */
+          backdrop = null;
+          knockout = false;
 
           /* Drop the mark straight onto the chosen spot, scaled to fill it,
              so a wide wordmark and a tall crest both land somewhere sensible
@@ -996,16 +1386,18 @@
           prepareLogo();
           /* prepareLogo has already explained why if it bailed — don't follow
              it with a "loaded" message and a panel of dead controls. */
-          if (!logoData) { logoImg = null; return; }
+          if (!logoData) { logoImg = null; logoFile = null; backdrop = null; return; }
+          /* A light card, or the surface a logo was photographed on, comes
+             off straight away; see findBackdrop for why a dark one doesn't. */
+          if (backdrop && backdrop.suggest) { knockout = true; prepareLogo(); }
+          syncKnockBox();
           queueDraw();
 
           if (controls) { controls.hidden = false; }
           stage.classList.add('is-draggable');
           stage.setAttribute('tabindex', '0');
           if (hint) { hint.textContent = 'Drag the logo to place it. Focus the ball and nudge with the arrow keys.'; }
-          say(knockout && knockedPx
-            ? logoName + ' loaded. ' + knockNote()
-            : logoName + ' loaded.');
+          say(logoName + ' loaded. ' + loadNote());
         };
         img.onerror = function () {
           if (done) { done(); }
@@ -1071,6 +1463,16 @@
       });
     }
 
+    /* The ball can be picked before there's a logo, to see it first. */
+    for (var mi = 0; mi < modelEls.length; mi++) {
+      modelEls[mi].addEventListener('click', function () {
+        var next = this.getAttribute('data-model') || 'a1492';
+        if (next === model) { return; }
+        setModel(next);
+        say(MODELS[next].name + ' selected' + (logoData ? ' — your logo moved across with it.' : '.'));
+      });
+    }
+
     for (var pi = 0; pi < spotEls.length; pi++) {
       spotEls[pi].addEventListener('click', function () {
         var next = this.getAttribute('data-spot') || 'panel';
@@ -1094,7 +1496,7 @@
         knockout = knockBox.checked;
         prepareLogo();
         queueDraw();
-        say(knockout ? knockNote() : 'Background left in place.');
+        say(knockNote());
       });
     }
 
@@ -1164,6 +1566,99 @@
       queueDraw();
     });
 
+    /* ---- What goes with the order -------------------------------------- */
+    /* FormSubmit takes 10 MB of files per inquiry; this leaves room for the
+       rest of the form. A logo that won't fit beside the mockup goes as a
+       smaller copy, and failing that is left for us to ask for. */
+    var FILE_BUDGET = 9 * 1024 * 1024;
+
+    function canvasBlob(canvas, type, quality) {
+      return new Promise(function (resolve) {
+        if (!canvas.toBlob) { resolve(null); return; }
+        try {
+          canvas.toBlob(function (blob) { resolve(blob || null); }, type, quality);
+        } catch (err) {
+          resolve(null); /* a canvas the browser treats as tainted */
+        }
+      });
+    }
+
+    /* The ball as it stands, minus the dashed outline shown while placing.
+       toBlob copies the canvas the moment it is called, so the outline can
+       come straight back. */
+    function snapshotMockup() {
+      var entry = photoFor(placement);
+      if (!logoData || !entry || !entry.ready) { return Promise.resolve(null); }
+      var wasGuide = guideOn;
+      guideOn = false;
+      renderLogoLayer();
+      compose();
+      var shot = canvasBlob(stage, 'image/jpeg', 0.9);
+      guideOn = wasGuide;
+      queueDraw();
+      return shot;
+    }
+
+    /* The artwork redrawn with its longest side at 2000px. A JPEG stays a
+       JPEG; anything else becomes a PNG so a clear background stays clear. */
+    function smallerLogo(file) {
+      if (!logoImg || !logoSrcW || !logoSrcH) { return Promise.resolve(null); }
+      var s = Math.min(1, 2000 / Math.max(logoSrcW, logoSrcH));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(logoSrcW * s));
+      c.height = Math.max(1, Math.round(logoSrcH * s));
+      var cc = c.getContext('2d');
+      if (!cc) { return Promise.resolve(null); }
+      cc.drawImage(logoImg, 0, 0, c.width, c.height);
+      return canvasBlob(c, /jpe?g/i.test(file.type || '') ? 'image/jpeg' : 'image/png', 0.92);
+    }
+
+    function megabytes(bytes) { return (bytes / 1048576).toFixed(1) + ' MB'; }
+
+    /* Resolves to { files: [{ field, file }], note }. The note ends the
+       email's "logo" line, saying what is attached. */
+    function packArt() {
+      var file = logoFile;
+      var base = (logoName || 'logo').replace(/\.[^.]*$/, '') || 'logo';
+      return snapshotMockup().then(function (mock) {
+        var room = FILE_BUDGET - (mock ? mock.size : 0);
+        var logo;
+        if (!file) {
+          logo = Promise.resolve(null);
+        } else if (file.size <= room) {
+          logo = Promise.resolve(file);
+        } else {
+          logo = smallerLogo(file).then(function (blob) {
+            if (!blob || blob.size > room) { return null; }
+            var ext = blob.type === 'image/jpeg' ? 'jpg' : 'png';
+            return new File([blob], base + '-smaller.' + ext, { type: blob.type });
+          });
+        }
+        return logo.then(function (sent) {
+          var files = [], listed = [];
+          if (sent) {
+            files.push({ field: 'attachment', file: sent });
+            listed.push(sent === file
+              ? 'logo file'
+              : 'smaller copy of the logo (original ' + megabytes(file.size) + ')');
+          }
+          if (mock) {
+            files.push({
+              field: 'mockup',
+              file: new File([mock], base + '-mockup.jpg', { type: 'image/jpeg' })
+            });
+            listed.push('mockup');
+          }
+          var note = listed.length ? ' — attached: ' + listed.join(', ') : '';
+          if (file && !sent) {
+            note += (note ? '; ' : ' — ') + 'the logo file (' + megabytes(file.size) +
+              ') was too big to attach, so ask for it';
+          }
+          return { files: files, note: note };
+        });
+      });
+    }
+
     /* ---- Actions ------------------------------------------------------- */
     if (downloadBtn) {
       downloadBtn.addEventListener('click', function () {
@@ -1185,20 +1680,32 @@
       });
     }
 
+    /* The ball "Add To My Order" last put in the Team Orders form's Model
+       field — so a press after switching balls moves it along, while a model
+       the customer picked there themselves stays put. */
+    var orderedModel = '';
+
     if (attachBtn) {
       attachBtn.addEventListener('click', function () {
+        var summary = 'Mocked up on site: ' + (logoName || 'team logo') +
+          ' (' + MODELS[model].name + ', ' +
+          (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
+          INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
         var field = document.getElementById('ordersLogo');
-        if (field) {
-          field.value = 'Mocked up on site: ' + (logoName || 'team logo') +
-            ' (' + (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
-            INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
+        if (field) { field.value = summary; }
+        var modelField = ordersForm ? ordersForm.querySelector('select[name="model"]') : null;
+        if (modelField && (!modelField.value || modelField.value === orderedModel)) {
+          modelField.value = orderedModel = MODELS[model].name;
         }
+        /* Packed now, so the email shows exactly what was added — later
+           tweaks need another press. */
+        orderArt = window.Promise ? { summary: summary, packed: packArt() } : null;
         var msg = ordersForm ? ordersForm.querySelector('textarea[name="message"]') : null;
         if (msg && msg.value.indexOf('custom logo') === -1) {
           msg.value = (msg.value ? msg.value.replace(/\s+$/, '') + '\n\n' : '') +
             'We’d like a quote on custom logo baseballs — I mocked ours up on the site.';
         }
-        say('Added to your team order below. Download the mockup and attach it to your reply so we can match the artwork.');
+        say('Added to your team order below. Your logo file and this mockup will be attached when you send it.');
         var target = document.getElementById('team-orders');
         /* Plain scrollIntoView so the page's scroll-behavior (and its
            reduced-motion override) stays in charge. */
@@ -1211,10 +1718,13 @@
         logoImg = null;
         logoData = null;
         logoName = '';
+        logoFile = null;
+        orderArt = null;
         setPlacement('panel');
         posX = PLACEMENTS.panel.x; posY = PLACEMENTS.panel.y; widthU = 0.55;
         knockout = false;
-        if (knockBox) { knockBox.checked = false; }
+        backdrop = null;
+        syncKnockBox();
         if (sizeInput) { sizeInput.value = '55'; }
         setInk(DEFAULT_INK);
         if (fileInput) { fileInput.value = ''; }

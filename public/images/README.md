@@ -31,6 +31,9 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 |------|----------------|-------|
 | `ball.jpg` | Source photo for everything below | The A1492 Pro Series product shot. No longer served to the browser itself — the tools measure and retouch it. |
 | `a1492-pair.jpg` | "The Ball" section | Both models in one frame — an A1492 beside an A1492+, in the grass. Stored rotated 90° CCW from how it came off the camera, which stands the marks upright and sets the pair side by side; the card takes its 1721x1206 as-is, no crop. Replaced `ball-plus.jpg` in this section. |
+| `a1592.jpg` | "The Ball" section, above the pair | The A1592 Competition Series ball in the grass. The wordmark's small line came printed "BASBALL CO." and has been retouched to "BASEBALL CO.": the line unwrapped off its arc, an E built from the L's own stroke and blur put in after the S, the tracking tightened to keep the line between the swooshes, and the result wrapped back on. Replace it with a reshoot rather than retouching it again. |
+| `a1292-a1392.png` | "The Ball" section, below the pair | Artwork of the A1292 Classic Series beside the A1392 Select Series — flat, black and red on white, the balls leveled and set on a 16:9 card with the same margin all round, at twice the size they came. Built by `tools/make-a1292-a1392.py`. A photo of the balls themselves can replace it; drop the `balls__photo--art` class from its card in `app/page.tsx` then, so it loads over the photos' green. |
+| `a1292-a1392-src.webp` | Nowhere — an input to that tool | The artwork as it arrived: a phone screenshot of an image viewer, carrying the viewer's toolbar and the supplier's "Buyball Sports" watermark tiled behind the balls. Kept as it came off the phone. |
 | `a1492-pile.jpg` | The third proof shot in "The Hydra Difference" | A pile of stock A1492s — the tile crops square from the middle, which lands on the ball carrying the Hydra mark and the model mark, with the spec stamp beside it. The tile's caption reads A1492, not A1492+: every ball legible in this shot is the base model. |
 | `ball-plus.jpg` | _Currently unused_ | The A1492+ game ball, cut out of `ball-plus-src.jpg` and set on `ball.jpg`'s field. Built by `tools/make-ball-plus.py`, and `make-tray-plus.py` imports that fit — so both stay. Led "The Ball" section, then the third proof shot, until the pair and pile photos took them. |
 | `ball-plus-src.jpg` | Nowhere — an input to that tool | The phone shot of the game ball in hand, indoors. Kept at full size and orientation as it came off the phone; the tool applies the EXIF rotation itself. |
@@ -40,10 +43,14 @@ To swap the video, drop a web-friendly **H.264 MP4** at `public/videos/hero.mp4`
 | `ball-blank.jpg` | "Your Logo. Our Leather." customizer | The same photo with the printed A1492 / PRO SERIES panel retouched out and the black band cropped off the top, so an uploaded logo lands on bare leather. The Hydra wordmark stays. |
 | `ball-blank-horseshoe.jpg` | Same, when the logo is placed on the horseshoe | The Hydra wordmark cleared instead, since that's the spot the mark is taking — so the Hydra name moves down to the panel, where the `HYDRA / A1492` lockup is printed over the model mark. Fetched only when someone picks that placement. |
 | `panel-lockup.png` | Printed into `ball-blank-horseshoe.jpg` | The `HYDRA / A1492` lockup as flat artwork, black on transparent. Not served to the browser — it's an input to the tool below. |
+| `ball-1592-blank.jpg` | The customizer, when the A1592 is picked | `a1592.jpg` with the A1592 / COMPETITION SERIES panel retouched out, cropped square around the ball and scaled to the stage's 900px. The photo is 16:9 with the ball filling its height, so the A1592 sits bigger in the frame than the A1492 — there is nothing above or below it to show. The Hydra wordmark stays. Built by `tools/make-ball-1592.py`. |
+| `ball-1592-blank-horseshoe.jpg` | Same, A1592 with the logo on the horseshoe | The wordmark cleared and the `HYDRA / A1592` lockup printed on the panel, as the A1492's horseshoe blank does. |
+| `panel-lockup-1592.png` | Printed into `ball-1592-blank-horseshoe.jpg` | `HYDRA / A1592`: the wordmark off `public/logo.png` over the model mark lifted off `a1592.jpg`. Not served to the browser. |
 | `baskets.jpg` | "The Hydra Difference", and the hero's first slide | Baskets of finished A1492s on the production floor, straight off the phone. Portrait: it fills the hero panel almost exactly, and the shorter Difference panel crops to the middle band — the lower basket, filled edge to edge. Replaced the `tray-plus.jpg` composite in the panel and `hero-6.jpg` in the rotation. |
 | `tray-plus.jpg` | _Currently unused_ | `hero-6.jpg` with the front-centre ball swapped for the A1492+, and the phone screenshot's black bands cropped off. Built by `tools/make-tray-plus.py`. Held the `.difference__media` panel until the baskets photo took it. |
-| `team/*.jpg` | "Front Office" | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). Built from `team/src/` by `tools/make-headshots.py`, which cuts each person out of whatever they were photographed against and sets them all on one studio sweep. See `team/README.md`; the roster itself lives in the `TEAM` list in `app/page.tsx`. |
+| `team/*.jpg` | _Currently unused_ | One headshot per person, 4:5 portrait, named after them (`ben-hudock.jpg`). Built from `team/src/` by `tools/make-headshots.py`, which cuts each person out of whatever they were photographed against and sets them all on one studio sweep. See `team/README.md`. Ran the "Front Office" section until it was taken off the page; the `TEAM` roster in `app/page.tsx` that listed them went with it. |
 | `players.jpg` | _Currently unused_ | Was the quote band background; that section has been removed. |
+| `logos/*.png` | The "Trusted By" ticker under the nav | One per school or organization Hydra has supplied, trimmed to the mark by `tools/make-logos.py` from what arrived in `logos/src/`. The page lists them in `CLIENTS` in `app/page.tsx`. See `logos/README.md`. |
 
 Both blanks are generated from `ball.jpg` by `tools/make-ball-blank.py` (`python3
 tools/make-ball-blank.py` from the repo root), and the lockup it prints comes
@@ -63,11 +70,26 @@ out of artwork already in the repo rather than a font: the wordmark off
 back off the sphere. Drop a real vector export in as `panel-lockup.png` instead
 and `make-ball-blank.py` will print that.
 
-Re-run both after replacing `ball.jpg` — and if the new shot frames the ball
-differently, re-measure the ball circle, the two print spots and `PRINT_BOXES`
-in `public/script.js`. That last one is where the customizer looks for the
-printing already on the ball — the wordmark, the model mark or lockup, and the
-specs line — so it can restamp it in the Pantone ink a team picks. A box that no
-longer sits over its printing simply leaves that printing black.
+The A1592's three files come from `tools/make-ball-1592.py`, which loads those
+two tools and runs their own clearing, stamping and lockup code on `a1592.jpg`
+with that photo's measurements, then crops the square the stage shows. It prints
+the numbers the customizer needs for that ball at the end.
+
+Re-run the tools after replacing `ball.jpg` or `a1592.jpg` — and if the new shot
+frames the ball differently, re-measure that ball's entry in `MODELS` in
+`public/script.js`: the ball circle, the two print spots and `print`. That last
+one is where the customizer looks for the printing already on the ball — the
+wordmark, the model mark or lockup, and the A1492's specs line — so it can
+restamp it in the Pantone ink a team picks. A box that no longer sits over its
+printing simply leaves that printing black.
+
+`tools/make-a1292-a1392.py` stands on its own. It treats every pixel of the
+artwork as black and red ink over white, keeps only ink inside the two balls and
+touching their solid linework — which leaves the watermark, the faint rules
+between its tiles and the viewer's toolbar behind — fits a circle to each ball to
+level the pair, and writes the card at twice the screenshot's size with its edges
+sharpened. Run it again if a cleaner copy of the artwork arrives in place of
+`a1292-a1392-src.webp`; a screenshot framed differently may need its `TOOLBAR`
+rows changed.
 
 If a file is missing, an on-brand gradient fallback renders in its place.

@@ -10,15 +10,24 @@ Built with **Next.js** (App Router) and deployed on **Vercel**, backed by
 ## What's here
 
 - **Public landing page** (`/`) — the marketing site, "By Players For Players."
-  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — 1592, A1492+ and A1492 — and
-  specs, plus a cutaway that opens the ball on scroll to show the leather,
+  Under the nav, as part of the fixed header, a **Trusted By** ticker runs the
+  logos of the schools and organizations Hydra has supplied (see
+  `public/images/logos/README.md` to add one).
+  Ordered so the product leads: hero → **the ball** (The Hydra Lineup — A1592,
+  A1492+, A1492, A1392 and A1292, each with its leather grade and wool content —
+  and specs, plus a cutaway that opens the ball on scroll to show the leather,
   the yarn winding and the cork pill — drawn in SVG, swept open by CSS) →
-  **customize** (drop a team logo onto a real ball photo) → the Hydra
-  difference → apparel → **front office** → team orders. The front-office roster — name,
-  role, bio, headshot — is the `TEAM` list at the top of `app/page.tsx`, and
-  headshots go in `public/images/team/`; someone with no photo yet shows their
-  initials. Photos drop into `public/images/`
-  (see `public/images/README.md`); on-brand gradient fallbacks render until then.
+  **customize** (pick the A1492 or the A1592 and drop a team logo onto a real
+  photo of it; **Remove background** lifts a card, gradient or photo backdrop
+  off the artwork, and is greyed out when there's nothing that would print) → the Hydra
+  difference → apparel → team orders. When a customer presses
+  **Add To My Order** on their mockup, the Team Orders inquiry email arrives with
+  their logo file and a snapshot of the mockup attached (FormSubmit allows 10 MB
+  of files per inquiry, so a logo too big to fit is sent as a smaller copy, and
+  the email's "logo" line says what's attached), and the form's **Model** dropdown
+  is set to the ball they mocked up unless they've already picked one. Photos
+  drop into `public/images/` (see `public/images/README.md`); on-brand gradient
+  fallbacks render until then.
 - **Admin area** (`/admin`, password-protected):
   - **Find Prospects** — search free/public data sources by type + location and
     save leads.
@@ -72,8 +81,15 @@ Copy `.env.example` and set these in **Vercel → Settings → Environment Varia
 ## Online store (Stripe)
 
 The homepage has a **Shop** section (above Team Orders) with Stripe Checkout
-embedded right in the page. Products and prices are managed in **Stripe**, not
-in the admin:
+embedded right in the page.
+
+**Open/closed switch:** `SHOP_OPEN` in `lib/shop.ts`. While it's `false` the
+section is left off the page, the Shop links come out of the phone menu and the
+footer, the header's **Shop / Inquire** button goes to Team Orders, and the shop
+API won't list products or start a checkout. Nothing in Stripe changes, so
+setting it to `true` and pushing reopens the store as it was.
+
+Products and prices are managed in **Stripe**, not in the admin:
 
 1. Set the three `STRIPE_*` env vars in Vercel and redeploy. A restricted key
    needs **Checkout Sessions: Write**, **Products: Read**, **Prices: Read** and
