@@ -398,10 +398,8 @@ export default function HomePage() {
             </div>
 
             <div className="balls__models">
-              {/* Best to most basic. The badge follows the leather: ink for
-                  Grade A, red for Grade B, outlined for Grade C. Each model's
-                  last line leads with its leather grade and wool content, so
-                  the five read as a ladder down the list. */}
+              {/* Best to most basic. The badge marks the tier: ink for the
+                  A1592, red for the A1492+, outlined for the rest. */}
               <ul className="grades__list balls__list">
                 <li className="grade">
                   <span className="grade__badge grade__badge--top">A1592</span>
@@ -413,7 +411,6 @@ export default function HomePage() {
                       demand.
                     </p>
                     <p className="grade__feats">
-                      Grade A full-grain cowhide &middot; 85% premium gray wool windings &middot;
                       Cushioned cork center &middot; COR and compression tested
                     </p>
                   </div>
@@ -426,7 +423,6 @@ export default function HomePage() {
                       Equivalent to a high school game ball &mdash; commonly used for high school
                       competition and college practice.
                     </p>
-                    <p className="grade__feats">Grade B leather cover &middot; 50% wool windings</p>
                   </div>
                 </li>
                 <li className="grade">
@@ -434,21 +430,18 @@ export default function HomePage() {
                   <div>
                     <h3 className="grade__name">Premium Leather Everyday Practice Ball</h3>
                     <p className="grade__desc">Built for everyday practice and play.</p>
-                    <p className="grade__feats">Grade C leather cover &middot; 50% wool windings</p>
                   </div>
                 </li>
                 <li className="grade">
                   <span className="grade__badge grade__badge--plain">A1392</span>
                   <div>
                     <h3 className="grade__name">Select Series</h3>
-                    <p className="grade__feats">Grade C leather cover &middot; 30% wool windings</p>
                   </div>
                 </li>
                 <li className="grade">
                   <span className="grade__badge grade__badge--plain">A1292</span>
                   <div>
                     <h3 className="grade__name">Classic Series</h3>
-                    <p className="grade__feats">Grade C leather cover &middot; 15% wool windings</p>
                   </div>
                 </li>
               </ul>
