@@ -1032,22 +1032,6 @@ export default function HomePage() {
               <option>Adult / League</option>
               <option>Other</option>
             </select>
-            {/* The Hydra Lineup, best to most basic. Each ball's value is its bare
-                model number, so the inquiry email reads "A1592" and "Add To My
-                Order" can pick the ball it mocked up by its name in script.js's
-                MODELS — keep those names matching. */}
-            <select name="model" aria-label="Which model are you interested in?" defaultValue="" required>
-              <option value="" disabled>
-                Model you&rsquo;re interested in
-              </option>
-              <option value="A1592">A1592 &mdash; Competition Series</option>
-              <option value="A1492+">A1492+ &mdash; Game Ball</option>
-              <option value="A1492">A1492 &mdash; Practice Ball</option>
-              <option value="A1392">A1392 &mdash; Select Series</option>
-              <option value="A1292">A1292 &mdash; Classic Series</option>
-              <option>More than one model</option>
-              <option>Not sure &mdash; help me choose</option>
-            </select>
             <input
               type="number"
               name="quantity"
@@ -1056,6 +1040,22 @@ export default function HomePage() {
               placeholder="Approx. # of baseballs"
               aria-label="Approximate number of baseballs"
             />
+            {/* The Hydra Lineup, best to most basic, each named as it is there.
+                Each ball's value is its bare model number, so the inquiry email
+                reads "A1592" and "Add To My Order" can pick the ball it mocked up
+                by its name in script.js's MODELS — keep those names matching. */}
+            <select name="model" aria-label="Which model are you interested in?" defaultValue="" required>
+              <option value="" disabled>
+                Model you&rsquo;re interested in
+              </option>
+              <option value="A1592">A1592 &mdash; Competition Series</option>
+              <option value="A1492+">A1492+ &mdash; Premium Leather Game Ball</option>
+              <option value="A1492">A1492 &mdash; Premium Leather Everyday Practice Ball</option>
+              <option value="A1392">A1392 &mdash; Select Series</option>
+              <option value="A1292">A1292 &mdash; Classic Series</option>
+              <option>More than one model</option>
+              <option>Not sure &mdash; help me choose</option>
+            </select>
             <select name="referral" aria-label="How did you hear about us?" defaultValue="" required>
               <option value="" disabled>
                 How&rsquo;d you hear about us?
