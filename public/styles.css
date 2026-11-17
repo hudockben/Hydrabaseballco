@@ -863,7 +863,6 @@ ul { list-style: none; }
 .customizer__status.is-error { color: #ff8f8f; }
 
 .controls { margin-top: 18px; display: flex; flex-direction: column; gap: 20px; }
-.control--model { margin-bottom: 18px; } /* the ball picker, above the upload box */
 .controls[hidden] { display: none; }
 .control { display: flex; flex-direction: column; gap: 10px; }
 .control__label {

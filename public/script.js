@@ -1680,23 +1680,15 @@
       });
     }
 
-    /* The ball "Add To My Order" last put in the Team Orders form's Model
-       field — so a press after switching balls moves it along, while a model
-       the customer picked there themselves stays put. */
-    var orderedModel = '';
-
     if (attachBtn) {
       attachBtn.addEventListener('click', function () {
+        /* No ball in the summary: the mockup photo is always the A1492, and
+           the customer picks their ball in the form's Model field. */
         var summary = 'Mocked up on site: ' + (logoName || 'team logo') +
-          ' (' + MODELS[model].name + ', ' +
-          (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
+          ' (' + (placement === 'horseshoe' ? 'horseshoe' : 'side panel') + ', ' +
           INK_LABEL[ink] + (knockout ? ', background removed' : '') + ')';
         var field = document.getElementById('ordersLogo');
         if (field) { field.value = summary; }
-        var modelField = ordersForm ? ordersForm.querySelector('select[name="model"]') : null;
-        if (modelField && (!modelField.value || modelField.value === orderedModel)) {
-          modelField.value = orderedModel = MODELS[model].name;
-        }
         /* Packed now, so the email shows exactly what was added — later
            tweaks need another press. */
         orderArt = window.Promise ? { summary: summary, packed: packArt() } : null;
