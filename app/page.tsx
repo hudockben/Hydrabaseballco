@@ -452,10 +452,6 @@ export default function HomePage() {
                   <span className="spec__v">9 in. &middot; 5 oz.</span>
                 </li>
                 <li className="spec">
-                  <span className="spec__k">Cover</span>
-                  <span className="spec__v">Full-grain leather</span>
-                </li>
-                <li className="spec">
                   <span className="spec__k">Center</span>
                   <span className="spec__v">Red cushioned cork</span>
                 </li>
